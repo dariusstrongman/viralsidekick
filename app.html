@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViralSidekick — your dashboard</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:hsl(230 24% 5%); --card:hsl(228 18% 8%); --card2:hsl(228 16% 11%);
+  --fg:hsl(220 12% 96%); --muted:hsl(220 8% 62%); --faint:hsl(220 8% 40%);
+  --border:hsl(228 14% 16%); --border2:hsl(228 14% 24%);
+  --primary:hsl(260 90% 66%); --primary-soft:hsl(260 90% 66% / .14);
+  --accent:hsl(190 92% 56%); --success:hsl(160 84% 50%); --warning:hsl(38 96% 60%); --danger:hsl(0 84% 60%);
+  --radius:14px; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:hsl(260 90% 66% / .45);color:#fff}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px}
+.bg-app{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(1200px 600px at 80% -10%, hsl(260 90% 66% / .13), transparent 60%),
+  radial-gradient(900px 500px at 0% 10%, hsl(190 92% 56% / .07), transparent 55%), var(--bg)}
+.bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(to right,hsl(228 14% 16% / .4) 1px,transparent 1px),linear-gradient(to bottom,hsl(228 14% 16% / .4) 1px,transparent 1px);
+  background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 55% at 50% 0%,#000 30%,transparent 80%)}
+.wrap{max-width:920px;margin:0 auto;padding:0 22px}
+nav.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:hsl(230 24% 5% / .78);border-bottom:1px solid var(--border)}
+nav.top .wrap{display:flex;align-items:center;gap:20px;height:60px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1rem;letter-spacing:-.02em}
+.logo .bolt{width:19px;height:19px}
+.logo b{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav .right{margin-left:auto;display:flex;gap:12px;align-items:center;font-size:.85rem;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.86rem;padding:10px 18px;border-radius:10px;border:1px solid transparent;cursor:pointer;transition:all .18s;font-family:var(--sans);color:var(--fg)}
+.btn-primary{background:linear-gradient(120deg,var(--primary),hsl(280 90% 62%));color:#fff;box-shadow:0 4px 20px hsl(260 90% 66% / .3)}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.55;cursor:wait;transform:none}
+.btn-ghost{border-color:var(--border2);color:var(--muted)}
+.btn-ghost:hover{color:var(--fg);border-color:var(--border2)}
+.btn-google{background:#fff;color:#1f2328;width:100%}
+.btn-google:hover{transform:translateY(-1px)}
+.btn-block{width:100%}
+main{padding:34px 0 80px}
+.card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+.card+.card{margin-top:18px}
+.card h2{font-size:1.02rem;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.card .hint{color:var(--muted);font-size:.86rem;margin-bottom:14px}
+label{display:block;font-size:.78rem;color:var(--muted);margin:0 0 6px;font-weight:500}
+input[type=text],input[type=email],input[type=password]{width:100%;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;color:var(--fg);font-family:var(--sans);font-size:.92rem;transition:border .15s}
+input:focus{outline:none;border-color:var(--primary)}
+.field+.field{margin-top:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1;min-width:0}
+/* auth */
+.auth-shell{max-width:400px;margin:6vh auto 0}
+.auth-card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:18px;padding:30px 26px}
+.auth-card .brand{text-align:center;margin-bottom:6px}
+.auth-card h1{font-size:1.3rem;font-weight:800;text-align:center;letter-spacing:-.02em}
+.auth-card .sub{text-align:center;color:var(--muted);font-size:.88rem;margin:4px 0 22px}
+.tabs{display:flex;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;padding:4px;margin-bottom:18px}
+.tabs button{flex:1;background:none;border:none;color:var(--muted);font-family:var(--sans);font-weight:600;font-size:.85rem;padding:9px;border-radius:8px;cursor:pointer;transition:.15s}
+.tabs button.on{background:var(--primary-soft);color:var(--fg)}
+.divider{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:.75rem;margin:16px 0}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border2)}
+.msg{font-size:.82rem;border-radius:9px;padding:10px 12px;margin-top:14px;display:none}
+.msg.err{display:block;background:hsl(0 84% 60% / .12);border:1px solid hsl(0 84% 60% / .3);color:hsl(0 84% 78%)}
+.msg.ok{display:block;background:hsl(160 84% 50% / .12);border:1px solid hsl(160 84% 50% / .3);color:hsl(160 84% 78%)}
+.foot-note{text-align:center;color:var(--faint);font-size:.74rem;margin-top:18px}
+/* app home */
+.hi{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin-bottom:2px}
+.hi .g{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.subhi{color:var(--muted);font-size:.92rem;margin-bottom:22px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;padding:4px 10px;border-radius:100px;border:1px solid var(--border2);color:var(--muted)}
+.pill.free{color:var(--muted)} .pill.pro{color:var(--accent);border-color:hsl(190 92% 56% / .4)}
+.scoreRow{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.bigScore{font-size:3rem;font-weight:800;line-height:1;font-family:var(--mono);letter-spacing:-.03em}
+.bigScore small{font-size:1rem;color:var(--faint);font-weight:500}
+.verdict{color:var(--fg);font-size:.95rem;flex:1;min-width:220px}
+.tag{display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px;margin-bottom:6px}
+.tag.fix{background:hsl(38 96% 60% / .15);color:var(--warning)}
+.tag.radar{background:hsl(190 92% 56% / .15);color:var(--accent)}
+.block{background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:11px;padding:14px;margin-top:12px}
+.block b{font-weight:700} .block .l{color:var(--muted);font-size:.85rem;margin-top:3px}
+.hist{list-style:none;margin-top:6px}
+.hist li{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--border)}
+.hist li:last-child{border-bottom:none}
+.hist .hs{font-family:var(--mono);font-weight:700;font-size:1.05rem;width:44px;text-align:right}
+.hist .hc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist .hd{color:var(--faint);font-size:.78rem}
+.empty{color:var(--faint);font-size:.88rem;padding:14px 0;text-align:center}
+.scan-run{display:none;align-items:center;gap:12px;color:var(--muted);font-size:.9rem;margin-top:12px}
+.spin{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--primary);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hide{display:none!important}
+.mut{color:var(--muted)} .sm{font-size:.85rem}
+footer{border-top:1px solid var(--border);color:var(--faint);font-size:.8rem;padding:24px 0}
+footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bg-app"></div><div class="bg-grid"></div>
+
+<nav class="top"><div class="wrap">
+  <a class="logo" href="index.html">
+    <svg class="bolt" viewBox="0 0 32 32"><path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs></svg>
+    VIRAL <b>SIDEKICK</b>
+  </a>
+  <div class="right" id="navRight"></div>
+</div></nav>
+
+<main class="wrap">
+
+  <!-- ============ AUTH GATE ============ -->
+  <section id="authGate" class="hide">
+    <div class="auth-shell">
+      <div class="auth-card">
+        <h1>Your creator second brain</h1>
+        <p class="sub">Log in to track your channel, save every scan, and watch your score climb over time.</p>
+        <div class="tabs">
+          <button id="tabLogin" class="on" onclick="setTab('login')">Log in</button>
+          <button id="tabSignup" onclick="setTab('signup')">Sign up</button>
+        </div>
+        <button class="btn btn-google" onclick="googleAuth()">
+          <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z"/></svg>
+          Continue with Google
+        </button>
+        <div class="divider">or</div>
+        <div class="field"><label>Email</label><input id="aEmail" type="email" autocomplete="email" placeholder="you@channel.com"></div>
+        <div class="field"><label>Password</label><input id="aPass" type="password" autocomplete="current-password" placeholder="at least 6 characters"></div>
+        <button id="authBtn" class="btn btn-primary btn-block" style="margin-top:16px" onclick="emailAuth()">Log in</button>
+        <div id="authMsg" class="msg"></div>
+        <p class="foot-note">Free to start. No card. Your data is yours — <a href="privacy.html" style="color:var(--muted)">privacy</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ APP HOME ============ -->
+  <section id="appHome" class="hide">
+    <div class="hi">Welcome back<span id="hiName"></span><span class="g">.</span></div>
+    <p class="subhi">This is your second brain. Every scan is saved here — run one whenever you post.</p>
+
+    <!-- channel -->
+    <div class="card">
+      <h2>🎯 Your channel</h2>
+      <p class="hint">Set the channel you want ViralSidekick watching. Handle, URL, or channel ID.</p>
+      <div class="row">
+        <input id="chIn" type="text" placeholder="@yourchannel  or  youtube.com/@you  or  UC...">
+        <button class="btn btn-ghost" style="flex:0 0 auto" onclick="saveChannel()">Save</button>
+      </div>
+      <div id="chSaved" class="sm mut" style="margin-top:8px"></div>
+    </div>
+
+    <!-- scan -->
+    <div class="card">
+      <h2>⚡ Run a fresh scan</h2>
+      <p class="hint">Pulls your latest uploads, sweeps your niche live, and saves the result to your history.</p>
+      <button id="scanBtn" class="btn btn-primary" onclick="runScan()">Scan my channel now</button>
+      <div id="scanRun" class="scan-run"><span class="spin"></span><span id="scanRunTxt">scanning…</span></div>
+      <div id="scanResult" class="hide">
+        <div class="scoreRow" style="margin-top:16px">
+          <div class="bigScore"><span id="rScore">–</span><small>/100</small></div>
+          <div class="verdict" id="rVerdict"></div>
+        </div>
+        <div id="rFix" class="block hide"><span class="tag fix">this week's #1 fix</span><div><b id="rFixT"></b><div class="l" id="rFixD"></div></div></div>
+        <div id="rRadar" class="block hide"><span class="tag radar">⚡ erupting in your niche now</span><div><b id="rRadarT"></b><div class="l" id="rRadarE"></div><div class="l" style="color:var(--accent)">your version: <span id="rRadarV"></span></div></div></div>
+        <p class="sm mut" style="margin-top:12px">Saved to your history below. <a href="dashboard.html" style="color:var(--accent)">Open the full report ↗</a></p>
+      </div>
+    </div>
+
+    <!-- history -->
+    <div class="card">
+      <h2>📈 Your score over time</h2>
+      <p class="hint">Every scan you've run. Watch the trend as you apply the fixes.</p>
+      <canvas id="spark" width="860" height="120" style="width:100%;height:120px;display:none"></canvas>
+      <ul id="histList" class="hist"></ul>
+      <div id="histEmpty" class="empty">No scans yet — run your first one above.</div>
+    </div>
+
+    <!-- pro -->
+    <div id="proCard" class="card hide" style="border-color:hsl(190 92% 56% / .35)">
+      <h2>🚀 Go Pro — $19/mo</h2>
+      <p class="hint">Weekly auto pulse to your inbox, unlimited pre-flight title tests, viral DNA, next-video generator, and priority access to real retention curves.</p>
+      <a class="btn btn-primary" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Upgrade to Pro</a>
+    </div>
+  </section>
+
+</main>
+
+<footer><div class="wrap">
+  <span>© 2026 Stromation LLC — <a href="https://www.stromation.com" target="_blank" rel="noopener">a Stromation product</a></span>
+  <span><a href="privacy.html">privacy</a> · <a href="terms.html">terms</a></span>
+</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+var SB_URL = 'https://fzlwnsoknngbdkizxpnl.supabase.co';
+var SB_ANON = 'sb_publishable_K81b73rtZnF0fR6B5mnDWQ_I2CO_OK6';
+var API = 'https://n8n.stromation.com/webhook/viralsidekick-analyze';
+var sb = window.supabase.createClient(SB_URL, SB_ANON);
+var $ = function(id){ return document.getElementById(id); };
+var mode = 'login', USER = null, PROFILE = null;
+
+/* ---------- routing ---------- */
+function route(session){
+  USER = session ? session.user : null;
+  if (USER){ $('authGate').classList.add('hide'); $('appHome').classList.remove('hide'); showApp(); }
+  else { $('appHome').classList.add('hide'); $('authGate').classList.remove('hide'); $('navRight').innerHTML=''; }
+}
+sb.auth.getSession().then(function(r){ route(r.data.session); });
+sb.auth.onAuthStateChange(function(_e, session){ route(session); });
+
+/* ---------- auth ---------- */
+function setTab(m){
+  mode = m;
+  $('tabLogin').classList.toggle('on', m==='login');
+  $('tabSignup').classList.toggle('on', m==='signup');
+  $('authBtn').textContent = m==='login' ? 'Log in' : 'Create account';
+  $('aPass').setAttribute('autocomplete', m==='login' ? 'current-password' : 'new-password');
+  msg('');
+}
+function msg(t, ok){ var e=$('authMsg'); if(!t){ e.className='msg'; e.textContent=''; return;} e.className='msg '+(ok?'ok':'err'); e.textContent=t; }
+function emailAuth(){
+  var email=$('aEmail').value.trim(), pass=$('aPass').value;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return msg('enter a valid email.');
+  if(pass.length<6) return msg('password needs at least 6 characters.');
+  $('authBtn').disabled=true; msg('');
+  var p = mode==='login'
+    ? sb.auth.signInWithPassword({email:email,password:pass})
+    : sb.auth.signUp({email:email,password:pass});
+  p.then(function(r){
+    $('authBtn').disabled=false;
+    if(r.error) return msg(r.error.message);
+    if(mode==='signup' && !r.data.session) return msg('check your email to confirm your account, then log in.', true);
+    /* onAuthStateChange handles the redirect into the app */
+  });
+}
+function googleAuth(){
+  sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
+}
+function logout(){ sb.auth.signOut(); }
+
+/* ---------- app ---------- */
+function showApp(){
+  var name = (USER.user_metadata && USER.user_metadata.full_name) ? USER.user_metadata.full_name.split(' ')[0] : (USER.email||'').split('@')[0];
+  $('hiName').textContent = name ? ', ' + name : '';
+  $('navRight').innerHTML = '<span>'+esc(USER.email||'')+'</span><button class="btn btn-ghost" onclick="logout()">Log out</button>';
+  loadProfile();
+  loadHistory();
+}
+function loadProfile(){
+  sb.from('viralsidekick_profiles').select('*').eq('id', USER.id).maybeSingle().then(function(r){
+    PROFILE = r.data || {};
+    if(PROFILE.primary_channel_id || PROFILE.primary_channel_name){
+      $('chIn').value = PROFILE.primary_channel_name || PROFILE.primary_channel_id || '';
+      $('chSaved').textContent = 'watching: ' + (PROFILE.primary_channel_name || PROFILE.primary_channel_id);
+    }
+    $('proCard').classList.toggle('hide', PROFILE.plan === 'pro');
+  });
+}
+function saveChannel(){
+  var v = $('chIn').value.trim();
+  if(!v) return;
+  sb.from('viralsidekick_profiles').upsert({ id: USER.id, email: USER.email, primary_channel_name: v, updated_at: new Date().toISOString() }).then(function(r){
+    if(!r.error){ $('chSaved').textContent = 'saved ✓  watching: ' + v; }
+    else { $('chSaved').textContent = 'could not save: ' + r.error.message; }
+  });
+}
+function runScan(){
+  var ch = $('chIn').value.trim();
+  if(!ch){ $('chSaved').textContent='set a channel first ↑'; $('chIn').focus(); return; }
+  $('scanBtn').disabled=true; $('scanResult').classList.add('hide');
+  $('scanRun').style.display='flex'; $('scanRunTxt').textContent='resolving your channel + sweeping your niche… (~30s)';
+  fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channel: ch, email: USER.email, user_id: USER.id, website:'' }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      $('scanBtn').disabled=false; $('scanRun').style.display='none';
+      if(d.error || !d.ai){ $('chSaved').textContent = 'scan issue: ' + (d.error||'try the full URL or channel ID'); return; }
+      renderResult(d);
+      setTimeout(loadHistory, 900); /* let the engine's write land */
+    })
+    .catch(function(){ $('scanBtn').disabled=false; $('scanRun').style.display='none'; $('chSaved').textContent='scan failed, try again in a sec.'; });
+}
+function renderResult(d){
+  var ai = d.ai || {};
+  $('rScore').textContent = ai.score != null ? ai.score : '–';
+  $('rVerdict').textContent = ai.verdict || '';
+  var fix = (ai.fixes||[])[0];
+  if(fix){ $('rFix').classList.remove('hide'); $('rFixT').textContent = fix.title||''; $('rFixD').textContent = fix['do']||fix.detail||''; } else $('rFix').classList.add('hide');
+  var rad = (ai.radar||[])[0];
+  if(rad){ $('rRadar').classList.remove('hide'); $('rRadarT').textContent=rad.trend||''; $('rRadarE').textContent=rad.evidence||''; $('rRadarV').textContent=rad.your_version||''; } else $('rRadar').classList.add('hide');
+  $('scanResult').classList.remove('hide');
+}
+function loadHistory(){
+  sb.from('viralsidekick_scans').select('channel_name,score,created_at').order('created_at',{ascending:false}).limit(40).then(function(r){
+    var rows = r.data || [];
+    var list=$('histList'); list.innerHTML='';
+    if(!rows.length){ $('histEmpty').style.display='block'; $('spark').style.display='none'; return; }
+    $('histEmpty').style.display='none';
+    rows.forEach(function(s){
+      var li=document.createElement('li');
+      var d=new Date(s.created_at);
+      li.innerHTML = '<span class="hs" style="color:'+scoreColor(s.score)+'">'+(s.score!=null?s.score:'–')+'</span>'
+        +'<span class="hc">'+esc(s.channel_name||'channel')+'</span>'
+        +'<span class="hd">'+d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</span>';
+      list.appendChild(li);
+    });
+    drawSpark(rows.slice().reverse());
+  });
+}
+function scoreColor(s){ if(s==null) return 'var(--faint)'; if(s>=75) return 'var(--success)'; if(s>=50) return 'var(--warning)'; return 'var(--danger)'; }
+function drawSpark(rows){
+  var c=$('spark'); if(rows.length<2){ c.style.display='none'; return; } c.style.display='block';
+  var x=c.getContext('2d'), W=c.width, H=c.height, pad=14;
+  x.clearRect(0,0,W,H);
+  var vals=rows.map(function(r){return r.score==null?0:r.score;});
+  var n=vals.length, dx=(W-pad*2)/(n-1);
+  function py(v){ return H-pad-(v/100)*(H-pad*2); }
+  var grad=x.createLinearGradient(0,0,W,0); grad.addColorStop(0,'#8b5cf6'); grad.addColorStop(1,'#22d3ee');
+  x.beginPath();
+  vals.forEach(function(v,i){ var px=pad+i*dx, y=py(v); i?x.lineTo(px,y):x.moveTo(px,y); });
+  x.strokeStyle=grad; x.lineWidth=2.5; x.lineJoin='round'; x.stroke();
+  x.lineTo(pad+(n-1)*dx,H-pad); x.lineTo(pad,H-pad); x.closePath();
+  var fill=x.createLinearGradient(0,0,0,H); fill.addColorStop(0,'hsl(260 90% 66% / .22)'); fill.addColorStop(1,'transparent'); x.fillStyle=fill; x.fill();
+  vals.forEach(function(v,i){ var px=pad+i*dx,y=py(v); x.beginPath(); x.arc(px,y,3,0,7); x.fillStyle=scoreColor(v); x.fill(); });
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+</script>
+</body>
+</html>
