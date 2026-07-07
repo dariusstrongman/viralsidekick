@@ -1,4 +1,4 @@
--- ViralHit v1 schema (run once in Supabase SQL editor, main project iadzcnzgbtuigyodeqas)
+-- ViralSidekick v1 schema (run once in Supabase SQL editor, main project iadzcnzgbtuigyodeqas)
 -- The analyze workflow degrades gracefully if this table is missing (leads still land in businesses).
 
 create table if not exists viralhit_scans (

@@ -1,8 +1,8 @@
-# ViralHit
+# ViralSidekick
 
-AI creator intelligence. Paste your channel — ViralHit autopsies every upload against what wins in your niche: outliers, dead zones, posting windows, and a 30-day roadmap.
+AI creator intelligence. Paste your channel — ViralSidekick autopsies every upload against what wins in your niche: outliers, dead zones, posting windows, and a 30-day roadmap.
 
-**Live:** https://dariusstrongman.github.io/viralhit/ (viralhit.stromation.com pending DNS)
+**Live:** https://viralsidekick.com (custom domain — set DNS to activate; https://dariusstrongman.github.io/viralhit/ is the fallback)
 
 A [Stromation](https://www.stromation.com) product. Built in public.
 
