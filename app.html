@@ -185,7 +185,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
     <div id="proCard" class="card hide" style="border-color:hsl(190 92% 56% / .35)">
       <h2>🚀 Go Pro — $19/mo</h2>
       <p class="hint">Weekly auto pulse to your inbox, unlimited pre-flight title tests, viral DNA, next-video generator, and priority access to real retention curves.</p>
-      <a class="btn btn-primary" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Upgrade to Pro</a>
+      <a id="proBtn" class="btn btn-primary" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Upgrade to Pro</a>
     </div>
   </section>
 
@@ -249,6 +249,9 @@ function showApp(){
   var name = (USER.user_metadata && USER.user_metadata.full_name) ? USER.user_metadata.full_name.split(' ')[0] : (USER.email||'').split('@')[0];
   $('hiName').textContent = name ? ', ' + name : '';
   $('navRight').innerHTML = '<span>'+esc(USER.email||'')+'</span><button class="btn btn-ghost" onclick="logout()">Log out</button>';
+  /* pass identity to Stripe so the webhook can flip THIS account to pro */
+  var pb = $('proBtn');
+  if (pb) pb.href = 'https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n?client_reference_id=' + USER.id + '&prefilled_email=' + encodeURIComponent(USER.email || '');
   loadProfile();
   loadHistory();
 }
