@@ -89,6 +89,7 @@ canvas#dial{width:110px;height:110px}
 .scoreinfo .sl{font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
 .scoreinfo .sv{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}
 .scoreinfo .sv small{font-size:.9rem;color:var(--faint);font-weight:500}
+.gradepill{display:inline-block;font-family:var(--sans);font-weight:800;font-size:1.15rem;padding:1px 11px;border-radius:9px;vertical-align:middle;margin-left:4px;border:1.5px solid currentColor}
 .verdict{background:linear-gradient(180deg,hsl(260 90% 66% / .1),hsl(228 18% 8% / .6));border:1px solid hsl(260 90% 66% / .35);
   border-radius:16px;padding:22px 26px;margin-bottom:16px}
 .verdict .vl{font-family:var(--mono);font-size:.64rem;letter-spacing:.2em;color:var(--primary);text-transform:uppercase;margin-bottom:8px}
@@ -264,8 +265,11 @@ footer a{color:var(--muted)}
         <canvas id="dial" width="110" height="110" aria-label="viral readiness score"></canvas>
         <div class="scoreinfo">
           <div class="sl">viral readiness</div>
-          <div class="sv"><span id="rScore">—</span><small>/100</small></div>
-          <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="shareCard()">↓ share score card</button>
+          <div class="sv"><span id="rScore">—</span><small>/100</small> <span id="rGrade" class="gradepill">–</span></div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="shareCard()">↓ score card</button>
+            <a class="btn btn-ghost btn-sm" id="rCardLink" href="c.html" target="_blank" rel="noopener">↗ report card</a>
+          </div>
         </div>
       </div>
     </div>
@@ -450,6 +454,8 @@ function fmt(n){
   return String(Math.round(n));
 }
 function esc(t){ var d = document.createElement('div'); d.textContent = t==null?'':t; return d.innerHTML; }
+function gradeOf(s){ var t=[[90,'A+'],[85,'A'],[80,'A-'],[75,'B+'],[70,'B'],[65,'B-'],[60,'C+'],[55,'C'],[50,'C-'],[45,'D+'],[40,'D'],[33,'D-']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
+function gradeColor(g){ var c=(g||'')[0]; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
 
 function renderReport(d){
   show('report');
@@ -461,6 +467,11 @@ function renderReport(d){
   var score = (d.ai && d.ai.score) != null ? d.ai.score : 50;
   $('rScore').textContent = score;
   drawDial(score);
+  // letter grade
+  var gl = gradeOf(score), gc = gradeColor(gl);
+  var gp = $('rGrade'); if (gp){ gp.textContent = gl; gp.style.color = gc; }
+  // shareable public report card link, prefilled with this channel
+  var cl = $('rCardLink'); if (cl && ch.id) cl.href = 'c.html?ch=' + encodeURIComponent(ch.id);
   $('rVerdict').textContent = (d.ai && d.ai.verdict) || 'analysis unavailable — try re-running the scan.';
 
   var s = d.stats || {};

@@ -79,6 +79,7 @@ input:focus{outline:none;border-color:var(--primary)}
 .scoreRow{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .bigScore{font-size:3rem;font-weight:800;line-height:1;font-family:var(--mono);letter-spacing:-.03em}
 .bigScore small{font-size:1rem;color:var(--faint);font-weight:500}
+.gradepill{font-size:1.5rem;font-weight:800;padding:2px 12px;border-radius:11px;border:2px solid currentColor;vertical-align:middle;margin-left:6px}
 .verdict{color:var(--fg);font-size:.95rem;flex:1;min-width:220px}
 .tag{display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px;margin-bottom:6px}
 .tag.fix{background:hsl(38 96% 60% / .15);color:var(--warning)}
@@ -163,7 +164,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
       <div id="scanRun" class="scan-run"><span class="spin"></span><span id="scanRunTxt">scanning…</span></div>
       <div id="scanResult" class="hide">
         <div class="scoreRow" style="margin-top:16px">
-          <div class="bigScore"><span id="rScore">–</span><small>/100</small></div>
+          <div class="bigScore"><span id="rScore">–</span><small>/100</small> <span id="rGrade" class="gradepill">–</span></div>
           <div class="verdict" id="rVerdict"></div>
         </div>
         <div id="rFix" class="block hide"><span class="tag fix">this week's #1 fix</span><div><b id="rFixT"></b><div class="l" id="rFixD"></div></div></div>
@@ -291,9 +292,12 @@ function runScan(){
     })
     .catch(function(){ $('scanBtn').disabled=false; $('scanRun').style.display='none'; $('chSaved').textContent='scan failed, try again in a sec.'; });
 }
+function gradeOf(s){ var t=[[90,'A+'],[85,'A'],[80,'A-'],[75,'B+'],[70,'B'],[65,'B-'],[60,'C+'],[55,'C'],[50,'C-'],[45,'D+'],[40,'D'],[33,'D-']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
 function renderResult(d){
   var ai = d.ai || {};
-  $('rScore').textContent = ai.score != null ? ai.score : '–';
+  var sc = ai.score != null ? ai.score : null;
+  $('rScore').textContent = sc != null ? sc : '–';
+  var gp = $('rGrade'); if(gp){ if(sc!=null){ var g=gradeOf(sc); gp.textContent=g; gp.style.color=scoreColor(sc); gp.style.display=''; } else gp.style.display='none'; }
   $('rVerdict').textContent = ai.verdict || '';
   var fix = (ai.fixes||[])[0];
   if(fix){ $('rFix').classList.remove('hide'); $('rFixT').textContent = fix.title||''; $('rFixD').textContent = fix['do']||fix.detail||''; } else $('rFix').classList.add('hide');
