@@ -287,6 +287,24 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .altpanel{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:16px;padding:26px}
 .altpanel .big{font-size:1.2rem;font-weight:800;margin:10px 0 4px}
 .pi-yt{color:#ff4e45}.pi-tt{color:var(--fg)}.pi-ig{color:#e1306c}
+
+/* ============ LIVE PULSE odometer ============ */
+.pulse{--tc:var(--accent);background:linear-gradient(180deg,hsl(228 20% 7%),hsl(230 24% 5%))!important}
+.pulse-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.pcounter{background:hsl(230 26% 4%);border:1px solid var(--border);border-radius:13px;padding:15px 16px;position:relative;overflow:hidden}
+.pcounter::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:linear-gradient(90deg,transparent,var(--pc,var(--primary)),transparent);opacity:.6}
+.pcounter .pk{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.pcounter .pk .pi{width:13px;height:13px}
+.pcounter .pk .rate{margin-left:auto;color:var(--pc,var(--accent));letter-spacing:.04em}
+.odo{display:flex;align-items:center;font-family:var(--mono);font-weight:700;font-size:clamp(1.4rem,2.6vw,2rem);line-height:1;color:var(--fg);font-variant-numeric:tabular-nums}
+.odo .grp{display:flex}
+.odo .comma{opacity:.35;padding:0 1px;transform:translateY(-2px)}
+.odo .dcol{position:relative;height:1em;width:.62ch;overflow:hidden}
+.odo .dstrip{position:absolute;left:0;top:0;display:flex;flex-direction:column;transition:transform .55s cubic-bezier(.25,.9,.3,1);will-change:transform}
+.odo .dstrip span{height:1em;display:block;text-align:center}
+.pcounter .psub{font-size:.72rem;color:var(--faint);margin-top:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
+.pcounter .psub b{color:var(--muted);font-weight:600}
+.pulse .approx{font-size:.6rem;color:var(--faint);font-family:var(--mono);letter-spacing:.05em}
 </style>
 </head>
 <body>
@@ -392,6 +410,12 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 
       <!-- YOUTUBE DECK -->
       <div class="bento" id="ytDeck">
+
+        <!-- LIVE PULSE: real-time counters -->
+        <div class="tile pulse s6" id="tPulse" style="display:none">
+          <h3><span class="acc">⦿</span> live pulse <span class="end liveflag"><span class="dot"></span>updating live</span></h3>
+          <div class="pulse-grid" id="pulseGrid"></div>
+        </div>
 
         <div class="tile radar s4" id="tRadar">
           <h3><span class="acc">⚡</span> niche radar <span class="end" id="radarLive"></span></h3>
@@ -716,7 +740,100 @@ function renderAlt(p){
 }
 
 /* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
-function goLive(){ liveVitals(); loadLatestFull(); loadHistory(); }
+function goLive(){ liveVitals(); loadLatestFull(); loadHistory(); startPulse(); }
+
+/* ============ LIVE PULSE: flip odometers polling real counts ============ */
+var PULSE={ poll:null, anim:null, c:{} }; /* c[key]={val,rate,lastVal,lastTs,el} */
+function expandCount(txt){ /* "21.1M subscribers" -> 21100000 */
+  var m=String(txt||'').match(/([\d.,]+)\s*([KMB])?/i); if(!m) return null;
+  var n=parseFloat(m[1].replace(/,/g,'')); if(isNaN(n)) return null;
+  var mult={K:1e3,M:1e6,B:1e9}[(m[2]||'').toUpperCase()]||1;
+  return Math.round(n*mult);
+}
+function odoRender(el, val){
+  val=Math.max(0,Math.floor(val));
+  var s=String(val), want=s.length;
+  if(el._digits!==want){ /* (re)build digit columns with comma groups */
+    el._digits=want; el.innerHTML='';
+    for(var i=0;i<want;i++){
+      if(i>0 && (want-i)%3===0){ var c=document.createElement('span'); c.className='comma'; c.textContent=','; el.appendChild(c); }
+      var col=document.createElement('span'); col.className='dcol';
+      var strip=document.createElement('span'); strip.className='dstrip';
+      for(var d=0;d<10;d++){ var dd=document.createElement('span'); dd.textContent=d; strip.appendChild(dd); }
+      col.appendChild(strip); el.appendChild(col);
+    }
+    el._strips=el.querySelectorAll('.dstrip');
+  }
+  for(var j=0;j<want;j++){ el._strips[j].style.transform='translateY(-'+(+s[j])+'em)'; }
+}
+function pulseCounter(key, label, icon, color){
+  if(PULSE.c[key]) return PULSE.c[key];
+  var grid=$('pulseGrid');
+  var box=document.createElement('div'); box.className='pcounter'; box.style.setProperty('--pc',color||'var(--accent)');
+  box.innerHTML='<div class="pk">'+icon+' '+esc(label)+' <span class="rate" id="pr_'+key+'"></span></div><div class="odo" id="po_'+key+'"></div><div class="psub" id="ps_'+key+'"></div>';
+  grid.appendChild(box);
+  $('tPulse').style.display='';
+  return (PULSE.c[key]={ val:0, rate:0, lastVal:null, lastTs:0, el:$('po_'+key) });
+}
+function pulseSet(key, newVal, subHTML, rateHint){
+  var c=PULSE.c[key]; if(!c || newVal==null) return;
+  var now=Date.now();
+  if(newVal < c.val*0.9){ /* target changed (e.g. a fresh upload took the "latest video" slot) — reset */
+    c.val=newVal; c.rate=rateHint||0; c.lastVal=newVal; c.lastTs=now;
+    odoRender(c.el, c.val); if(subHTML!=null) $('ps_'+key).innerHTML=subHTML;
+    var r0=$('pr_'+key); if(r0) r0.textContent = c.rate>=(1/3600) ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
+    return;
+  }
+  if(c.lastVal!=null && newVal>c.lastVal && now>c.lastTs){
+    c.rate=(newVal-c.lastVal)/((now-c.lastTs)/1000); /* measured live velocity */
+  } else if(c.lastVal==null && rateHint){ c.rate=rateHint; }
+  if(c.lastVal==null || newVal!==c.lastVal){ c.lastVal=newVal; c.lastTs=now; }
+  if(newVal>c.val || c.val===0) c.val=newVal;
+  odoRender(c.el, c.val);
+  if(subHTML!=null) $('ps_'+key).innerHTML=subHTML;
+  var r=$('pr_'+key);
+  if(r) r.textContent = c.rate>=(1/3600) ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
+}
+function pollPulse(){
+  var q=IDENT.yt.id||IDENT.yt.name; if(!q) return;
+  var body={ mode:'live', channel:q, website:'' };
+  if(IDENT.tiktok) body.tiktok=IDENT.tiktok;
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d||!d.ok) return;
+      var yt=d.youtube||{};
+      if(yt.subs_text){
+        pulseCounter('subs','subscribers',IC_YT,'hsl(0 84% 62%)');
+        pulseSet('subs', expandCount(yt.subs_text), '<b>'+esc(yt.name||'')+'</b> · youtube precision');
+      }
+      var lv=(yt.latest||[])[0];
+      if(lv){
+        pulseCounter('lv','latest video · views',IC_YT,'var(--primary)');
+        pulseSet('lv', lv.views, esc(lv.title||''), (lv.vph||0)/3600);
+      }
+      if(d.tiktok && d.tiktok.followers!=null){
+        pulseCounter('tt','tiktok followers',IC_TT,'var(--accent)');
+        pulseSet('tt', d.tiktok.followers, '<b>@'+esc(d.tiktok.handle)+'</b> · exact'+(d.tiktok.likes?' · '+nfmt(d.tiktok.likes)+' likes':''));
+      }
+    }).catch(function(){});
+}
+function tickPulse(){ /* interpolate between polls so the digits actually roll */
+  for(var k in PULSE.c){ var c=PULSE.c[k];
+    if(c.rate>0 && c.val>0){ c.val+=c.rate; odoRender(c.el, c.val); }
+  }
+}
+function startPulse(){
+  stopPulse();
+  pollPulse();
+  PULSE.poll=setInterval(pollPulse, 45000);
+  PULSE.anim=setInterval(tickPulse, 1000);
+}
+function stopPulse(){ if(PULSE.poll){clearInterval(PULSE.poll);PULSE.poll=null;} if(PULSE.anim){clearInterval(PULSE.anim);PULSE.anim=null;} }
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden) stopPulse();
+  else if(USER && (IDENT.yt.id||IDENT.yt.name)) startPulse();
+});
 function liveVitals(){
   var q=IDENT.yt.id||IDENT.yt.name; if(!q) return;
   $('liveFlag').className='liveflag';
