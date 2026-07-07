@@ -15,6 +15,8 @@ create table if not exists viralsidekick_profiles (
   display_name text,
   avatar_url text,
   timezone text,
+  primary_channel_id text,
+  primary_channel_name text,
   plan text default 'free',
   plan_status text default 'active',
   stripe_customer text,
@@ -23,6 +25,8 @@ create table if not exists viralsidekick_profiles (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+alter table viralsidekick_profiles add column if not exists primary_channel_id text;
+alter table viralsidekick_profiles add column if not exists primary_channel_name text;
 alter table viralsidekick_profiles enable row level security;
 drop policy if exists "own profile" on viralsidekick_profiles;
 create policy "own profile" on viralsidekick_profiles for all
