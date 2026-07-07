@@ -1,7 +1,8 @@
--- ViralSidekick v1 schema (run once in Supabase SQL editor, main project iadzcnzgbtuigyodeqas)
--- The analyze workflow degrades gracefully if this table is missing (leads still land in businesses).
+-- ViralSidekick schema — run ONCE in the dedicated Supabase project (fzlwnsoknngbdkizxpnl)
+-- SQL editor → paste → run. The n8n engine degrades gracefully until these exist.
 
-create table if not exists viralhit_scans (
+-- 1) scan history + lead list (email captured on every scan)
+create table if not exists viralsidekick_scans (
   id uuid primary key default gen_random_uuid(),
   email text not null,
   channel_id text not null,
@@ -10,8 +11,19 @@ create table if not exists viralhit_scans (
   report jsonb,
   created_at timestamptz default now()
 );
-create index if not exists viralhit_scans_email_idx on viralhit_scans (email, created_at desc);
-create index if not exists viralhit_scans_channel_idx on viralhit_scans (channel_id, created_at desc);
+create index if not exists viralsidekick_scans_email_idx on viralsidekick_scans (email, created_at desc);
+create index if not exists viralsidekick_scans_channel_idx on viralsidekick_scans (channel_id, created_at desc);
 
--- lock it down: service-role only (the n8n workflow uses the service key; no anon access)
-alter table viralhit_scans enable row level security;
+-- 2) per-email subscriber status (weekly pulse opt-out + future stripe pro flag)
+create table if not exists viralsidekick_subscribers (
+  email text primary key,
+  is_pro boolean default false,
+  unsubscribed boolean default false,
+  stripe_customer text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- lock both down: service-role only (the n8n engine uses the secret key; no anon/public access)
+alter table viralsidekick_scans enable row level security;
+alter table viralsidekick_subscribers enable row level security;
