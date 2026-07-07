@@ -218,6 +218,75 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 
 .empty-hq{grid-column:span 6;text-align:center;padding:40px 20px;color:var(--muted)}
 .empty-hq h3{font-size:1.15rem;color:var(--fg);margin-bottom:6px}
+
+/* identity header */
+.idhead{display:grid;grid-template-columns:auto auto 1fr auto;gap:20px;align-items:center;
+  background:linear-gradient(120deg,hsl(260 90% 66% / .09),hsl(228 18% 8% / .6));
+  border:1px solid var(--border2);border-radius:18px;padding:18px 22px;margin-bottom:14px;position:relative;overflow:hidden}
+.idhead::before{content:"";position:absolute;inset:0 auto 0 0;width:320px;background:radial-gradient(240px 170px at 0% 50%,var(--gc,var(--primary)),transparent 70%);opacity:.13;pointer-events:none}
+.avatar{width:72px;height:72px;border-radius:20px;object-fit:cover;border:2px solid var(--border2);background:linear-gradient(135deg,var(--primary),var(--accent));flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem;color:#fff;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.id-meta .tag-you{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.id-name{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.id-sub{font-family:var(--mono);font-size:.8rem;color:var(--muted);margin-top:5px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.id-sub b{color:var(--fg)}
+.plat-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.plat-chip{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;font-weight:600;padding:6px 11px;border-radius:100px;border:1px solid var(--border2);color:var(--muted);cursor:pointer;transition:.15s;background:hsl(230 24% 4%)}
+.plat-chip:hover{color:var(--fg);border-color:var(--border2)}
+.plat-chip.on{color:#fff;border-color:var(--gc,var(--primary));background:var(--primary-soft)}
+.plat-chip.add{border-style:dashed;color:var(--faint)}
+.plat-chip .pi{width:14px;height:14px;flex:0 0 auto}
+.id-grade{display:flex;align-items:center;gap:16px}
+.gring2{position:relative;width:84px;height:84px}
+.gring2 svg{width:84px;height:84px;transform:rotate(-90deg)}
+.gring2 .gl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gring2 .gl b{font-size:1.7rem;font-weight:800;color:var(--gc,var(--primary));line-height:1}
+.gring2 .gl small{font-family:var(--mono);font-size:.85rem;color:var(--muted);margin-top:1px}
+.id-actions{display:flex;flex-direction:column;gap:7px;align-items:flex-end}
+.liveflag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.liveflag .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 1.8s infinite}
+.liveflag.stale{color:var(--faint)} .liveflag.stale .dot{background:var(--faint);box-shadow:none;animation:none}
+@media(max-width:900px){.idhead{grid-template-columns:auto 1fr;gap:14px}.id-grade{grid-column:1/-1;justify-content:space-between}.id-actions{align-items:stretch}}
+
+/* platform tabs */
+.ptabs{display:flex;gap:6px;margin-bottom:14px;background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:13px;padding:5px;width:fit-content;max-width:100%;overflow:auto}
+.ptab{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:9px;font-weight:600;font-size:.85rem;color:var(--muted);cursor:pointer;white-space:nowrap;border:1px solid transparent;transition:.15s}
+.ptab:hover{color:var(--fg)}
+.ptab.on{color:#fff;background:var(--primary-soft);border-color:hsl(260 90% 66% / .4)}
+.ptab .pi{width:15px;height:15px}
+.ptab .st{font-family:var(--mono);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.ptab.on .st{color:var(--accent)}
+
+/* live vitals tile */
+.vit{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.vit .v{background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:10px;padding:11px}
+.vit .v .n{font-family:var(--mono);font-size:1.15rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.vit .v .l{font-size:.6rem;color:var(--muted);margin-top:4px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+
+/* onboarding + connect modal */
+.onboard{max-width:560px;margin:4vh auto 0}
+.onboard .oc{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:18px;padding:30px 28px}
+.onboard h1{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;text-align:center}
+.onboard .osub{text-align:center;color:var(--muted);font-size:.92rem;margin:6px 0 22px}
+.conn-row{margin-bottom:14px}
+.conn-row label{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--fg);font-weight:600;margin-bottom:7px}
+.conn-row label .pi{width:16px;height:16px}
+.conn-row .rr{display:flex;gap:8px}
+.conn-row .rr input{flex:1}
+.conn-note{font-size:.72rem;color:var(--faint);margin-top:5px}
+.found{display:none;align-items:center;gap:12px;background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .3);border-radius:12px;padding:11px 13px;margin-top:8px}
+.found img{width:40px;height:40px;border-radius:11px;object-fit:cover}
+.found .fn{font-weight:700;font-size:.92rem} .found .fs{font-size:.78rem;color:var(--muted)}
+.modal{position:fixed;inset:0;z-index:80;background:hsl(230 30% 2% / .74);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal.on{display:flex}
+.modal .mc{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:18px;padding:26px;max-width:480px;width:100%;position:relative}
+.modal .mc h2{font-size:1.15rem;font-weight:800;margin-bottom:4px}
+.modal .mc .x{position:absolute;top:14px;right:16px;color:var(--faint);cursor:pointer;font-size:1.2rem}
+
+/* alt-platform panel */
+.altpanel{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:16px;padding:26px}
+.altpanel .big{font-size:1.2rem;font-weight:800;margin:10px 0 4px}
+.pi-yt{color:#ff4e45}.pi-tt{color:var(--fg)}.pi-ig{color:#e1306c}
 </style>
 </head>
 <body>
@@ -261,132 +330,209 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
   <section id="appHome" class="hide">
     <div class="boot-line" id="bootLine"></div>
 
-    <!-- command bar -->
-    <div class="cmdbar" id="cmdbar">
-      <div class="gring">
-        <svg viewBox="0 0 96 96" aria-hidden="true">
-          <circle cx="48" cy="48" r="41" fill="none" stroke="var(--border)" stroke-width="7"></circle>
-          <circle id="hqRing" cx="48" cy="48" r="41" fill="none" stroke="var(--gc,var(--primary))" stroke-width="7" stroke-linecap="round" stroke-dasharray="258" stroke-dashoffset="258"></circle>
-        </svg>
-        <div class="gl" id="hqGrade">–</div>
-      </div>
-      <div class="ident">
-        <div class="ident-eyebrow">VIRAL HQ // <b id="chLabel">no channel set</b></div>
-        <div class="ident-name" id="hqName">Welcome, operator</div>
-        <div class="ident-meta">
-          <span><b id="hqScore">–</b>/100 viral readiness</span>
-          <span id="hqDelta" class="delta flat">—</span>
-          <span>scanned <b id="hqWhen">never</b></span>
+    <!-- ONBOARDING: connect your identity (shown when no youtube channel bound) -->
+    <div class="onboard hide" id="onboard">
+      <div class="oc">
+        <h1>This is you. Let's connect your channels.</h1>
+        <p class="osub">ViralSidekick becomes your creator command center. Start with YouTube — it goes live instantly.</p>
+        <div class="conn-row">
+          <label><svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg> Your YouTube channel</label>
+          <div class="rr">
+            <input id="obYt" type="text" placeholder="@yourchannel  ·  youtube.com/@you  ·  UC…">
+            <button class="btn btn-primary" style="flex:0 0 auto" onclick="connectYouTube('obYt','obFound')">Connect</button>
+          </div>
+          <div class="found" id="obFound"></div>
+          <div class="conn-note">We read only public data — no login, no password.</div>
         </div>
-      </div>
-      <div class="cmdside">
-        <div class="chan-field">
-          <input id="chIn" type="text" placeholder="@yourchannel  ·  URL  ·  UC…">
-          <button class="btn btn-ghost" style="flex:0 0 auto" onclick="saveChannel()">Save</button>
+        <div class="conn-row">
+          <label><svg class="pi pi-tt" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.2 1.8 3.9 4 4.1v2.7c-1.4.1-2.7-.3-4-1v6.3a6 6 0 1 1-6-6c.3 0 .5 0 .8.1v2.9a3.1 3.1 0 1 0 2.2 3V3h3z"/></svg> TikTok <span style="color:var(--faint);font-weight:400;font-size:.76rem">(optional)</span></label>
+          <div class="rr"><input id="obTt" type="text" placeholder="@yourtiktok"></div>
         </div>
-        <button id="scanBtn" class="btn btn-primary btn-block" onclick="runScan()">⚡ Run fresh scan</button>
-        <div id="scanRun" class="scanline"><span class="spin"></span><span id="scanRunTxt">scanning…</span></div>
-        <div id="chSaved" class="sm mut" style="font-size:.76rem"></div>
+        <div class="conn-row">
+          <label><svg class="pi pi-ig" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3 0 4.1.1 1 0 1.6.2 2 .4.5.2.9.5 1.3.9.4.4.7.8.9 1.3.2.4.3 1 .4 2C20.9 8 21 8.3 21 11s0 3-.1 4.1c0 1-.2 1.6-.4 2a3.5 3.5 0 0 1-.9 1.3c-.4.4-.8.7-1.3.9-.4.2-1 .3-2 .4-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-1 0-1.6-.2-2-.4a3.5 3.5 0 0 1-1.3-.9 3.5 3.5 0 0 1-.9-1.3c-.2-.4-.3-1-.4-2C3 15 3 14.7 3 12s0-3 .1-4.1c0-1 .2-1.6.4-2 .2-.5.5-.9.9-1.3.4-.4.8-.7 1.3-.9.4-.2 1-.3 2-.4C8.8 3 9.1 3 12 3zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8zM17.8 6a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1z"/></svg> Instagram <span style="color:var(--faint);font-weight:400;font-size:.76rem">(optional)</span></label>
+          <div class="rr"><input id="obIg" type="text" placeholder="@yourinstagram"></div>
+        </div>
+        <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="finishOnboard()">Enter my HQ →</button>
       </div>
     </div>
 
-    <!-- bento deck -->
-    <div class="bento" id="deck">
+    <!-- HQ (shown when a channel is bound) -->
+    <div id="hqWrap" class="hide">
 
-      <!-- radar: the unique cool data -->
-      <div class="tile radar s4" id="tRadar">
-        <h3><span class="acc">⚡</span> niche radar <span class="end" id="radarLive"></span></h3>
-        <div id="radarBody"><div class="tsub">Run a scan to sweep your niche live for what's erupting right now.</div></div>
-      </div>
-
-      <!-- viral signal / trend -->
-      <div class="tile s2" id="tSignal">
-        <h3><span class="acc">◗</span> viral signal <span class="end" id="sigCount"></span></h3>
-        <canvas id="spark" width="420" height="90" style="width:100%;height:90px;display:none"></canvas>
-        <div id="sigEmpty" class="tsub">Your score trend appears after 2+ scans.</div>
-        <div id="sigNow" class="ident-meta" style="margin-top:10px;display:none"><span>now <b id="sigNowV">–</b></span><span id="sigDelta" class="delta flat"></span></div>
-      </div>
-
-      <!-- this week's play -->
-      <div class="tile play s2" id="tPlay">
-        <h3><span class="acc">◆</span> this week's play</h3>
-        <div id="playBody"><div class="tsub">Your #1 highest-leverage fix shows up here.</div></div>
-      </div>
-
-      <!-- next video lab -->
-      <div class="tile s2" id="tNext">
-        <h3><span class="acc">▶</span> next video</h3>
-        <div id="nextBody"><div class="tsub">Title options + the opening hook, generated from your data.</div></div>
-      </div>
-
-      <!-- posting window -->
-      <div class="tile s2" id="tWindow">
-        <h3><span class="acc">◷</span> best posting window</h3>
-        <div id="winBody"><div class="tsub">When your top videos actually went up.</div></div>
-      </div>
-
-      <!-- title lab (interactive) -->
-      <div class="tile s3" id="tLab">
-        <h3><span class="acc">✎</span> title lab <span class="end">pre-flight</span></h3>
-        <div class="tsub" style="margin-bottom:9px">Test a title before you commit. Scored against your niche.</div>
-        <div class="lab-form">
-          <input id="labIn" type="text" placeholder="paste a title idea…">
-          <button class="btn btn-primary" style="flex:0 0 auto" onclick="titleTest()">Test</button>
+      <!-- identity header: THIS IS YOU -->
+      <div class="idhead" id="idhead">
+        <div class="avatar" id="idAvatar">–</div>
+        <div class="id-grade">
+          <div class="gring2">
+            <svg viewBox="0 0 84 84" aria-hidden="true">
+              <circle cx="42" cy="42" r="36" fill="none" stroke="var(--border)" stroke-width="6"></circle>
+              <circle id="hqRing" cx="42" cy="42" r="36" fill="none" stroke="var(--gc,var(--primary))" stroke-width="6" stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226"></circle>
+            </svg>
+            <div class="gl"><b id="hqGrade">–</b><small id="hqScore">–</small></div>
+          </div>
         </div>
-        <div class="lab-out" id="labOut">
-          <div class="lab-score"><span class="n" id="labScore">–</span><span class="v" id="labVerdict"></span></div>
-          <div id="labRewrites"></div>
-          <div class="tsub" style="margin-top:8px"><b style="color:var(--accent)">hook:</b> <span id="labHook"></span></div>
+        <div class="id-meta">
+          <div class="tag-you"><span class="liveflag" id="liveFlag"><span class="dot"></span>live</span> · this is you</div>
+          <div class="id-name" id="hqName">your channel</div>
+          <div class="id-sub">
+            <span id="idHandle"></span><span id="idSubs"></span><span id="hqDelta" class="delta flat"></span>
+          </div>
+          <div class="plat-chips" id="platChips"></div>
+        </div>
+        <div class="id-actions">
+          <span class="sm mut" id="hqWhen" style="font-size:.74rem"></span>
+          <button id="refreshBtn" class="btn btn-ghost btn-sm" onclick="refreshLive()">↻ Refresh</button>
+          <button class="btn btn-ghost btn-sm" onclick="openConnect()">Edit channels</button>
+          <div id="scanRun" class="scanline"><span class="spin"></span><span id="scanRunTxt">refreshing…</span></div>
         </div>
       </div>
 
-      <!-- 30-day roadmap -->
-      <div class="tile s3" id="tRoad">
-        <h3><span class="acc">◈</span> 30-day roadmap</h3>
-        <div id="roadBody"><div class="tsub">A week-by-week plan drops here after your scan.</div></div>
-      </div>
+      <!-- platform tabs -->
+      <div class="ptabs" id="ptabs"></div>
 
-      <!-- action queue: the second brain -->
-      <div class="tile s4" id="tQueue">
-        <h3><span class="acc">☑</span> action queue <span class="end" id="qCount"></span></h3>
-        <div id="queueBody"><div class="tsub">Your fixes become a checklist. Tick them off as you ship.</div></div>
-        <div class="caprow">
-          <input id="capIn" class="chan-field" type="text" placeholder="capture your own idea…" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px" onkeydown="if(event.key==='Enter')captureIdea()">
-          <button class="btn btn-ghost" style="flex:0 0 auto" onclick="captureIdea()">Add</button>
+      <!-- YOUTUBE DECK -->
+      <div class="bento" id="ytDeck">
+
+        <div class="tile radar s4" id="tRadar">
+          <h3><span class="acc">⚡</span> niche radar <span class="end" id="radarLive"></span></h3>
+          <div id="radarBody"><div class="tsub">Sweeping your niche live for what's erupting right now…</div></div>
         </div>
-      </div>
 
-      <!-- milestones -->
-      <div class="tile s2" id="tMiles">
-        <h3><span class="acc">✦</span> milestones</h3>
-        <div class="ms" id="milesBody">
-          <div class="m"><div class="n" id="msScans">0</div><div class="l">scans run</div></div>
-          <div class="m"><div class="n" id="msBest">–</div><div class="l">best score</div></div>
-          <div class="m"><div class="n" id="msGrade">–</div><div class="l">top grade</div></div>
-          <div class="m"><div class="n" id="msStreak">0</div><div class="l">wk streak</div></div>
+        <div class="tile s2" id="tVitals">
+          <h3><span class="acc">◉</span> live vitals <span class="end liveflag" style="letter-spacing:.05em"><span class="dot"></span></span></h3>
+          <div class="vit" id="vitBody">
+            <div class="v"><div class="n" id="vMed">–</div><div class="l">median views</div></div>
+            <div class="v"><div class="n" id="vMom">–</div><div class="l">momentum</div></div>
+            <div class="v"><div class="n" id="vOut">–</div><div class="l">breakout hits</div></div>
+            <div class="v"><div class="n" id="vCad">–</div><div class="l">cadence</div></div>
+          </div>
         </div>
-      </div>
 
-      <!-- report card share -->
-      <div class="tile s2" id="tReport">
-        <h3><span class="acc">↗</span> report card</h3>
-        <div class="tsub" style="margin-bottom:12px">A public A+→F card for your channel. Share it anywhere.</div>
-        <div class="chiprow" style="margin-top:auto">
-          <a class="btn btn-ghost btn-sm" id="cardBtn" href="c.html" target="_blank" rel="noopener">Open my card</a>
-          <button class="btn btn-ghost btn-sm" id="cardCopy" onclick="copyCard()">Copy link</button>
+        <div class="tile s2" id="tSignal">
+          <h3><span class="acc">◗</span> viral signal <span class="end" id="sigCount"></span></h3>
+          <canvas id="spark" width="420" height="90" style="width:100%;height:90px;display:none"></canvas>
+          <div id="sigEmpty" class="tsub">Your score trend appears after 2+ scans.</div>
+          <div id="sigNow" class="ident-meta" style="margin-top:10px;display:none"><span>now <b id="sigNowV">–</b></span><span id="sigDelta" class="delta flat"></span></div>
         </div>
+
+        <div class="tile play s2" id="tPlay">
+          <h3><span class="acc">◆</span> this week's play</h3>
+          <div id="playBody"><div class="tsub">Your #1 highest-leverage fix shows up here.</div></div>
+        </div>
+
+        <div class="tile s2" id="tNext">
+          <h3><span class="acc">▶</span> next video</h3>
+          <div id="nextBody"><div class="tsub">Title options + the opening hook, from your data.</div></div>
+        </div>
+
+        <div class="tile s2" id="tWindow">
+          <h3><span class="acc">◷</span> best posting window</h3>
+          <div id="winBody"><div class="tsub">When your top videos actually went up.</div></div>
+        </div>
+
+        <div class="tile s3" id="tLab">
+          <h3><span class="acc">✎</span> title lab <span class="end">pre-flight</span></h3>
+          <div class="tsub" style="margin-bottom:9px">Test a title before you commit. Scored against your niche.</div>
+          <div class="lab-form">
+            <input id="labIn" type="text" placeholder="paste a title idea…">
+            <button class="btn btn-primary" style="flex:0 0 auto" onclick="titleTest()">Test</button>
+          </div>
+          <div class="lab-out" id="labOut">
+            <div class="lab-score"><span class="n" id="labScore">–</span><span class="v" id="labVerdict"></span></div>
+            <div id="labRewrites"></div>
+            <div class="tsub" style="margin-top:8px"><b style="color:var(--accent)">hook:</b> <span id="labHook"></span></div>
+          </div>
+        </div>
+
+        <div class="tile s3" id="tRoad">
+          <h3><span class="acc">◈</span> 30-day roadmap</h3>
+          <div id="roadBody"><div class="tsub">A week-by-week plan drops here after your scan.</div></div>
+        </div>
+
+        <div class="tile s4" id="tQueue">
+          <h3><span class="acc">☑</span> action queue <span class="end" id="qCount"></span></h3>
+          <div id="queueBody"><div class="tsub">Your fixes become a checklist. Tick them off as you ship.</div></div>
+          <div class="caprow">
+            <input id="capIn" class="chan-field" type="text" placeholder="capture your own idea…" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px" onkeydown="if(event.key==='Enter')captureIdea()">
+            <button class="btn btn-ghost" style="flex:0 0 auto" onclick="captureIdea()">Add</button>
+          </div>
+        </div>
+
+        <div class="tile s2" id="tMiles">
+          <h3><span class="acc">✦</span> milestones</h3>
+          <div class="ms" id="milesBody">
+            <div class="m"><div class="n" id="msScans">0</div><div class="l">scans run</div></div>
+            <div class="m"><div class="n" id="msBest">–</div><div class="l">best score</div></div>
+            <div class="m"><div class="n" id="msGrade">–</div><div class="l">top grade</div></div>
+            <div class="m"><div class="n" id="msStreak">0</div><div class="l">wk streak</div></div>
+          </div>
+        </div>
+
+        <div class="tile s2" id="tReport">
+          <h3><span class="acc">↗</span> report card</h3>
+          <div class="tsub" style="margin-bottom:12px">A public A+→F card for your channel. Share it anywhere.</div>
+          <div class="chiprow" style="margin-top:auto">
+            <a class="btn btn-ghost btn-sm" id="cardBtn" href="c.html" target="_blank" rel="noopener">Open my card</a>
+            <button class="btn btn-ghost btn-sm" id="cardCopy" onclick="copyCard()">Copy link</button>
+          </div>
+        </div>
+
+        <div class="tile s2" id="proCard" style="border-color:hsl(190 92% 56% / .35);--tc:var(--accent)">
+          <h3><span class="acc">★</span> go pro</h3>
+          <div class="tbig" style="color:var(--accent)">$19<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
+          <div class="tsub" style="margin:8px 0 12px">Weekly auto-pulse, unlimited title tests, and priority access to real retention curves.</div>
+          <a id="proBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Upgrade to Pro</a>
+        </div>
+
       </div>
 
-      <!-- pro -->
-      <div class="tile s2" id="proCard" style="border-color:hsl(190 92% 56% / .35);--tc:var(--accent)">
-        <h3><span class="acc">★</span> go pro</h3>
-        <div class="tbig" style="color:var(--accent)">$19<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
-        <div class="tsub" style="margin:8px 0 12px">Weekly auto-pulse to your inbox, unlimited title tests, and priority access to real retention curves.</div>
-        <a id="proBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Upgrade to Pro</a>
+      <!-- ALT PLATFORM PANEL (tiktok / instagram) -->
+      <div class="altpanel hide" id="altPanel">
+        <div id="altHead"></div>
+        <div class="bento" style="margin-top:18px">
+          <div class="tile s3" id="tLab2">
+            <h3><span class="acc">✎</span> title lab <span class="end">works on any platform</span></h3>
+            <div class="tsub" style="margin-bottom:9px">Hooks are universal. Score a title/caption idea against your niche.</div>
+            <div class="lab-form">
+              <input id="labIn2" type="text" placeholder="paste a title or caption idea…">
+              <button class="btn btn-primary" style="flex:0 0 auto" onclick="titleTest('labIn2','labOut2')">Test</button>
+            </div>
+            <div class="lab-out" id="labOut2">
+              <div class="lab-score"><span class="n" id="labScore2">–</span><span class="v" id="labVerdict2"></span></div>
+              <div id="labRewrites2"></div>
+              <div class="tsub" style="margin-top:8px"><b style="color:var(--accent)">hook:</b> <span id="labHook2"></span></div>
+            </div>
+          </div>
+          <div class="tile s3">
+            <h3><span class="acc">◈</span> what's coming</h3>
+            <div class="tsub">Deep <span id="altName2">platform</span> analytics — outlier detection, posting windows and niche radar — are rolling out. YouTube is fully live today, and your handle is saved so your data starts building the moment they land.</div>
+            <div class="chiprow" style="margin-top:auto"><a class="btn btn-ghost btn-sm" id="altLink" target="_blank" rel="noopener">Open my profile ↗</a></div>
+          </div>
+        </div>
       </div>
 
     </div>
   </section>
+
+  <!-- connect / edit modal -->
+  <div class="modal" id="connectModal">
+    <div class="mc">
+      <span class="x" onclick="closeConnect()">✕</span>
+      <h2>Your channels</h2>
+      <p class="sm mut" style="margin-bottom:18px">Update the channels bound to your account.</p>
+      <div class="conn-row">
+        <label><svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg> YouTube</label>
+        <div class="rr">
+          <input id="cmYt" type="text" placeholder="@yourchannel  ·  URL  ·  UC…">
+          <button class="btn btn-primary" style="flex:0 0 auto" onclick="connectYouTube('cmYt','cmFound')">Connect</button>
+        </div>
+        <div class="found" id="cmFound"></div>
+      </div>
+      <div class="conn-row"><label><svg class="pi pi-tt" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.2 1.8 3.9 4 4.1v2.7c-1.4.1-2.7-.3-4-1v6.3a6 6 0 1 1-6-6c.3 0 .5 0 .8.1v2.9a3.1 3.1 0 1 0 2.2 3V3h3z"/></svg> TikTok</label><div class="rr"><input id="cmTt" type="text" placeholder="@yourtiktok"></div></div>
+      <div class="conn-row"><label><svg class="pi pi-ig" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3 0 4.1.1 1 0 1.6.2 2 .4.5.2.9.5 1.3.9.4.4.7.8.9 1.3.2.4.3 1 .4 2C20.9 8 21 8.3 21 11s0 3-.1 4.1c0 1-.2 1.6-.4 2a3.5 3.5 0 0 1-.9 1.3c-.4.4-.8.7-1.3.9-.4.2-1 .3-2 .4-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-1 0-1.6-.2-2-.4a3.5 3.5 0 0 1-1.3-.9 3.5 3.5 0 0 1-.9-1.3c-.2-.4-.3-1-.4-2C3 15 3 14.7 3 12s0-3 .1-4.1c0-1 .2-1.6.4-2 .2-.5.5-.9.9-1.3.4-.4.8-.7 1.3-.9.4-.2 1-.3 2-.4C8.8 3 9.1 3 12 3zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8zM17.8 6a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1z"/></svg> Instagram</label><div class="rr"><input id="cmIg" type="text" placeholder="@yourinstagram"></div></div>
+      <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="saveConnect()">Save channels</button>
+    </div>
+  </div>
 
 </main>
 
@@ -443,112 +589,212 @@ function googleAuth(){
 }
 function logout(){ sb.auth.signOut(); }
 
-/* ---------- app ---------- */
-var CHDATA = { id:'', name:'' }, LASTAI = null;
+/* ================= VIRAL HQ: identity + platforms + live ================= */
+var IDENT = { yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'' };
+var PLATFORM='youtube', LASTAI=null, LIVE=null, lastFullAt=0;
+var IC_YT='<svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>';
+var IC_TT='<svg class="pi pi-tt" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.2 1.8 3.9 4 4.1v2.7c-1.4.1-2.7-.3-4-1v6.3a6 6 0 1 1-6-6c.3 0 .5 0 .8.1v2.9a3.1 3.1 0 1 0 2.2 3V3h3z"/></svg>';
+var IC_IG='<svg class="pi pi-ig" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3 0 4.1.1 1 0 1.6.2 2 .4.5.2.9.5 1.3.9.4.4.7.8.9 1.3.2.4.3 1 .4 2C20.9 8 21 8.3 21 11s0 3-.1 4.1c0 1-.2 1.6-.4 2a3.5 3.5 0 0 1-.9 1.3c-.4.4-.8.7-1.3.9-.4.2-1 .3-2 .4-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-1 0-1.6-.2-2-.4a3.5 3.5 0 0 1-1.3-.9 3.5 3.5 0 0 1-.9-1.3c-.2-.4-.3-1-.4-2C3 15 3 14.7 3 12s0-3 .1-4.1c0-1 .2-1.6.4-2 .2-.5.5-.9.9-1.3.4-.4.8-.7 1.3-.9.4-.2 1-.3 2-.4C8.8 3 9.1 3 12 3zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8zM17.8 6a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1z"/></svg>';
+function nfmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e3) return (n/1e3).toFixed(n>=1e4?0:1)+'K'; return String(Math.round(n)); }
+function gradeOf(s){ var t=[[90,'A+'],[85,'A'],[80,'A-'],[75,'B+'],[70,'B'],[65,'B-'],[60,'C+'],[55,'C'],[50,'C-'],[45,'D+'],[40,'D'],[33,'D-']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
+function scoreColor(s){ if(s==null) return 'var(--faint)'; if(s>=75) return 'var(--success)'; if(s>=50) return 'var(--warning)'; return 'var(--danger)'; }
+function gcolor(g){ var c=(g||'')[0]; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
+
 function showApp(){
-  var name = (USER.user_metadata && USER.user_metadata.full_name) ? USER.user_metadata.full_name.split(' ')[0] : (USER.email||'').split('@')[0];
-  $('hqName').textContent = 'Welcome' + (name ? ', ' + name : ', operator');
   $('navRight').innerHTML = '<span>'+esc(USER.email||'')+'</span><button class="btn btn-ghost" onclick="logout()">Log out</button>';
   var pb = $('proBtn');
   if (pb) pb.href = 'https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n?client_reference_id=' + USER.id + '&prefilled_email=' + encodeURIComponent(USER.email || '');
   bootType();
   loadProfile();
-  loadLatest();
-  loadHistory();
 }
 function bootType(){
   var el=$('bootLine'); if(!el) return;
-  var t='> viral hq online · niche radar armed · '+ (new Date()).toString().slice(0,3).toLowerCase() +' session';
+  var t='> viral hq online · niche radar armed · live feed connected';
   if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){ el.textContent=t; return; }
   el.textContent=''; var i=0;
   (function tick(){ if(i<=t.length){ el.innerHTML=esc(t.slice(0,i))+'<span class="cur">▋</span>'; i++; setTimeout(tick, 16); } else el.textContent=t; })();
 }
+
+/* ---------- profile: bind identity, then route ---------- */
 function loadProfile(){
   sb.from('viralsidekick_profiles').upsert({ id: USER.id, email: USER.email }, { onConflict:'id', ignoreDuplicates:true }).then(function(){
    sb.from('viralsidekick_profiles').select('*').eq('id', USER.id).maybeSingle().then(function(r){
     PROFILE = r.data || {};
-    if(PROFILE.primary_channel_id || PROFILE.primary_channel_name){
-      var label = PROFILE.primary_channel_name || PROFILE.primary_channel_id;
-      $('chIn').value = label; $('chLabel').textContent = label;
-      CHDATA.id = PROFILE.primary_channel_id || ''; CHDATA.name = PROFILE.primary_channel_name || '';
-      updateCardLinks();
-    }
-    var isPro = PROFILE.plan === 'pro';
-    $('proCard').style.display = isPro ? 'none' : '';
-    if(isPro){ $('chLabel').insertAdjacentHTML('afterend',' <span class="live-chip" style="color:var(--accent)">PRO</span>'); }
+    IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
+    IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||'';
+    $('proCard').style.display = (PROFILE.plan==='pro') ? 'none' : '';
+    if(IDENT.yt.id || IDENT.yt.name){ enterHQ(); } else { showOnboard(); }
    });
   });
 }
-function saveChannel(){
-  var v = $('chIn').value.trim();
-  if(!v) return;
-  $('chLabel').textContent = v; CHDATA.name = v;
-  sb.from('viralsidekick_profiles').upsert({ id: USER.id, email: USER.email, primary_channel_name: v, updated_at: new Date().toISOString() }).then(function(r){
-    $('chSaved').textContent = r.error ? ('could not save: ' + r.error.message) : 'watching ✓';
-    setTimeout(function(){ $('chSaved').textContent=''; }, 2500);
-    updateCardLinks();
+function showOnboard(){ $('hqWrap').classList.add('hide'); $('onboard').classList.remove('hide'); }
+function enterHQ(){
+  $('onboard').classList.add('hide'); $('hqWrap').classList.remove('hide');
+  renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube');
+  goLive();
+}
+
+/* ---------- connect a youtube channel = claim your identity ---------- */
+function connectYouTube(inId, foundId, cb){
+  var v=$(inId).value.trim(); if(!v) return;
+  var f=$(foundId); f.style.display='flex'; f.innerHTML='<span class="spin"></span><div class="fn">finding your channel…</div>';
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'connect',channel:v})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d||!d.ok||!d.channel){ f.innerHTML='<div><div class="fn" style="color:var(--danger)">couldn\'t find that channel</div><div class="fs">try @handle, the full URL, or the UC… id</div></div>'; return; }
+      IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
+      f.innerHTML=(IDENT.yt.avatar?'<img src="'+esc(IDENT.yt.avatar)+'" alt="">':'')+'<div><div class="fn">'+esc(IDENT.yt.name)+' ✓ found you</div><div class="fs">'+esc((IDENT.yt.handle?IDENT.yt.handle+'  ·  ':'')+(IDENT.yt.subs||''))+'</div></div>';
+      if(cb) cb();
+    })
+    .catch(function(){ f.innerHTML='<div class="fn" style="color:var(--danger)">network hiccup, try again</div>'; });
+}
+function finishOnboard(){
+  if(!IDENT.yt.id && !IDENT.yt.name){
+    var v=$('obYt').value.trim();
+    if(v){ connectYouTube('obYt','obFound', finishOnboard); return; }
+    var f=$('obFound'); f.style.display='flex'; f.innerHTML='<div class="fn" style="color:var(--warning)">connect your YouTube channel first ↑</div>'; return;
+  }
+  IDENT.tiktok=$('obTt').value.trim(); IDENT.instagram=$('obIg').value.trim();
+  persistIdentity(function(){ enterHQ(); });
+}
+function persistIdentity(cb){
+  saveProfileFields({
+    primary_channel_id:IDENT.yt.id||null, primary_channel_name:IDENT.yt.name||null,
+    primary_channel_handle:IDENT.yt.handle||null, primary_channel_avatar:IDENT.yt.avatar||null, primary_channel_subs:IDENT.yt.subs||null,
+    tiktok_handle:IDENT.tiktok||null, instagram_handle:IDENT.instagram||null
+  }).then(function(){ if(cb) cb(); });
+}
+function saveProfileFields(f){
+  var base={ id:USER.id, email:USER.email, updated_at:new Date().toISOString() };
+  return sb.from('viralsidekick_profiles').upsert(Object.assign({},base,f)).then(function(r){
+    if(r.error){ /* extended columns may not exist yet — persist the essentials */
+      var safe={ id:USER.id, email:USER.email, updated_at:base.updated_at };
+      if(f.primary_channel_id!=null) safe.primary_channel_id=f.primary_channel_id;
+      if(f.primary_channel_name!=null) safe.primary_channel_name=f.primary_channel_name;
+      return sb.from('viralsidekick_profiles').upsert(safe);
+    }
+    return r;
   });
 }
-function runScan(){
-  var ch = $('chIn').value.trim();
-  if(!ch){ $('chSaved').textContent='set a channel first'; $('chIn').focus(); return; }
-  $('scanBtn').disabled=true;
-  $('scanRun').style.display='flex'; $('scanRunTxt').textContent='sweeping your niche live… (~30s)';
-  fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channel: ch, email: USER.email, user_id: USER.id, website:'' }) })
-    .then(function(r){ return r.json(); })
+
+/* ---------- identity header ---------- */
+function renderIdentity(){
+  var yt=IDENT.yt, av=$('idAvatar');
+  if(yt.avatar){ av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="">'; } else { av.textContent=(yt.name||'Y').charAt(0).toUpperCase(); }
+  $('hqName').textContent=yt.name||'your channel';
+  $('idHandle').innerHTML = yt.handle? '<b>'+esc(yt.handle)+'</b>' : '';
+  $('idSubs').textContent = yt.subs? ('· '+yt.subs.replace(' subscribers',' subs')) : '';
+  updateCardLinks();
+}
+function renderPlatChips(){
+  var out=['<span class="plat-chip on">'+IC_YT+' YouTube</span>'];
+  if(IDENT.tiktok) out.push('<span class="plat-chip">'+IC_TT+' @'+esc(IDENT.tiktok.replace(/^@/,''))+'</span>');
+  if(IDENT.instagram) out.push('<span class="plat-chip">'+IC_IG+' @'+esc(IDENT.instagram.replace(/^@/,''))+'</span>');
+  if(!IDENT.tiktok || !IDENT.instagram) out.push('<span class="plat-chip add" onclick="openConnect()">+ add platform</span>');
+  $('platChips').innerHTML=out.join('');
+}
+function renderTabs(){
+  var tabs=[tabHTML('youtube','YouTube','live',IC_YT)];
+  if(IDENT.tiktok) tabs.push(tabHTML('tiktok','TikTok','soon',IC_TT));
+  if(IDENT.instagram) tabs.push(tabHTML('instagram','Instagram','soon',IC_IG));
+  $('ptabs').innerHTML=tabs.join(''); $('ptabs').style.display = tabs.length>1?'flex':'none';
+}
+function tabHTML(p,label,st,icon){ return '<div class="ptab" data-p="'+p+'" onclick="switchPlatform(\''+p+'\')">'+icon+' '+label+' <span class="st">'+st+'</span></div>'; }
+function switchPlatform(p){
+  PLATFORM=p;
+  var tabsEl=$('ptabs'); Array.prototype.forEach.call(tabsEl.children,function(el){ el.classList.toggle('on', el.getAttribute('data-p')===p); });
+  var yt=(p==='youtube');
+  $('ytDeck').classList.toggle('hide',!yt);
+  $('altPanel').classList.toggle('hide',yt);
+  if(!yt) renderAlt(p);
+}
+function renderAlt(p){
+  var clean=(IDENT[p]||'').replace(/^@/,''), name=p==='tiktok'?'TikTok':'Instagram';
+  var url=p==='tiktok'?('https://www.tiktok.com/@'+clean):('https://www.instagram.com/'+clean);
+  $('altHead').innerHTML='<div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">connected · '+esc(name)+'</div><div class="big">@'+esc(clean)+'</div><div class="tsub">This '+esc(name)+' account is linked to your ViralSidekick identity.</div>';
+  $('altName2').textContent=name; $('altLink').href=url;
+}
+
+/* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
+function goLive(){ liveVitals(); loadLatestFull(); loadHistory(); }
+function liveVitals(){
+  var q=IDENT.yt.id||IDENT.yt.name; if(!q) return;
+  $('liveFlag').className='liveflag';
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'card',channel:q})})
+    .then(function(r){return r.json();})
+    .then(function(d){ if(d&&d.ok) applyLive(d); })
+    .catch(function(){});
+}
+function applyLive(c){
+  LIVE=c;
+  var sc=c.score!=null?c.score:50, g=c.grade||gradeOf(sc), col=gcolor(g);
+  document.documentElement.style.setProperty('--gc',col); $('idhead').style.setProperty('--gc',col);
+  $('hqGrade').textContent=g; $('hqGrade').style.color=col; $('hqScore').textContent=sc;
+  var C=226, ring=$('hqRing'); ring.style.stroke=col; ring.setAttribute('stroke-dashoffset', Math.round(C - C*Math.max(0,Math.min(100,sc))/100));
+  var v=c.vitals||{};
+  $('vMed').textContent=nfmt(v.median);
+  $('vMom').textContent=(v.momentum!=null?v.momentum+'x':'–'); $('vMom').style.color=v.momentum>=1?'var(--success)':(v.momentum>0?'var(--warning)':'');
+  $('vOut').textContent=(v.outliers!=null?v.outliers:'–'); $('vOut').style.color=v.outliers>0?'var(--success)':'';
+  $('vCad').textContent=(v.cadence_days!=null?v.cadence_days+'d':'–');
+  $('liveFlag').className='liveflag';
+  $('hqWhen').textContent='live · updated just now';
+}
+function loadLatestFull(){
+  sb.from('viralsidekick_scans').select('channel_id,report,created_at').eq('user_id', USER.id).order('created_at',{ascending:false}).limit(6).then(function(r){
+    var rows=(r.data||[]); var row=null;
+    for(var i=0;i<rows.length;i++){ if(rows[i].report && rows[i].report.ai){ row=rows[i]; break; } }
+    var needScan=true;
+    if(row){
+      lastFullAt=new Date(row.created_at).getTime();
+      var stale=(Date.now()-lastFullAt)>864e5; /* 24h */
+      var mismatch=(IDENT.yt.id && row.channel_id && row.channel_id!==IDENT.yt.id);
+      hydrateDeep(row.report.ai, row.report.radar_live);
+      needScan = stale || mismatch;
+    }
+    if(needScan) backgroundScan();
+  });
+}
+function backgroundScan(){
+  var q=IDENT.yt.id||IDENT.yt.name; if(!q) return;
+  showScanning('refreshing your intel + niche radar…');
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:q,email:USER.email,user_id:USER.id,website:''})})
+    .then(function(r){return r.json();})
     .then(function(d){
-      $('scanBtn').disabled=false; $('scanRun').style.display='none';
-      if(d.error || !d.ai){ $('chSaved').textContent = 'scan issue: ' + (d.error||'try the full URL or channel ID'); return; }
-      if(d.channel){ CHDATA.id=d.channel.id||CHDATA.id; CHDATA.name=d.channel.name||CHDATA.name; updateCardLinks(); }
-      hydrateHQ(d.ai, (d.stats&&d.stats.median!=null)?d.stats:null, (d.channel&&d.channel.name)||CHDATA.name, Date.now(), d.radar_live);
-      setTimeout(function(){ loadHistory(); }, 1000);
+      hideScanning();
+      if(d&&d.ai){ hydrateDeep(d.ai,d.radar_live); lastFullAt=Date.now(); setTimeout(loadHistory,1200); }
     })
-    .catch(function(){ $('scanBtn').disabled=false; $('scanRun').style.display='none'; $('chSaved').textContent='scan failed, try again in a sec.'; });
+    .catch(function(){ hideScanning(); });
 }
-function gradeOf(s){ var t=[[90,'A+'],[85,'A'],[80,'A-'],[75,'B+'],[70,'B'],[65,'B-'],[60,'C+'],[55,'C'],[50,'C-'],[45,'D+'],[40,'D'],[33,'D-']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
-function scoreColor(s){ if(s==null) return 'var(--faint)'; if(s>=75) return 'var(--success)'; if(s>=50) return 'var(--warning)'; return 'var(--danger)'; }
-function gcolor(g){ var c=(g||'')[0]; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
-function updateCardLinks(){
-  var q = CHDATA.id || CHDATA.name || '';
-  if(q){ $('cardBtn').href='c.html?ch='+encodeURIComponent(q); }
-}
+function refreshLive(){ liveVitals(); backgroundScan(); }
+function showScanning(t){ var e=$('scanRun'); if(e){ e.style.display='flex'; $('scanRunTxt').textContent=t||'refreshing…'; } var b=$('refreshBtn'); if(b) b.disabled=true; }
+function hideScanning(){ var e=$('scanRun'); if(e) e.style.display='none'; var b=$('refreshBtn'); if(b) b.disabled=false; }
+
+function updateCardLinks(){ var q=IDENT.yt.id||IDENT.yt.name||''; if(q) $('cardBtn').href='c.html?ch='+encodeURIComponent(q); }
 function copyCard(){
-  var q = CHDATA.id || CHDATA.name || ''; if(!q){ $('chSaved').textContent='set a channel first'; return; }
+  var q=IDENT.yt.id||IDENT.yt.name||''; if(!q) return;
   var u='https://viralsidekick.com/c.html?ch='+encodeURIComponent(q);
   navigator.clipboard.writeText(u).then(function(){ var b=$('cardCopy'); b.textContent='Copied ✓'; setTimeout(function(){b.textContent='Copy link';},1500); });
 }
 
-/* ---------- load the last stored scan and hydrate every tile ---------- */
-function loadLatest(){
-  sb.from('viralsidekick_scans').select('channel_name,channel_id,score,report,created_at').eq('user_id', USER.id).order('created_at',{ascending:false}).limit(1).then(function(r){
-    var row = (r.data||[])[0];
-    if(!row || !row.report || !row.report.ai) return; /* keep empty prompts */
-    if(row.channel_id) CHDATA.id=row.channel_id;
-    if(row.channel_name) CHDATA.name=row.channel_name;
-    updateCardLinks();
-    hydrateHQ(row.report.ai, (row.report.stats||null), row.channel_name, row.created_at, row.report.radar_live);
-  });
+/* ---------- connect/edit modal ---------- */
+function openConnect(){ $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFound').style.display='none'; $('connectModal').classList.add('on'); }
+function closeConnect(){ $('connectModal').classList.remove('on'); }
+function saveConnect(){
+  IDENT.tiktok=$('cmTt').value.trim(); IDENT.instagram=$('cmIg').value.trim();
+  var v=$('cmYt').value.trim();
+  var changed = v && v!==(IDENT.yt.handle||'') && v!==(IDENT.yt.name||'') && v!==(IDENT.yt.id||'');
+  function done(){ persistIdentity(function(){ closeConnect(); renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform(PLATFORM); goLive(); }); }
+  if(changed){ connectYouTube('cmYt','cmFound', done); } else { done(); }
 }
 
-function hydrateHQ(ai, stats, chName, when, radarLive){
+/* ---------- deep intel tiles (from full scan) ---------- */
+function hydrateDeep(ai, radarLive){
   ai = ai || {}; LASTAI = ai;
-  var sc = ai.score!=null ? ai.score : 50, g = gradeOf(sc), col = gcolor(g);
-  document.documentElement.style.setProperty('--gc', col);
-  $('cmdbar').style.setProperty('--gc', col);
-  /* command bar */
-  $('hqGrade').textContent=g; $('hqGrade').style.color=col;
-  $('hqScore').textContent=sc;
-  if(chName){ $('hqName').textContent=chName; $('chLabel').textContent=CHDATA.name||chName; }
-  var C=258, ring=$('hqRing'); ring.style.stroke=col; ring.setAttribute('stroke-dashoffset', Math.round(C - C*Math.max(0,Math.min(100,sc))/100));
-  $('hqWhen').textContent = when ? relTime(when) : 'just now';
-  /* verdict into name-meta tooltip? show as radar-adjacent — put verdict under name via title */
   $('hqName').title = ai.verdict||'';
-
-  /* radar */
   var rb=$('radarBody'), rad=(ai.radar||[]).slice(0,3);
   $('radarLive').innerHTML = radarLive ? '<span class="live-chip"><span class="dot"></span>LIVE</span>' : 'pattern';
   if(rad.length){
-    rb.innerHTML = rad.map(function(x,i){
+    rb.innerHTML = rad.map(function(x){
       var u=(x.urgency||'').toLowerCase(), uc=u.indexOf('week')>=0?'now':'soon';
       return '<div class="rd"><div class="trend"><span>'+esc(x.trend||'')+'</span><span class="urg '+uc+'">'+esc(x.urgency||'')+'</span></div>'
         +(x.evidence?'<div class="ev">'+esc(x.evidence)+'</div>':'')
@@ -556,14 +802,12 @@ function hydrateHQ(ai, stats, chName, when, radarLive){
         +'</div>';
     }).join('');
     bindCopies(rb);
-  } else rb.innerHTML='<div class="tsub">No live eruptions surfaced this scan — check back after your next one.</div>';
+  } else rb.innerHTML='<div class="tsub">No live eruptions surfaced this scan — check back after your next refresh.</div>';
 
-  /* this week's play (top fix) */
   var fixes=(ai.fixes||[]), f=fixes[0];
   $('playBody').innerHTML = f ? ('<div class="tlead">'+esc(f.title||'')+(f.severity?' <span class="q-sev '+esc((f.severity||'').toLowerCase())+'">'+esc(f.severity)+'</span>':'')+'</div><div class="tsub">'+esc(f['do']||f.why||'')+'</div>')
     : '<div class="tsub">No critical fix flagged — you are on track.</div>';
 
-  /* next video */
   var nv=ai.next_video;
   if(nv && (nv.title_options||[]).length){
     $('nextBody').innerHTML = '<div class="tsub" style="margin-bottom:8px">'+(nv.format?esc(nv.format):'tap a title to copy')+'</div>'
@@ -571,9 +815,8 @@ function hydrateHQ(ai, stats, chName, when, radarLive){
       + nv.title_options.slice(0,3).map(function(t){ return '<div class="copychip" data-copy="'+esc(t)+'">'+esc(t)+'</div>'; }).join('')
       + '</div>' + (nv.hook?'<div class="tsub" style="margin-top:9px"><b style="color:var(--accent)">hook:</b> '+esc(nv.hook)+'</div>':'');
     bindCopies($('nextBody'));
-  } else $('nextBody').innerHTML='<div class="tsub">Run a scan to generate your next title options.</div>';
+  } else $('nextBody').innerHTML='<div class="tsub">Refresh to generate your next title options.</div>';
 
-  /* posting window */
   var sch=ai.schedule;
   if(sch && (sch.best_days||[]).length){
     var days=['mon','tue','wed','thu','fri','sat','sun'];
@@ -581,15 +824,13 @@ function hydrateHQ(ai, stats, chName, when, radarLive){
     $('winBody').innerHTML='<div class="win-days">'+days.map(function(d){return '<span class="win-day'+(best.indexOf(d)>=0?' on':'')+'">'+d+'</span>';}).join('')+'</div>'
       +'<div class="win-time">'+esc((sch.best_times||[]).join(' · ')||'—')+'</div>'
       +(sch.reason?'<div class="tsub" style="margin-top:8px">'+esc(sch.reason)+'</div>':'');
-  } else $('winBody').innerHTML='<div class="tsub">Your best posting window appears after a scan.</div>';
+  } else $('winBody').innerHTML='<div class="tsub">Your best posting window appears after a refresh.</div>';
 
-  /* roadmap */
   var rm=(ai.roadmap||[]);
   $('roadBody').innerHTML = rm.length ? rm.slice(0,4).map(function(w){
     return '<div class="rm-wk"><div class="rm-n">WK '+esc(String(w.week||''))+'</div><div class="rm-b"><div class="f">'+esc(w.focus||'')+'</div><div class="a">'+esc((w.actions||[]).join(' · '))+'</div></div></div>';
-  }).join('') : '<div class="tsub">A week-by-week plan drops here after your scan.</div>';
+  }).join('') : '<div class="tsub">A week-by-week plan drops here after your refresh.</div>';
 
-  /* action queue from fixes */
   renderQueue(fixes);
 }
 
@@ -624,22 +865,25 @@ function captureIdea(){
   renderQueue((LASTAI&&LASTAI.fixes)||[]);
 }
 
-/* ---------- title lab ---------- */
-function titleTest(){
-  var t=$('labIn').value.trim(); if(!t) return;
-  var btn=$('labIn'); var niche=(LASTAI&&LASTAI.niche)||'creator content';
-  $('labOut').style.display='block'; $('labScore').textContent='…'; $('labVerdict').textContent='scoring against your niche'; $('labRewrites').innerHTML=''; $('labHook').textContent='';
+/* ---------- title lab (works for the youtube deck + alt-platform panel) ---------- */
+function titleTest(inId, outId){
+  inId=inId||'labIn'; outId=outId||'labOut';
+  var suf = (outId==='labOut2') ? '2' : '';
+  var t=$(inId).value.trim(); if(!t) return;
+  var niche=(LASTAI&&LASTAI.niche)||'creator content';
+  $(outId).style.display='block';
+  $('labScore'+suf).textContent='…'; $('labVerdict'+suf).textContent='scoring against your niche'; $('labRewrites'+suf).innerHTML=''; $('labHook'+suf).textContent='';
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'title',title:t,niche:niche,website:''})})
     .then(function(r){return r.json();})
     .then(function(d){
-      if(!d.ok||!d.result){ $('labScore').textContent='!'; $('labVerdict').textContent='could not score that one, try again'; return; }
-      var o=d.result; $('labScore').textContent=o.score!=null?o.score:'–'; $('labScore').style.color=scoreColor(o.score);
-      $('labVerdict').textContent=o.verdict||'';
-      $('labRewrites').innerHTML=(o.rewrites||[]).map(function(r){return '<div class="lab-rw" data-copy="'+esc(r)+'">'+esc(r)+'</div>';}).join('');
-      $('labHook').textContent=o.hook||'';
-      bindCopies($('labRewrites'));
+      if(!d.ok||!d.result){ $('labScore'+suf).textContent='!'; $('labVerdict'+suf).textContent='could not score that one, try again'; return; }
+      var o=d.result; $('labScore'+suf).textContent=o.score!=null?o.score:'–'; $('labScore'+suf).style.color=scoreColor(o.score);
+      $('labVerdict'+suf).textContent=o.verdict||'';
+      $('labRewrites'+suf).innerHTML=(o.rewrites||[]).map(function(r){return '<div class="lab-rw" data-copy="'+esc(r)+'">'+esc(r)+'</div>';}).join('');
+      $('labHook'+suf).textContent=o.hook||'';
+      bindCopies($('labRewrites'+suf));
     })
-    .catch(function(){ $('labScore').textContent='!'; $('labVerdict').textContent='network hiccup, try again'; });
+    .catch(function(){ $('labScore'+suf).textContent='!'; $('labVerdict'+suf).textContent='network hiccup, try again'; });
 }
 
 /* ---------- history: signal tile + milestones ---------- */

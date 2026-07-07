@@ -27,6 +27,12 @@ create table if not exists viralsidekick_profiles (
 );
 alter table viralsidekick_profiles add column if not exists primary_channel_id text;
 alter table viralsidekick_profiles add column if not exists primary_channel_name text;
+-- connected identity across platforms (the app binds these on "connect your channels")
+alter table viralsidekick_profiles add column if not exists primary_channel_handle text;
+alter table viralsidekick_profiles add column if not exists primary_channel_avatar text;
+alter table viralsidekick_profiles add column if not exists primary_channel_subs text;
+alter table viralsidekick_profiles add column if not exists tiktok_handle text;
+alter table viralsidekick_profiles add column if not exists instagram_handle text;
 alter table viralsidekick_profiles enable row level security;
 drop policy if exists "own profile" on viralsidekick_profiles;
 create policy "own profile" on viralsidekick_profiles for all
