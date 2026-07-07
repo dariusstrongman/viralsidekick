@@ -6,7 +6,12 @@
 <title>ViralSidekick — your dashboard</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0a0d16">
+<meta name="description" content="Your creator command center — live counters, niche radar, and an AI game plan.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://n8n.stromation.com">
+<link rel="preconnect" href="https://fzlwnsoknngbdkizxpnl.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -22,14 +27,14 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.
 ::selection{background:hsl(260 90% 66% / .45);color:#fff}
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px}
-.bg-app{position:fixed;inset:0;z-index:-2;background:
+.bg-app{position:fixed;inset:0;z-index:-2;transform:translateZ(0);background:
   radial-gradient(1200px 600px at 80% -10%, hsl(260 90% 66% / .13), transparent 60%),
   radial-gradient(900px 500px at 0% 10%, hsl(190 92% 56% / .07), transparent 55%), var(--bg)}
-.bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;
+.bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;transform:translateZ(0);
   background-image:linear-gradient(to right,hsl(228 14% 16% / .4) 1px,transparent 1px),linear-gradient(to bottom,hsl(228 14% 16% / .4) 1px,transparent 1px);
   background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 55% at 50% 0%,#000 30%,transparent 80%)}
 .wrap{max-width:920px;margin:0 auto;padding:0 22px}
-nav.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:hsl(230 24% 5% / .78);border-bottom:1px solid var(--border)}
+nav.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(9px);transform:translateZ(0);background:hsl(230 24% 5% / .84);border-bottom:1px solid var(--border)}
 nav.top .wrap{display:flex;align-items:center;gap:20px;height:60px}
 .logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1rem;letter-spacing:-.02em}
 .logo .bolt{width:19px;height:19px}
@@ -142,6 +147,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .tile::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,var(--tc,var(--primary)),transparent);opacity:0;transition:opacity .25s}
 .tile:hover::before{opacity:.7}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.no-anim .tile{animation:none!important}
 .tile h3{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:8px}
 .tile h3 .acc{color:var(--tc,var(--primary))}
 .tile h3 .end{margin-left:auto;letter-spacing:.05em;color:var(--faint)}
@@ -291,7 +297,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 /* ============ LIVE PULSE odometer ============ */
 .pulse{--tc:var(--accent);background:linear-gradient(180deg,hsl(228 20% 7%),hsl(230 24% 5%))!important}
 .pulse-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-.pcounter{background:hsl(230 26% 4%);border:1px solid var(--border);border-radius:13px;padding:15px 16px;position:relative;overflow:hidden}
+.pcounter{background:hsl(230 26% 4%);border:1px solid var(--border);border-radius:13px;padding:15px 16px;position:relative;overflow:hidden;contain:layout paint}
 .pcounter::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:linear-gradient(90deg,transparent,var(--pc,var(--primary)),transparent);opacity:.6}
 .pcounter .pk{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:10px}
 .pcounter .pk .pi{width:13px;height:13px}
@@ -339,7 +345,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
         <div class="field"><label>Password</label><input id="aPass" type="password" autocomplete="current-password" placeholder="at least 6 characters"></div>
         <button id="authBtn" class="btn btn-primary btn-block" style="margin-top:16px" onclick="emailAuth()">Log in</button>
         <div id="authMsg" class="msg"></div>
-        <p class="foot-note">Free to start. No card. Your data is yours — <a href="privacy.html" style="color:var(--muted)">privacy</a>.</p>
+        <p class="foot-note"><a href="#" onclick="forgotPass(event)" style="color:var(--muted)">Forgot password?</a> · Free to start. No card. <a href="privacy.html" style="color:var(--muted)">Privacy</a>.</p>
       </div>
     </div>
   </section>
@@ -538,6 +544,17 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
     </div>
   </section>
 
+  <!-- set new password (from reset link) -->
+  <div class="modal" id="pwModal">
+    <div class="mc">
+      <h2>Set a new password</h2>
+      <p class="sm mut" style="margin-bottom:16px">You followed a reset link — pick a new password for your account.</p>
+      <div class="field"><label>New password</label><input id="npIn" type="password" autocomplete="new-password" placeholder="at least 6 characters"></div>
+      <button class="btn btn-primary btn-block" style="margin-top:14px" onclick="setNewPass()">Save password</button>
+      <div id="npMsg" class="msg"></div>
+    </div>
+  </div>
+
   <!-- connect / edit modal -->
   <div class="modal" id="connectModal">
     <div class="mc">
@@ -580,8 +597,32 @@ function route(session){
   if (USER){ $('authGate').classList.add('hide'); $('appHome').classList.remove('hide'); showApp(); }
   else { $('appHome').classList.add('hide'); $('authGate').classList.remove('hide'); $('navRight').innerHTML=''; }
 }
+var RECOVERY=false;
 sb.auth.getSession().then(function(r){ route(r.data.session); });
-sb.auth.onAuthStateChange(function(_e, session){ route(session); });
+sb.auth.onAuthStateChange(function(ev, session){
+  if(ev==='PASSWORD_RECOVERY'){ RECOVERY=true; }
+  route(session);
+  if(RECOVERY && session){ RECOVERY=false; $('pwModal').classList.add('on'); }
+});
+function forgotPass(e){
+  if(e) e.preventDefault();
+  var email=$('aEmail').value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return msg('type your email above first, then hit forgot password.');
+  sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }).then(function(r){
+    if(r.error) return msg(r.error.message);
+    msg('reset link sent — check your email.', true);
+  });
+}
+function setNewPass(){
+  var np=$('npIn').value;
+  var m=$('npMsg');
+  if(np.length<6){ m.className='msg err'; m.textContent='at least 6 characters.'; return; }
+  sb.auth.updateUser({ password: np }).then(function(r){
+    if(r.error){ m.className='msg err'; m.textContent=r.error.message; return; }
+    m.className='msg ok'; m.textContent='password updated ✓';
+    setTimeout(function(){ $('pwModal').classList.remove('on'); }, 900);
+  });
+}
 
 /* ---------- auth ---------- */
 function setTab(m){
@@ -632,11 +673,13 @@ function showApp(){
   loadProfile();
 }
 function bootType(){
-  var el=$('bootLine'); if(!el) return;
+  var el=$('bootLine'); if(!el || el._done) return; el._done=true;
   var t='> viral hq online · niche radar armed · live feed connected';
   if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){ el.textContent=t; return; }
-  el.textContent=''; var i=0;
-  (function tick(){ if(i<=t.length){ el.innerHTML=esc(t.slice(0,i))+'<span class="cur">▋</span>'; i++; setTimeout(tick, 16); } else el.textContent=t; })();
+  el.textContent='';
+  var txt=document.createTextNode(''), cur=document.createElement('span'); cur.className='cur'; cur.textContent='▋';
+  el.appendChild(txt); el.appendChild(cur);
+  var i=0; (function tick(){ if(i<=t.length){ txt.nodeValue=t.slice(0,i); i++; setTimeout(tick,18); } else cur.remove(); })();
 }
 
 /* ---------- profile: bind identity, then route ---------- */
@@ -656,6 +699,8 @@ function enterHQ(){
   $('onboard').classList.add('hide'); $('hqWrap').classList.remove('hide');
   renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube');
   goLive();
+  /* let the entrance play once, then freeze tile animations so tab switches don't replay them */
+  setTimeout(function(){ $('ytDeck').classList.add('no-anim'); $('altPanel').classList.add('no-anim'); }, 900);
 }
 
 /* ---------- connect a youtube channel = claim your identity ---------- */
@@ -754,7 +799,7 @@ function odoRender(el, val){
   val=Math.max(0,Math.floor(val));
   var s=String(val), want=s.length;
   if(el._digits!==want){ /* (re)build digit columns with comma groups */
-    el._digits=want; el.innerHTML='';
+    el._digits=want; el._last=''; el.innerHTML=''; el.setAttribute('aria-label', s);
     for(var i=0;i<want;i++){
       if(i>0 && (want-i)%3===0){ var c=document.createElement('span'); c.className='comma'; c.textContent=','; el.appendChild(c); }
       var col=document.createElement('span'); col.className='dcol';
@@ -764,7 +809,12 @@ function odoRender(el, val){
     }
     el._strips=el.querySelectorAll('.dstrip');
   }
-  for(var j=0;j<want;j++){ el._strips[j].style.transform='translateY(-'+(+s[j])+'em)'; }
+  if(el._last===s) return; /* nothing moved — zero style writes */
+  var prev=el._last||'';
+  for(var j=0;j<want;j++){ /* only touch strips whose digit actually changed */
+    if(prev[j]!==s[j]) el._strips[j].style.transform='translate3d(0,-'+(+s[j])+'em,0)';
+  }
+  el._last=s;
 }
 function pulseCounter(key, label, icon, color){
   if(PULSE.c[key]) return PULSE.c[key];
@@ -779,7 +829,7 @@ function pulseSet(key, newVal, subHTML, rateHint){
   var c=PULSE.c[key]; if(!c || newVal==null) return;
   var now=Date.now();
   if(newVal < c.val*0.9){ /* target changed (e.g. a fresh upload took the "latest video" slot) — reset */
-    c.val=newVal; c.rate=rateHint||0; c.lastVal=newVal; c.lastTs=now;
+    c.val=newVal; c.rate=rateHint||0; c.lastVal=newVal; c.lastTs=now; c._shown=Math.floor(newVal);
     odoRender(c.el, c.val); if(subHTML!=null) $('ps_'+key).innerHTML=subHTML;
     var r0=$('pr_'+key); if(r0) r0.textContent = c.rate>=(1/3600) ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
     return;
@@ -789,6 +839,7 @@ function pulseSet(key, newVal, subHTML, rateHint){
   } else if(c.lastVal==null && rateHint){ c.rate=rateHint; }
   if(c.lastVal==null || newVal!==c.lastVal){ c.lastVal=newVal; c.lastTs=now; }
   if(newVal>c.val || c.val===0) c.val=newVal;
+  c._shown=Math.floor(c.val);
   odoRender(c.el, c.val);
   if(subHTML!=null) $('ps_'+key).innerHTML=subHTML;
   var r=$('pr_'+key);
@@ -818,16 +869,26 @@ function pollPulse(){
       }
     }).catch(function(){});
 }
+var REDUCE_MOTION = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 function tickPulse(){ /* interpolate between polls so the digits actually roll */
+  var dirty=false;
   for(var k in PULSE.c){ var c=PULSE.c[k];
-    if(c.rate>0 && c.val>0){ c.val+=c.rate; odoRender(c.el, c.val); }
+    if(c.rate>0 && c.val>0){
+      c.val+=c.rate;
+      var f=Math.floor(c.val);
+      if(f!==c._shown){ c._shown=f; dirty=true; }
+    }
   }
+  if(!dirty) return; /* integers didn't move — skip the frame entirely */
+  requestAnimationFrame(function(){
+    for(var k in PULSE.c){ var c=PULSE.c[k]; if(c._shown!=null) odoRender(c.el, c._shown); }
+  });
 }
 function startPulse(){
   stopPulse();
   pollPulse();
   PULSE.poll=setInterval(pollPulse, 45000);
-  PULSE.anim=setInterval(tickPulse, 1000);
+  if(!REDUCE_MOTION) PULSE.anim=setInterval(tickPulse, 1000); /* reduced-motion users get poll-only updates */
 }
 function stopPulse(){ if(PULSE.poll){clearInterval(PULSE.poll);PULSE.poll=null;} if(PULSE.anim){clearInterval(PULSE.anim);PULSE.anim=null;} }
 document.addEventListener('visibilitychange', function(){
