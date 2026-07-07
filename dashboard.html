@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViralHit — channel scan</title>
+<meta name="description" content="Run a free AI scan of your channel: outliers, dead zones, posting windows, and a 30-day roadmap.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:hsl(230 24% 5%); --card:hsl(228 18% 8%); --card2:hsl(228 16% 11%);
+  --fg:hsl(220 12% 96%); --muted:hsl(220 8% 62%); --faint:hsl(220 8% 40%);
+  --border:hsl(228 14% 16%); --border2:hsl(228 14% 24%);
+  --primary:hsl(260 90% 66%); --primary-soft:hsl(260 90% 66% / .14);
+  --accent:hsl(190 92% 56%); --success:hsl(160 84% 50%); --warning:hsl(38 96% 60%); --danger:hsl(0 84% 60%);
+  --radius:14px;
+  --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:hsl(260 90% 66% / .45);color:#fff}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px}
+.bg-app{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(1200px 600px at 80% -10%, hsl(260 90% 66% / .13), transparent 60%),
+  radial-gradient(900px 500px at 0% 10%, hsl(190 92% 56% / .07), transparent 55%), var(--bg)}
+.bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(to right,hsl(228 14% 16% / .4) 1px,transparent 1px),
+    linear-gradient(to bottom,hsl(228 14% 16% / .4) 1px,transparent 1px);
+  background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 55% at 50% 0%,#000 30%,transparent 80%)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+nav.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:hsl(230 24% 5% / .78);border-bottom:1px solid var(--border)}
+nav.top .wrap{display:flex;align-items:center;gap:20px;height:60px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1rem;letter-spacing:-.02em}
+.logo b{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav .right{margin-left:auto;display:flex;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.86rem;
+  padding:10px 18px;border-radius:10px;border:1px solid transparent;cursor:pointer;transition:all .18s;font-family:var(--sans)}
+.btn-primary{background:linear-gradient(120deg,var(--primary),hsl(280 90% 62%));color:#fff;box-shadow:0 4px 20px hsl(260 90% 66% / .3)}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.55;cursor:wait;transform:none}
+.btn-ghost{border-color:var(--border2);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{padding:7px 13px;font-size:.78rem}
+
+/* ---- input state ---- */
+#stateInput{max-width:640px;margin:9vh auto 0;text-align:center;padding:0 22px}
+#stateInput h1{font-size:clamp(1.7rem,4.5vw,2.6rem);font-weight:800;letter-spacing:-.03em;text-wrap:balance}
+#stateInput h1 .grad{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+#stateInput .sub{color:var(--muted);margin-top:12px}
+.scanform{margin-top:30px;display:flex;flex-direction:column;gap:12px;text-align:left}
+.field{background:hsl(228 18% 8% / .8);border:1px solid var(--border2);border-radius:13px;padding:4px 4px 4px 16px;display:flex;align-items:center;gap:10px}
+.field:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.field label{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;white-space:nowrap}
+.field input{flex:1;background:transparent;border:0;color:var(--fg);font-size:.95rem;padding:13px 8px;font-family:var(--sans);min-width:0}
+.field input:focus{outline:none}
+.field input::placeholder{color:var(--faint)}
+.hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
+.demo-row{margin-top:18px;font-size:.85rem;color:var(--muted)}
+.demo-row a{color:var(--accent);font-weight:600}
+.err{margin-top:14px;color:var(--danger);font-size:.86rem;background:hsl(0 84% 60% / .08);
+  border:1px solid hsl(0 84% 60% / .3);border-radius:10px;padding:11px 15px;display:none;text-align:left}
+
+/* ---- analyzing state ---- */
+#stateScan{display:none;max-width:560px;margin:12vh auto 0;padding:0 22px}
+.scanner{background:hsl(228 18% 8% / .85);border:1px solid var(--border2);border-radius:18px;padding:28px;box-shadow:0 30px 80px hsl(230 24% 2% / .6)}
+.scanner h2{font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:12px}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--primary-soft);border-top-color:var(--primary);animation:rot 1s linear infinite;flex:0 0 auto}
+@keyframes rot{to{transform:rotate(360deg)}}
+.scanlog{margin-top:18px;font-family:var(--mono);font-size:.78rem;line-height:2;color:var(--muted);min-height:150px}
+.scanlog .ok{color:var(--success)} .scanlog .run{color:var(--accent)}
+.scanbar{height:5px;border-radius:99px;background:var(--card2);margin-top:16px;overflow:hidden}
+.scanbar div{height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .6s;border-radius:99px}
+
+/* ---- report ---- */
+#stateReport{display:none;padding:34px 0 80px}
+.demo-banner{background:linear-gradient(90deg,hsl(38 96% 60% / .12),transparent);border:1px solid hsl(38 96% 60% / .35);
+  border-radius:12px;padding:12px 18px;font-size:.85rem;color:var(--warning);margin-bottom:22px;display:none}
+.demo-banner b{font-weight:700}
+.rhead{display:flex;gap:26px;align-items:center;flex-wrap:wrap;margin-bottom:26px}
+.rhead .who h1{font-size:clamp(1.4rem,3.4vw,2.1rem);font-weight:800;letter-spacing:-.02em}
+.rhead .who .rmeta{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-top:6px;letter-spacing:.04em}
+.rhead .who .rmeta a{color:var(--accent)}
+.scorewrap{margin-left:auto;display:flex;align-items:center;gap:18px}
+canvas#dial{width:110px;height:110px}
+.scoreinfo .sl{font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+.scoreinfo .sv{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.scoreinfo .sv small{font-size:.9rem;color:var(--faint);font-weight:500}
+.verdict{background:linear-gradient(180deg,hsl(260 90% 66% / .1),hsl(228 18% 8% / .6));border:1px solid hsl(260 90% 66% / .35);
+  border-radius:16px;padding:22px 26px;margin-bottom:16px}
+.verdict .vl{font-family:var(--mono);font-size:.64rem;letter-spacing:.2em;color:var(--primary);text-transform:uppercase;margin-bottom:8px}
+.verdict p{font-size:1.02rem;line-height:1.65}
+
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.card{background:linear-gradient(180deg,hsl(228 18% 8% / .8),hsl(228 18% 8% / .55));border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px 22px;position:relative;overflow:hidden}
+.c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}
+@media(max-width:860px){.c8,.c6,.c4{grid-column:span 12}}
+.clabel{font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.clabel .right{margin-left:auto;letter-spacing:.06em}
+.lock{font-size:.58rem;color:var(--warning);border:1px solid hsl(38 96% 60% / .4);border-radius:99px;padding:2px 9px;margin-left:auto}
+.statrow{display:flex;gap:0;flex-wrap:wrap}
+.stat{padding:4px 28px 4px 0;margin-right:28px;border-right:1px solid var(--border)}
+.stat:last-child{border-right:0}
+.stat .n{font-family:var(--mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat .n.hot{color:var(--accent)} .stat .n.bad{color:var(--danger)}
+.stat .l{font-size:.68rem;color:var(--faint);text-transform:uppercase;letter-spacing:.12em;margin-top:3px}
+canvas.big{width:100%;height:190px;display:block}
+canvas.med{width:100%;height:160px;display:block}
+.legend{display:flex;gap:16px;font-family:var(--mono);font-size:.64rem;color:var(--faint);margin-top:10px;flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+.vidlist{display:flex;flex-direction:column}
+.vid{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--border);font-size:.86rem}
+.vid:last-child{border-bottom:0}
+.vid .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg)}
+.vid .v{font-family:var(--mono);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;border-radius:99px;padding:3px 10px;white-space:nowrap}
+.pill.hot{color:var(--accent);border:1px solid hsl(190 92% 56% / .45);background:hsl(190 92% 56% / .08)}
+.pill.bad{color:var(--danger);border:1px solid hsl(0 84% 60% / .4);background:hsl(0 84% 60% / .07)}
+.pill.mid{color:var(--faint);border:1px solid var(--border2)}
+
+.fix{border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;background:hsl(228 16% 10% / .5)}
+.fix .fh{display:flex;gap:12px;align-items:center}
+.sev{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;border-radius:6px;padding:3px 9px;text-transform:uppercase;flex:0 0 auto}
+.sev.critical{background:hsl(0 84% 60% / .14);color:var(--danger);border:1px solid hsl(0 84% 60% / .4)}
+.sev.high{background:hsl(38 96% 60% / .12);color:var(--warning);border:1px solid hsl(38 96% 60% / .4)}
+.sev.med{background:hsl(190 92% 56% / .1);color:var(--accent);border:1px solid hsl(190 92% 56% / .35)}
+.fix .fh h4{font-size:.96rem;font-weight:700}
+.fix .why{color:var(--muted);font-size:.86rem;margin-top:8px}
+.fix .do{margin-top:10px;font-size:.86rem;background:hsl(160 84% 50% / .07);border-left:2px solid var(--success);
+  padding:9px 13px;border-radius:0 9px 9px 0;color:var(--fg)}
+.fix .do b{color:var(--success);font-family:var(--mono);font-size:.66rem;letter-spacing:.12em}
+
+.heatgrid{display:grid;grid-template-columns:34px repeat(24,1fr);gap:3px;font-family:var(--mono);font-size:.56rem;color:var(--faint)}
+.heatgrid .hl{display:flex;align-items:center}
+.heatgrid .cell{aspect-ratio:1.2/1;border-radius:3px;background:var(--card2);min-width:0}
+.heatgrid .hourlab{grid-column:2/-1;display:grid;grid-template-columns:repeat(24,1fr);gap:3px;margin-top:4px}
+.heatgrid .hourlab span{text-align:center;overflow:hidden}
+
+.roadmap{display:flex;flex-direction:column;gap:0;position:relative;padding-left:22px}
+.roadmap::before{content:'';position:absolute;left:6px;top:10px;bottom:10px;width:2px;background:linear-gradient(180deg,var(--primary),var(--accent))}
+.week{position:relative;padding:14px 0 18px}
+.week::before{content:'';position:absolute;left:-21px;top:20px;width:11px;height:11px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--primary)}
+.week .wk{font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;color:var(--primary);text-transform:uppercase}
+.week h4{font-size:1rem;font-weight:700;margin-top:4px}
+.week ul{list-style:none;margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.week li{font-size:.87rem;color:var(--muted);padding-left:18px;position:relative}
+.week li::before{content:'→';position:absolute;left:0;color:var(--accent)}
+
+.dna{width:100%;border-collapse:collapse;font-size:.87rem}
+.dna th{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+  text-align:left;padding:8px 10px;border-bottom:1px solid var(--border2)}
+.dna td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.dna td.you{color:var(--muted)} .dna td.viral{color:var(--fg)}
+.dna td.area{font-weight:600;white-space:nowrap}
+.dna tr:last-child td{border-bottom:0}
+
+.nextvid{background:linear-gradient(135deg,hsl(190 92% 56% / .1),hsl(260 90% 66% / .08));border:1px solid hsl(190 92% 56% / .3)}
+.nextvid .titleopt{font-size:.95rem;font-weight:600;padding:10px 14px;border:1px solid var(--border2);border-radius:10px;
+  margin-bottom:8px;background:hsl(230 24% 5% / .5)}
+.nextvid .hook{font-size:.87rem;color:var(--muted);margin-top:12px}
+.nextvid .hook b{color:var(--accent)}
+
+.upsell{background:linear-gradient(135deg,hsl(260 90% 66% / .14),hsl(228 18% 8% / .7));border:1px solid hsl(260 90% 66% / .45);
+  text-align:center;padding:34px 26px}
+.upsell h3{font-size:1.35rem;font-weight:800;letter-spacing:-.02em}
+.upsell p{color:var(--muted);margin:10px auto 20px;max-width:46ch;font-size:.92rem}
+.retn{position:relative}
+.retn .blurwrap{filter:blur(2px) saturate(.7);opacity:.6;pointer-events:none}
+.retn .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}
+.retn .overlay .lockic{font-size:1.4rem}
+.retn .overlay p{font-size:.86rem;color:var(--muted);max-width:38ch}
+footer{border-top:1px solid var(--border);padding:26px 0 44px;margin-top:30px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--faint)}
+footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="bg-app"></div>
+<div class="bg-grid"></div>
+
+<nav class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html">
+      <svg viewBox="0 0 32 32" style="width:18px;height:18px" aria-hidden="true"><path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="hsl(260 90% 66%)"/></svg>
+      VIRAL<b>HIT</b>
+    </a>
+    <div class="right">
+      <button class="btn btn-ghost btn-sm" onclick="resetScan()" id="newScanBtn" style="display:none">new scan</button>
+      <a class="btn btn-primary btn-sm" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Go Pro</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ STATE: INPUT ============ -->
+<section id="stateInput">
+  <h1>Scan your channel. <span class="grad">Free, 30 seconds.</span></h1>
+  <p class="sub">Public data in, battle plan out. No login.</p>
+  <form class="scanform" onsubmit="return startScan(event)">
+    <div class="field">
+      <label for="fC">channel</label>
+      <input id="fC" type="text" placeholder="@yourhandle · youtube.com/@you · channel ID" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="fE">email</label>
+      <input id="fE" type="email" placeholder="you@email.com — where your report lives" autocomplete="email">
+    </div>
+    <input type="text" class="hp" id="fH" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button class="btn btn-primary" type="submit" id="runBtn" style="padding:14px">Run the scan →</button>
+  </form>
+  <div class="err" id="errBox"></div>
+  <div class="demo-row">No channel handy? <a href="#" onclick="return runDemo()">Run the live demo instead →</a></div>
+</section>
+
+<!-- ============ STATE: SCANNING ============ -->
+<section id="stateScan">
+  <div class="scanner">
+    <h2><span class="spin"></span><span id="scanTitle">Scanning channel…</span></h2>
+    <div class="scanlog" id="scanLog"></div>
+    <div class="scanbar"><div id="scanBar"></div></div>
+  </div>
+</section>
+
+<!-- ============ STATE: REPORT ============ -->
+<section id="stateReport">
+  <div class="wrap">
+    <div class="demo-banner" id="demoBanner"><b>DEMO REPORT.</b> This is a sample channel so you can feel the product. Run it on your own channel for the real thing.</div>
+
+    <div class="rhead">
+      <div class="who">
+        <h1 id="rName">—</h1>
+        <div class="rmeta" id="rMeta">—</div>
+      </div>
+      <div class="scorewrap">
+        <canvas id="dial" width="110" height="110" aria-label="viral readiness score"></canvas>
+        <div class="scoreinfo">
+          <div class="sl">viral readiness</div>
+          <div class="sv"><span id="rScore">—</span><small>/100</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict"><div class="vl">// the verdict</div><p id="rVerdict">—</p></div>
+
+    <div class="grid">
+      <div class="card c12">
+        <div class="clabel">channel vitals</div>
+        <div class="statrow" id="rStats"></div>
+      </div>
+
+      <div class="card c8">
+        <div class="clabel">last <span id="rCount">–</span> uploads vs your median <span class="right" id="rMedian"></span></div>
+        <canvas class="big" id="bars"></canvas>
+        <div class="legend">
+          <span><i style="background:hsl(190,92%,56%)"></i>outlier (≥2.5× median)</span>
+          <span><i style="background:hsla(0,84%,60%,.6)"></i>dead zone (≤0.4×)</span>
+          <span><i style="background:hsla(220,12%,96%,.2)"></i>baseline</span>
+        </div>
+      </div>
+
+      <div class="card c4">
+        <div class="clabel">uploads, ranked</div>
+        <div class="vidlist" id="rVids" style="max-height:250px;overflow-y:auto"></div>
+      </div>
+
+      <div class="card c6 retn">
+        <div class="clabel">retention autopsy <span class="lock">🔒 connect to unlock</span></div>
+        <div class="blurwrap"><canvas class="med" id="retCurve"></canvas></div>
+        <div class="overlay">
+          <div class="lockic">🔒</div>
+          <p><b>Real second-by-second retention</b> needs a one-click YouTube connect. Coming for Pro — this curve is a sample.</p>
+          <a class="btn btn-primary btn-sm" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Get priority access</a>
+        </div>
+      </div>
+
+      <div class="card c6">
+        <div class="clabel">posting windows <span class="right">from your top performers</span></div>
+        <div class="heatgrid" id="heat"></div>
+        <p style="font-size:.82rem;color:var(--muted);margin-top:12px" id="rSched"></p>
+      </div>
+
+      <div class="card c6">
+        <div class="clabel">what to fix, ranked by severity</div>
+        <div id="rFixes"></div>
+      </div>
+
+      <div class="card c6">
+        <div class="clabel">viral dna — you vs your niche's winners</div>
+        <table class="dna"><thead><tr><th></th><th>you now</th><th>what wins</th></tr></thead><tbody id="rDna"></tbody></table>
+      </div>
+
+      <div class="card c6 nextvid">
+        <div class="clabel">your next video, generated</div>
+        <div id="rNext"></div>
+      </div>
+
+      <div class="card c6">
+        <div class="clabel">30-day roadmap</div>
+        <div class="roadmap" id="rRoad"></div>
+      </div>
+
+      <div class="card c12 upsell">
+        <h3>This scan is the free tier.</h3>
+        <p>Pro re-scans you weekly, tracks whether the fixes are working, unlocks the deep retention autopsy first, and regenerates your roadmap as your channel moves.</p>
+        <a class="btn btn-primary" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Go Pro — $19/mo, cancel anytime</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Stromation LLC — <a href="https://www.stromation.com" target="_blank" rel="noopener">a Stromation product</a></span>
+    <span><a href="privacy.html">privacy</a> · <a href="terms.html">terms</a> · <a href="mailto:contact@stromation.com">contact</a></span>
+  </div>
+</footer>
+
+<script>
+var API = 'https://n8n.stromation.com/webhook/viralhit-analyze';
+var $ = function(id){ return document.getElementById(id); };
+var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+var pageT = Date.now();
+
+/* ---------- state machine ---------- */
+function show(state){
+  $('stateInput').style.display = state==='input' ? '' : 'none';
+  $('stateScan').style.display = state==='scan' ? '' : 'none';
+  $('stateReport').style.display = state==='report' ? '' : 'none';
+  $('newScanBtn').style.display = state==='report' ? '' : 'none';
+  scrollTo(0,0);
+}
+function resetScan(){ show('input'); }
+function fail(msg){
+  show('input');
+  var e = $('errBox'); e.textContent = msg; e.style.display = 'block';
+}
+
+/* ---------- scan flow ---------- */
+var SCAN_STEPS = [
+  'resolving channel…',
+  'pulling recent uploads…',
+  'computing your median + velocity…',
+  'isolating outliers and dead zones…',
+  'reading your posting patterns…',
+  'running the AI autopsy vs your niche…',
+  'building your 30-day roadmap…'
+];
+function playScanLog(){
+  var log = $('scanLog'); log.innerHTML = '';
+  var bar = $('scanBar'); bar.style.width = '4%';
+  var i = 0;
+  function next(){
+    if (i > 0){ var prev = log.children[i-1]; if (prev){ prev.className='ok'; prev.textContent = '✓ ' + SCAN_STEPS[i-1]; } }
+    if (i >= SCAN_STEPS.length) return;
+    var d = document.createElement('div'); d.className='run'; d.textContent = '▸ ' + SCAN_STEPS[i];
+    log.appendChild(d);
+    bar.style.width = (6 + (i+1)/SCAN_STEPS.length*86) + '%';
+    i++;
+    scanTimer = setTimeout(next, 2100 + Math.random()*1400);
+  }
+  next();
+}
+var scanTimer = null;
+
+function startScan(e){
+  if (e) e.preventDefault();
+  var c = $('fC').value.trim(), em = $('fE').value.trim(), hp = $('fH').value;
+  $('errBox').style.display = 'none';
+  if (!c){ fail('drop in a channel handle, URL, or ID first.'); return false; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ fail('a real email is needed — thats where your report lives.'); return false; }
+  if (hp || Date.now() - pageT < 2500){ fail('that was too fast. try again.'); return false; }
+  runAnalysis({ channel: c, email: em, website: '' });
+  return false;
+}
+function runDemo(){
+  runAnalysis({ channel: 'demo', email: '', website: '', demo: true });
+  return false;
+}
+function runAnalysis(payload){
+  show('scan');
+  $('scanTitle').textContent = payload.demo ? 'Analyzing demo channel…' : 'Scanning ' + payload.channel + '…';
+  playScanLog();
+  var t0 = Date.now();
+  fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    .then(function(r){ if(!r.ok) throw new Error('scan service returned ' + r.status); return r.json(); })
+    .then(function(d){
+      if (d.error){ throw new Error(d.error === 'channel_not_found'
+        ? 'couldnt find that channel. try the full URL (youtube.com/@handle) or the channel ID (starts with UC).'
+        : d.error); }
+      var wait = Math.max(0, (payload.demo ? 3500 : 9000) - (Date.now() - t0));
+      setTimeout(function(){ clearTimeout(scanTimer); renderReport(d); }, reduce ? 0 : wait);
+    })
+    .catch(function(err){
+      clearTimeout(scanTimer);
+      if (payload.demo){ renderReport(DEMO); return; }
+      fail(err.message || 'scan failed. try again in a minute.');
+    });
+}
+
+/* ---------- render ---------- */
+function fmt(n){
+  if (n == null) return '—';
+  if (n >= 1e6) return (n/1e6).toFixed(1).replace('.0','') + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1).replace('.0','') + 'K';
+  return String(Math.round(n));
+}
+function esc(t){ var d = document.createElement('div'); d.textContent = t==null?'':t; return d.innerHTML; }
+
+function renderReport(d){
+  show('report');
+  $('demoBanner').style.display = d.demo ? '' : 'none';
+  var ch = d.channel || {};
+  $('rName').textContent = ch.name || 'your channel';
+  $('rMeta').innerHTML = (ch.url ? '<a href="'+esc(ch.url)+'" target="_blank" rel="noopener">'+esc(ch.url.replace('https://',''))+'</a> · ' : '')
+    + esc((d.ai && d.ai.niche) || 'creator') + ' · scanned just now';
+  var score = (d.ai && d.ai.score) != null ? d.ai.score : 50;
+  $('rScore').textContent = score;
+  drawDial(score);
+  $('rVerdict').textContent = (d.ai && d.ai.verdict) || 'analysis unavailable — try re-running the scan.';
+
+  var s = d.stats || {};
+  var ups = s.uploads || [];
+  $('rCount').textContent = ups.length;
+  $('rMedian').textContent = 'median ' + fmt(s.median) + ' views';
+  var out = (d.outliers||[]).length, flop = (d.flops||[]).length;
+  $('rStats').innerHTML =
+    stat(fmt(s.median), 'median views') +
+    stat(fmt(s.mean), 'avg views') +
+    stat(s.cadence_days != null ? s.cadence_days + 'd' : '—', 'upload cadence') +
+    stat(out, 'outliers', out ? 'hot' : '') +
+    stat(flop, 'dead zones', flop ? 'bad' : '');
+  drawBars(ups, s.median || 1);
+
+  // ranked list
+  var ranked = ups.slice().sort(function(a,b){ return b.v - a.v; });
+  $('rVids').innerHTML = ranked.map(function(u){
+    var pill = u.r >= 2.5 ? '<span class="pill hot">'+u.r.toFixed(1)+'×</span>'
+      : u.r <= 0.4 ? '<span class="pill bad">'+u.r.toFixed(1)+'×</span>'
+      : '<span class="pill mid">'+u.r.toFixed(1)+'×</span>';
+    return '<div class="vid"><span class="t" title="'+esc(u.t)+'">'+esc(u.t)+'</span><span class="v">'+fmt(u.v)+'</span>'+pill+'</div>';
+  }).join('');
+
+  drawRetention();
+  drawHeat(d.heat || {});
+  $('rSched').textContent = (d.ai && d.ai.schedule && d.ai.schedule.reason) || '';
+
+  var fixes = (d.ai && d.ai.fixes) || [];
+  $('rFixes').innerHTML = fixes.map(function(f){
+    return '<div class="fix"><div class="fh"><span class="sev '+esc(f.severity||'med')+'">'+esc(f.severity||'med')+'</span><h4>'+esc(f.title)+'</h4></div>'
+      + '<div class="why">'+esc(f.why)+'</div>'
+      + '<div class="do"><b>DO THIS → </b>'+esc(f["do"])+'</div></div>';
+  }).join('') || '<p style="color:var(--faint)">no fixes returned</p>';
+
+  var dna = (d.ai && d.ai.dna && d.ai.dna.gaps) || [];
+  $('rDna').innerHTML = dna.map(function(g){
+    return '<tr><td class="area">'+esc(g.area)+'</td><td class="you">'+esc(g.yours)+'</td><td class="viral">'+esc(g.viral)+'</td></tr>';
+  }).join('') || '<tr><td colspan="3" style="color:var(--faint)">—</td></tr>';
+
+  var nv = (d.ai && d.ai.next_video) || {};
+  $('rNext').innerHTML = (nv.title_options||[]).map(function(t){ return '<div class="titleopt">'+esc(t)+'</div>'; }).join('')
+    + (nv.hook ? '<div class="hook"><b>open with:</b> '+esc(nv.hook)+'</div>' : '')
+    + (nv.format ? '<div class="hook"><b>format:</b> '+esc(nv.format)+'</div>' : '');
+
+  var road = (d.ai && d.ai.roadmap) || [];
+  $('rRoad').innerHTML = road.map(function(w){
+    return '<div class="week"><div class="wk">week '+esc(w.week)+'</div><h4>'+esc(w.focus)+'</h4><ul>'
+      + (w.actions||[]).map(function(a){ return '<li>'+esc(a)+'</li>'; }).join('') + '</ul></div>';
+  }).join('') || '<p style="color:var(--faint)">—</p>';
+
+  try { localStorage.setItem('vh.last', JSON.stringify(d)); } catch(e){}
+}
+function stat(n, l, cls){ return '<div class="stat"><div class="n '+(cls||'')+'">'+n+'</div><div class="l">'+l+'</div></div>'; }
+
+/* ---------- canvases ---------- */
+function ctx2(c){ var d = devicePixelRatio||1, w = c.clientWidth*d, h = c.clientHeight*d; c.width=w; c.height=h; return [c.getContext('2d'),w,h,d]; }
+function drawDial(score){
+  var c = $('dial'), r = ctx2(c), ctx=r[0], W=r[1], H=r[2], d=r[3];
+  var cx=W/2, cy=H/2, rad=Math.min(W,H)/2 - 8*d;
+  ctx.lineWidth = 9*d; ctx.lineCap='round';
+  ctx.strokeStyle='hsl(228,14%,16%)';
+  ctx.beginPath(); ctx.arc(cx,cy,rad, Math.PI*0.75, Math.PI*2.25); ctx.stroke();
+  var g = ctx.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,'hsl(260,90%,66%)'); g.addColorStop(1,'hsl(190,92%,56%)');
+  ctx.strokeStyle=g;
+  ctx.beginPath(); ctx.arc(cx,cy,rad, Math.PI*0.75, Math.PI*0.75 + (score/100)*Math.PI*1.5); ctx.stroke();
+  ctx.font='700 '+(20*d)+'px Inter,sans-serif'; ctx.fillStyle='hsl(220,12%,96%)';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(score, cx, cy);
+}
+function drawBars(ups, median){
+  var c = $('bars'), r = ctx2(c), ctx=r[0], W=r[1], H=r[2], d=r[3];
+  if (!ups.length) return;
+  var vs = ups.map(function(u){ return u.v; });
+  var max = Math.max.apply(null, vs.concat([median*2.6]));
+  var bw = W/ups.length;
+  ups.forEach(function(u,i){
+    var h = Math.max(2*d, (u.v/max)*(H-24*d));
+    var hot = u.r >= 2.5, cold = u.r <= 0.4;
+    ctx.fillStyle = hot?'hsl(190,92%,56%)':cold?'hsla(0,84%,60%,.6)':'hsla(220,12%,96%,.2)';
+    if (hot){ ctx.shadowColor='hsl(190,92%,56%)'; ctx.shadowBlur=12*d; }
+    ctx.beginPath(); ctx.roundRect(i*bw+bw*0.18, H-14*d-h, bw*0.64, h, 3*d); ctx.fill(); ctx.shadowBlur=0;
+  });
+  var my = H-14*d-(median/max)*(H-24*d);
+  ctx.setLineDash([5*d,5*d]); ctx.strokeStyle='hsla(260,90%,70%,.75)'; ctx.lineWidth=1.5*d;
+  ctx.beginPath(); ctx.moveTo(0,my); ctx.lineTo(W,my); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font=(9.5*d)+'px JetBrains Mono,monospace'; ctx.fillStyle='hsla(220,8%,62%,.9)'; ctx.textAlign='left';
+  ctx.fillText('oldest', 4*d, H-3*d); ctx.textAlign='right'; ctx.fillText('newest', W-4*d, H-3*d);
+}
+function drawRetention(){
+  var c = $('retCurve'), r = ctx2(c), ctx=r[0], W=r[1], H=r[2], d=r[3];
+  var pts=[100,90,74,63,57,54,52,50,45,31,27,25,23,22,20,19];
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'hsla(260,90%,66%,.45)'); g.addColorStop(1,'hsla(260,90%,66%,0)');
+  ctx.beginPath(); ctx.moveTo(0,H);
+  pts.forEach(function(p,i){ ctx.lineTo(i/(pts.length-1)*W, H-(p/100)*(H-12*d)); });
+  ctx.lineTo(W,H); ctx.closePath(); ctx.fillStyle=g; ctx.fill();
+  ctx.beginPath();
+  pts.forEach(function(p,i){ var x=i/(pts.length-1)*W, y=H-(p/100)*(H-12*d); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.strokeStyle='hsl(260,90%,70%)'; ctx.lineWidth=2.4*d; ctx.stroke();
+}
+function drawHeat(heat){
+  var el = $('heat'); el.innerHTML='';
+  var days = ['mon','tue','wed','thu','fri','sat','sun'];
+  var dh = heat.days || [0,0,0,0,0,0,0], hh = heat.hours || [];
+  var grid = heat.grid;
+  var maxv = 0.001;
+  if (grid) grid.forEach(function(row){ row.forEach(function(v){ if(v>maxv)maxv=v; }); });
+  days.forEach(function(dl, di){
+    var lab = document.createElement('div'); lab.className='hl'; lab.textContent=dl; el.appendChild(lab);
+    for (var h=0; h<24; h++){
+      var cell = document.createElement('div'); cell.className='cell';
+      var v = grid ? (grid[di]&&grid[di][h]||0)/maxv
+        : ((dh[di]||0)/Math.max.apply(null,dh.concat([1]))) * ((hh[h]||0)/Math.max.apply(null,hh.concat([1])));
+      if (v > 0.02) cell.style.background = 'hsl(260 90% 66% / '+Math.min(0.95, 0.12+v*0.85)+')';
+      if (v > 0.7) cell.style.boxShadow = '0 0 8px hsl(260 90% 66% / .5)';
+      el.appendChild(cell);
+    }
+  });
+  var hl = document.createElement('div'); hl.className='hourlab';
+  for (var h=0; h<24; h++){ var s=document.createElement('span'); s.textContent = h%6===0? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''; hl.appendChild(s); }
+  el.appendChild(hl);
+}
+
+/* ---------- client-side demo fallback (if API unreachable) ---------- */
+var DEMO = {
+  ok:true, demo:true,
+  channel:{ id:'demo', name:'SignalFrame (demo)', url:'' },
+  stats:{ count:14, median:8200, mean:31400, cadence_days:4,
+    uploads:[
+      {t:'I automated my whole job with one AI agent', v:6900, r:0.84},
+      {t:'This AI tool is criminally underrated', v:8100, r:0.99},
+      {t:'AI news you actually missed this week', v:2100, r:0.26},
+      {t:'I let AI run my business for 7 days', v:214000, r:26.1},
+      {t:'5 AI tools I use every day', v:3400, r:0.41},
+      {t:'The truth about AI agents in 2026', v:9800, r:1.2},
+      {t:'How I make faceless videos with AI', v:41000, r:5.0},
+      {t:'ChatGPT vs Claude: honest test', v:8600, r:1.05},
+      {t:'My AI workflow (full breakdown)', v:12300, r:1.5},
+      {t:'Weekly AI roundup #14', v:1900, r:0.23},
+      {t:'Weekly AI roundup #15', v:1700, r:0.21},
+      {t:'This prompt changed how I work', v:15800, r:1.93},
+      {t:'AI just replaced my editor', v:22000, r:2.68},
+      {t:'Building an app with zero code', v:7700, r:0.94}
+    ] },
+  outliers:[3,6,12], flops:[2,9,10],
+  heat:{ days:[2,8,3,9,2,1,1], hours:[0,0,0,0,0,0,0,0,0,1,2,1,3,2,1,4,8,9,6,3,1,0,0,0] },
+  ai:{
+    score:64, niche:'AI tools & automation',
+    verdict:'this channel has proven viral DNA — the "I let AI do X for N days" experiment format pulled 26× your median — but two thirds of uploads are roundup-style content your audience has repeatedly voted against. the channel is one format decision away from compounding.',
+    fixes:[
+      { title:'Kill the weekly roundup format', severity:'critical', why:'three of your four worst videos are roundups (0.21–0.26× median). they train the algorithm that your channel is skippable.', "do":'replace the roundup slot with one experiment-format video. same effort, 10–25× the historical return on this channel.' },
+      { title:'Double down on first-person experiments', severity:'high', why:'"I let AI run my business for 7 days" (26×) and "How I make faceless videos" (5×) are both first-person stakes formats. thats your outlier pattern, not a fluke.', "do":'next 4 uploads: "I [did specific thing] with AI for [timeframe]" — personal stakes in every title.' },
+      { title:'Front-load numbers in titles', severity:'med', why:'your outliers average 1.4 numerals per title; your dead zones average 0.3. specificity is doing real work in your niche.', "do":'every title gets one concrete number: days, dollars, tools counted, hours saved.' }
+    ],
+    schedule:{ best_days:['tuesday','thursday'], best_times:['4pm','5pm CT'],
+      reason:'your top performers published tue/thu 4–6pm. your dead zones skew weekend mornings — your audience is at desks, not couches.' },
+    dna:{ gaps:[
+      { area:'hook', yours:'topic-first ("AI news this week")', viral:'stakes-first ("I risked X so you dont have to")' },
+      { area:'title', yours:'descriptive, 0–1 numbers', viral:'personal + numeric ("7 days", "$500", "3 tools")' },
+      { area:'cadence', yours:'every 4 days, mixed formats', viral:'2×/week, ONE repeatable format' }
+    ] },
+    next_video:{ title_options:[
+      'I let an AI agent run my YouTube channel for 7 days',
+      'I spent $0 building an app with AI — heres what broke',
+      '3 AI agents ran my life for a week. one fired itself.'
+    ], hook:'cold open on the end result, then "seven days ago, this didnt exist."', format:'first-person experiment, 8–12 min, day-count chapter markers' },
+    roadmap:[
+      { week:1, focus:'stop the bleeding', actions:['retire the roundup format','publish one experiment video (tue 4pm)','rewrite your 3 best old titles with numbers'] },
+      { week:2, focus:'feed the winner', actions:['second experiment video','pin a comment linking your 26× video','test one thumbnail with a face + result'] },
+      { week:3, focus:'systematize', actions:['lock tue/thu slots','build a title bank of 10 experiment ideas','start each video with the payoff shot'] },
+      { week:4, focus:'compound', actions:['publish your biggest experiment yet','recut the 26× video as 3 shorts','re-scan on ViralHit and compare your score'] }
+    ]
+  },
+  retention:{ available:false }
+};
+
+/* ---------- boot from URL params ---------- */
+(function(){
+  var p = new URLSearchParams(location.search);
+  if (p.get('demo')) { runDemo(); return; }
+  var c = p.get('c');
+  if (c) $('fC').value = c;
+  show('input');
+})();
+</script>
+</body>
+</html>

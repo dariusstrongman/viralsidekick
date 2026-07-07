@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViralHit — know exactly why it didn't go viral</title>
+<meta name="description" content="AI creator intelligence. Paste your channel and ViralHit autopsies every upload against what actually wins in your niche: what to change, when to post, and a 30-day roadmap to your first viral hit.">
+<link rel="canonical" href="https://viralhit.stromation.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ViralHit — know exactly why it didn't go viral">
+<meta property="og:description" content="AI autopsies your uploads vs what wins in your niche. What to change, when to post, and a 30-day roadmap.">
+<meta property="og:url" content="https://viralhit.stromation.com/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:hsl(230 24% 5%); --card:hsl(228 18% 8%); --card2:hsl(228 16% 10%);
+  --fg:hsl(220 12% 96%); --muted:hsl(220 8% 62%); --faint:hsl(220 8% 40%);
+  --border:hsl(228 14% 16%); --border2:hsl(228 14% 24%);
+  --primary:hsl(260 90% 66%); --primary-soft:hsl(260 90% 66% / .14);
+  --accent:hsl(190 92% 56%); --success:hsl(160 84% 50%); --warning:hsl(38 96% 60%); --danger:hsl(0 84% 60%);
+  --radius:14px;
+  --sans:'Inter',system-ui,-apple-system,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:hsl(260 90% 66% / .45);color:#fff}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px}
+
+/* atmosphere */
+.bg-app{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(1200px 600px at 80% -10%, hsl(260 90% 66% / .16), transparent 60%),
+  radial-gradient(900px 500px at 0% 10%, hsl(190 92% 56% / .09), transparent 55%),
+  var(--bg)}
+.bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(to right,hsl(228 14% 16% / .4) 1px,transparent 1px),
+    linear-gradient(to bottom,hsl(228 14% 16% / .4) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 80%)}
+
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* nav */
+nav.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+  background:hsl(230 24% 5% / .75);border-bottom:1px solid var(--border)}
+nav.top .wrap{display:flex;align-items:center;gap:26px;height:64px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1.05rem;letter-spacing:-.02em}
+.logo .bolt{width:20px;height:20px}
+.logo b{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav.top .links{margin-left:auto;display:flex;gap:24px;font-size:.88rem;color:var(--muted);align-items:center}
+nav.top .links a:hover{color:var(--fg)}
+@media(max-width:640px){nav.top .links a.hideable{display:none}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.9rem;
+  padding:11px 20px;border-radius:11px;border:1px solid transparent;cursor:pointer;transition:all .18s;font-family:var(--sans)}
+.btn-primary{background:linear-gradient(120deg,var(--primary),hsl(280 90% 62%));color:#fff;
+  box-shadow:0 4px 24px hsl(260 90% 66% / .35)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 32px hsl(260 90% 66% / .5)}
+.btn-ghost{border-color:var(--border2);color:var(--fg)}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{padding:8px 15px;font-size:.82rem}
+
+/* hero */
+.hero{padding:92px 0 40px;text-align:center;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.7rem;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--accent);border:1px solid hsl(190 92% 56% / .3);
+  border-radius:99px;padding:7px 16px;background:hsl(190 92% 56% / .06)}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2.4s infinite}
+@keyframes pulse{50%{opacity:.4}}
+h1{font-size:clamp(2.4rem,6.4vw,4.4rem);font-weight:800;letter-spacing:-.04em;line-height:1.04;
+  margin:26px auto 0;max-width:17ch;text-wrap:balance}
+h1 .grad{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);font-size:clamp(1rem,2vw,1.2rem);max-width:56ch;margin:22px auto 0}
+.scanbox{display:flex;gap:10px;max-width:560px;margin:34px auto 0;padding:8px;border-radius:16px;
+  background:linear-gradient(180deg,hsl(228 18% 8% / .9),hsl(228 18% 8% / .7));
+  border:1px solid var(--border2);box-shadow:0 20px 60px hsl(230 24% 2% / .6);flex-wrap:wrap}
+.scanbox:focus-within{border-color:var(--primary);box-shadow:0 20px 60px hsl(230 24% 2% / .6),0 0 0 3px var(--primary-soft)}
+.scanbox input{flex:1;min-width:220px;background:transparent;border:0;color:var(--fg);font-size:.98rem;
+  padding:12px 14px;font-family:var(--sans)}
+.scanbox input::placeholder{color:var(--faint)}
+.scanbox input:focus{outline:none}
+.hero .demo-link{display:inline-block;margin-top:16px;font-size:.86rem;color:var(--muted)}
+.hero .demo-link b{color:var(--accent);font-weight:600}
+.hero .demo-link:hover b{text-decoration:underline}
+.trust{margin-top:40px;font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
+.trust b{color:var(--muted)}
+
+/* hero preview */
+.preview{margin:56px auto 0;max-width:900px;border-radius:20px;border:1px solid var(--border2);
+  background:linear-gradient(180deg,hsl(228 18% 8% / .85),hsl(228 18% 8% / .6));
+  box-shadow:0 40px 100px hsl(230 24% 2% / .7);overflow:hidden;text-align:left}
+.preview .pbar{display:flex;gap:7px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--border)}
+.preview .pbar i{width:10px;height:10px;border-radius:50%;background:var(--border2)}
+.preview .pbar i:first-child{background:var(--primary)}
+.preview .pbar em{font-style:normal;font-family:var(--mono);font-size:.66rem;color:var(--faint);letter-spacing:.12em;margin-left:8px}
+.preview .pbody{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:760px){.preview .pbody{grid-template-columns:1fr}}
+.preview .pcell{padding:22px;border-right:1px solid var(--border)}
+.preview .pcell:last-child{border-right:0}
+@media(max-width:760px){.preview .pcell{border-right:0;border-bottom:1px solid var(--border)}}
+.plabel{font-family:var(--mono);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.plabel .tag{margin-left:auto;font-size:.58rem;color:var(--warning);border:1px solid hsl(38 96% 60% / .4);border-radius:99px;padding:2px 9px}
+canvas.pv{width:100%;height:150px;display:block}
+
+/* sections */
+section.blk{padding:84px 0}
+.shead{text-align:center;max-width:640px;margin:0 auto 48px}
+.shead .kicker{font-family:var(--mono);font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--primary)}
+.shead h2{font-size:clamp(1.7rem,4vw,2.6rem);font-weight:800;letter-spacing:-.03em;margin-top:14px;text-wrap:balance}
+.shead p{color:var(--muted);margin-top:14px}
+
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.grid3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.grid3{grid-template-columns:1fr}}
+.feat{background:linear-gradient(180deg,hsl(228 18% 8% / .7),hsl(228 18% 8% / .5));border:1px solid var(--border);
+  border-radius:var(--radius);padding:26px;transition:border-color .2s,transform .2s;position:relative;overflow:hidden}
+.feat:hover{border-color:hsl(260 90% 66% / .4);transform:translateY(-3px)}
+.feat .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;margin-bottom:16px;
+  background:var(--primary-soft);color:var(--primary);font-size:1.1rem}
+.feat.cy .ic{background:hsl(190 92% 56% / .12);color:var(--accent)}
+.feat h3{font-size:1.05rem;font-weight:700;letter-spacing:-.01em}
+.feat p{color:var(--muted);font-size:.9rem;margin-top:8px}
+.feat .soon{position:absolute;top:14px;right:14px;font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;
+  color:var(--warning);border:1px solid hsl(38 96% 60% / .35);border-radius:99px;padding:3px 9px}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:step}
+@media(max-width:760px){.steps{grid-template-columns:1fr}}
+.step{position:relative;padding:26px;border:1px solid var(--border);border-radius:var(--radius);background:hsl(228 18% 8% / .5)}
+.step .n{font-family:var(--mono);font-size:.8rem;color:var(--accent)}
+.step h3{margin-top:10px;font-size:1.02rem;font-weight:700}
+.step p{color:var(--muted);font-size:.9rem;margin-top:8px}
+
+/* pricing */
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:760px;margin:0 auto}
+@media(max-width:700px){.plans{grid-template-columns:1fr}}
+.plan{border:1px solid var(--border);border-radius:18px;padding:30px;background:hsl(228 18% 8% / .6);position:relative}
+.plan.pro{border-color:hsl(260 90% 66% / .5);background:linear-gradient(180deg,hsl(260 90% 66% / .08),hsl(228 18% 8% / .6));
+  box-shadow:0 20px 60px hsl(260 90% 66% / .12)}
+.plan .pname{font-family:var(--mono);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.plan.pro .pname{color:var(--primary)}
+.plan .price{font-size:2.5rem;font-weight:800;letter-spacing:-.03em;margin-top:12px}
+.plan .price small{font-size:.95rem;color:var(--muted);font-weight:500}
+.plan ul{list-style:none;margin:20px 0 26px;display:flex;flex-direction:column;gap:10px}
+.plan li{font-size:.9rem;color:var(--muted);display:flex;gap:10px;align-items:flex-start}
+.plan li::before{content:'✓';color:var(--success);font-weight:700;flex:0 0 auto}
+.plan li.na{opacity:.45}.plan li.na::before{content:'—';color:var(--faint)}
+.plan .btn{width:100%}
+.plan .badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-family:var(--mono);
+  font-size:.6rem;letter-spacing:.16em;background:linear-gradient(120deg,var(--primary),hsl(280 90% 62%));
+  color:#fff;border-radius:99px;padding:4px 14px}
+.launch-note{text-align:center;color:var(--faint);font-size:.8rem;margin-top:18px;font-family:var(--mono)}
+
+/* faq */
+.faq{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.faq details{border:1px solid var(--border);border-radius:12px;background:hsl(228 18% 8% / .5)}
+.faq summary{cursor:pointer;padding:18px 22px;font-weight:600;font-size:.95rem;list-style:none;display:flex;align-items:center}
+.faq summary::after{content:'+';margin-left:auto;color:var(--primary);font-weight:700;font-size:1.1rem}
+.faq details[open] summary::after{content:'–'}
+.faq .a{padding:0 22px 18px;color:var(--muted);font-size:.9rem}
+
+/* final cta */
+.final{text-align:center;padding:90px 0;position:relative}
+.final h2{font-size:clamp(1.8rem,4.4vw,3rem);font-weight:800;letter-spacing:-.03em;max-width:20ch;margin:0 auto;text-wrap:balance}
+.final p{color:var(--muted);margin:16px auto 30px;max-width:44ch}
+
+footer{border-top:1px solid var(--border);padding:36px 0 54px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer .flinks{display:flex;gap:20px;font-size:.82rem;color:var(--muted);flex-wrap:wrap}
+footer .flinks a:hover{color:var(--fg)}
+footer .fine{width:100%;margin-top:16px;font-family:var(--mono);font-size:.66rem;color:var(--faint)}
+footer .fine a{color:var(--muted)}
+
+/* reveal */
+.anim .rv{opacity:0;transform:translateY(18px)}
+.rv{transition:opacity .7s ease,transform .7s cubic-bezier(.16,1,.3,1)}
+.anim .rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.anim .rv{opacity:1!important;transform:none!important}.eyebrow .dot{animation:none}}
+</style>
+</head>
+<body>
+<div class="bg-app"></div>
+<div class="bg-grid"></div>
+
+<nav class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html">
+      <svg class="bolt" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="url(#lg)"/><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(260 90% 66%)"/><stop offset="1" stop-color="hsl(190 92% 56%)"/></linearGradient></defs></svg>
+      VIRAL<b>HIT</b>
+    </a>
+    <div class="links">
+      <a href="#features" class="hideable">Features</a>
+      <a href="#pricing" class="hideable">Pricing</a>
+      <a href="#faq" class="hideable">FAQ</a>
+      <a class="btn btn-primary btn-sm" href="dashboard.html">Analyze my channel</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <span class="eyebrow rv"><span class="dot"></span>AI creator intelligence</span>
+  <h1 class="rv">Know exactly why it <span class="grad">didn't go viral.</span></h1>
+  <p class="sub rv">Paste your channel. ViralHit autopsies every upload against what actually wins in your niche — what to change, when to post, and a 30-day roadmap to your first hit.</p>
+
+  <form class="scanbox rv" onsubmit="return goScan(event)">
+    <input type="text" id="heroChannel" placeholder="youtube.com/@yourchannel" aria-label="your channel url or handle" autocomplete="off">
+    <button class="btn btn-primary" type="submit">Run free scan</button>
+  </form>
+  <a class="demo-link rv" href="dashboard.html?demo=1">No channel handy? <b>Watch it analyze a live demo →</b></a>
+  <div class="trust rv">real public YouTube data · GPT-4o analysis · <b>a Stromation product</b></div>
+
+  <div class="preview rv" aria-hidden="true">
+    <div class="pbar"><i></i><i></i><i></i><em>viralhit — scan report</em></div>
+    <div class="pbody">
+      <div class="pcell">
+        <div class="plabel">retention autopsy <span class="tag">sample</span></div>
+        <canvas class="pv" id="pvCurve"></canvas>
+      </div>
+      <div class="pcell">
+        <div class="plabel">your uploads vs your median</div>
+        <canvas class="pv" id="pvBars"></canvas>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="blk" id="features">
+  <div class="wrap">
+    <div class="shead rv">
+      <div class="kicker">WHAT IT SEES</div>
+      <h2>Your analytics tell you what happened. ViralHit tells you what to do.</h2>
+      <p>Six lenses on every channel, fused into one verdict by AI trained on what actually spreads.</p>
+    </div>
+    <div class="grid3">
+      <div class="feat rv"><div class="ic">⚠</div><h3>Dead-zone detector</h3><p>Finds the exact uploads bleeding you out — the flops dragging your channel signal down and the pattern they share.</p></div>
+      <div class="feat rv cy"><div class="ic">⚡</div><h3>Outlier forensics</h3><p>Your near-viral moments, isolated. What those videos did differently, and how to do it on purpose next time.</p></div>
+      <div class="feat rv"><div class="ic">◔</div><h3>Retention autopsy</h3><p>Where viewers actually stop watching, second by second.<span class="soon">connect to unlock</span></p></div>
+      <div class="feat rv cy"><div class="ic">🧬</div><h3>Viral DNA match</h3><p>Your titles, hooks and cadence compared against what wins in your niche right now — gap by gap.</p></div>
+      <div class="feat rv"><div class="ic">◱</div><h3>Posting windows</h3><p>The days and hours your audience actually shows up, read from your own top performers.</p></div>
+      <div class="feat rv cy"><div class="ic">↗</div><h3>30-day roadmap</h3><p>Not advice. A week-by-week plan: what to make, what to fix, what to stop doing.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="blk" style="padding-top:0">
+  <div class="wrap">
+    <div class="shead rv">
+      <div class="kicker">HOW IT WORKS</div>
+      <h2>From channel link to battle plan in about 30 seconds.</h2>
+    </div>
+    <div class="steps">
+      <div class="step rv"><div class="n">01</div><h3>Paste your channel</h3><p>A handle, a URL, or a channel ID. No login, no OAuth, nothing to install. We read public data.</p></div>
+      <div class="step rv"><div class="n">02</div><h3>AI runs the autopsy</h3><p>Every recent upload gets scored against your own median and your niche's winners. Outliers up, flops flagged.</p></div>
+      <div class="step rv"><div class="n">03</div><h3>Get the plan</h3><p>A verdict, the fixes ranked by severity, your posting windows, and a 30-day roadmap you can start today.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="blk" id="pricing" style="padding-top:20px">
+  <div class="wrap">
+    <div class="shead rv">
+      <div class="kicker">PRICING</div>
+      <h2>Start free. Go Pro when it earns it.</h2>
+    </div>
+    <div class="plans">
+      <div class="plan rv">
+        <div class="pname">Free scan</div>
+        <div class="price">$0</div>
+        <ul>
+          <li>Full channel scan on public data</li>
+          <li>Outlier + dead-zone detection</li>
+          <li>AI verdict + top fixes</li>
+          <li>Posting windows</li>
+          <li class="na">Deep retention autopsy (connect)</li>
+          <li class="na">Weekly rescans + progress tracking</li>
+        </ul>
+        <a class="btn btn-ghost" href="dashboard.html">Run free scan</a>
+      </div>
+      <div class="plan pro rv">
+        <div class="badge">LAUNCH PRICE</div>
+        <div class="pname">Pro</div>
+        <div class="price">$19<small>/month</small></div>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Full 30-day roadmap, refreshed weekly</li>
+          <li>Viral DNA comparison for your niche</li>
+          <li>Next-video generator: titles + hooks</li>
+          <li>Weekly rescans + trend alerts</li>
+          <li>Priority access: retention autopsy + TikTok</li>
+        </ul>
+        <a class="btn btn-primary" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Go Pro — $19/mo</a>
+      </div>
+    </div>
+    <div class="launch-note rv">launch pricing, locked in for early users · cancel anytime, one click</div>
+  </div>
+</section>
+
+<section class="blk" id="faq" style="padding-top:20px">
+  <div class="wrap">
+    <div class="shead rv">
+      <div class="kicker">FAQ</div>
+      <h2>Fair questions.</h2>
+    </div>
+    <div class="faq rv">
+      <details><summary>Do I need to give you access to my account?</summary><div class="a">No. The free scan runs entirely on public YouTube data — the same numbers anyone can see, analyzed properly. The deep retention autopsy (where people stop watching) needs a one-click YouTube connect, coming for Pro users.</div></details>
+      <details><summary>Which platforms?</summary><div class="a">YouTube today. TikTok is next on the roadmap — Pro users get it first.</div></details>
+      <details><summary>Is the AI actually analyzing MY channel or giving generic tips?</summary><div class="a">Your real uploads, your real numbers. The AI gets your actual titles, view counts, upload cadence and outliers, and reasons about your niche specifically. If a fix could apply to any channel, it doesn't make the report.</div></details>
+      <details><summary>Can I cancel?</summary><div class="a">Anytime, one click, through Stripe. No emails, no retention flows, no guilt.</div></details>
+      <details><summary>Who builds this?</summary><div class="a">ViralHit is built by <a href="https://www.stromation.com" target="_blank" rel="noopener" style="color:var(--accent)">Stromation</a>, an AI product house. Built in public — the ship log is on the site.</div></details>
+    </div>
+  </div>
+</section>
+
+<section class="final wrap">
+  <h2 class="rv">Your next upload deserves to know <span style="background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent">what the last ten did wrong.</span></h2>
+  <p class="rv">One free scan. Thirty seconds. No login.</p>
+  <a class="btn btn-primary rv" style="font-size:1rem;padding:15px 34px" href="dashboard.html">Analyze my channel →</a>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="index.html" style="font-size:.95rem">
+      <svg class="bolt" viewBox="0 0 32 32" style="width:17px;height:17px" aria-hidden="true"><path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="hsl(260 90% 66%)"/></svg>
+      VIRAL<b>HIT</b>
+    </a>
+    <div class="flinks">
+      <a href="dashboard.html">Free scan</a>
+      <a href="#pricing">Pricing</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="mailto:contact@stromation.com">Contact</a>
+    </div>
+    <div class="fine">© 2026 Stromation LLC · ViralHit is a <a href="https://www.stromation.com" target="_blank" rel="noopener">Stromation</a> product · ideas in, products out</div>
+  </div>
+</footer>
+
+<script>
+document.documentElement.classList.add('anim');
+var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+var rvs = [].slice.call(document.querySelectorAll('.rv'));
+if (reduce || !('IntersectionObserver' in window)) rvs.forEach(function(el){el.classList.add('in');});
+else {
+  var io = new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  rvs.forEach(function(el,i){ if(el.closest('.hero')) setTimeout(function(){el.classList.add('in');},80+i*90); else io.observe(el); });
+}
+function goScan(e){
+  e.preventDefault();
+  var v = document.getElementById('heroChannel').value.trim();
+  location.href = 'dashboard.html' + (v ? ('?c=' + encodeURIComponent(v)) : '');
+  return false;
+}
+/* hero preview canvases */
+function px(c){var d=devicePixelRatio||1;var w=c.clientWidth*d,h=c.clientHeight*d;c.width=w;c.height=h;return [c.getContext('2d'),w,h,d];}
+(function(){
+  var c=document.getElementById('pvCurve'); if(!c) return;
+  var r=px(c),ctx=r[0],W=r[1],H=r[2],d=r[3];
+  var pts=[100,88,72,61,55,52,50,48,43,30,26,24,22,21,20];
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'hsla(260,90%,66%,.5)');g.addColorStop(1,'hsla(260,90%,66%,0)');
+  ctx.beginPath();ctx.moveTo(0,H);
+  pts.forEach(function(p,i){ctx.lineTo(i/(pts.length-1)*W,H-(p/100)*(H-14*d));});
+  ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();
+  pts.forEach(function(p,i){var x=i/(pts.length-1)*W,y=H-(p/100)*(H-14*d);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.strokeStyle='hsl(260,90%,70%)';ctx.lineWidth=2.4*d;ctx.stroke();
+  var dx=8/(pts.length-1)*W, dy=H-(pts[8]/100)*(H-14*d);
+  ctx.fillStyle='hsl(0,84%,60%)';ctx.beginPath();ctx.arc(dx,dy,4.4*d,0,7);ctx.fill();
+  ctx.font=(10*d)+'px JetBrains Mono,monospace';ctx.fillStyle='hsl(0,84%,68%)';
+  ctx.fillText('-30% cliff @ 0:41',Math.min(dx+8*d,W-120*d),dy-8*d);
+})();
+(function(){
+  var c=document.getElementById('pvBars'); if(!c) return;
+  var r=px(c),ctx=r[0],W=r[1],H=r[2],d=r[3];
+  var vs=[38,25,31,120,22,41,36,290,33,28,49,19,44,52,26], max=Math.max.apply(null,vs);
+  var bw=W/vs.length, med=36;
+  vs.forEach(function(v,i){
+    var h=(v/max)*(H-16*d), hot=v>med*2.5, cold=v<med*.4;
+    ctx.fillStyle=hot?'hsl(190,92%,56%)':cold?'hsla(0,84%,60%,.55)':'hsla(220,12%,96%,.18)';
+    if(hot){ctx.shadowColor='hsl(190,92%,56%)';ctx.shadowBlur=10*d;}
+    ctx.beginPath();ctx.roundRect(i*bw+bw*.2,H-h,bw*.6,h,3*d);ctx.fill();ctx.shadowBlur=0;
+  });
+  var my=H-(med/max)*(H-16*d);
+  ctx.setLineDash([4*d,4*d]);ctx.strokeStyle='hsla(260,90%,70%,.7)';ctx.lineWidth=1.4*d;
+  ctx.beginPath();ctx.moveTo(0,my);ctx.lineTo(W,my);ctx.stroke();ctx.setLineDash([]);
+  ctx.font=(10*d)+'px JetBrains Mono,monospace';ctx.fillStyle='hsl(260,30%,75%)';
+  ctx.fillText('your median',6*d,my-6*d);
+})();
+</script>
+</body>
+</html>
