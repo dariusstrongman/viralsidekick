@@ -176,6 +176,28 @@ canvas.med{width:100%;height:160px;display:block}
 .retn .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}
 .retn .overlay .lockic{font-size:1.4rem}
 .retn .overlay p{font-size:.86rem;color:var(--muted);max-width:38ch}
+.erupts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:860px){.erupts{grid-template-columns:1fr}}
+.erupt{border:1px solid hsl(190 92% 56% / .25);border-radius:12px;padding:18px;background:linear-gradient(180deg,hsl(190 92% 56% / .05),hsl(228 16% 10% / .5));position:relative}
+.erupt .tr{font-weight:700;font-size:.98rem;padding-right:70px}
+.erupt .ev{font-family:var(--mono);font-size:.72rem;color:var(--accent);margin:10px 0;line-height:1.6}
+.erupt .ev::before{content:'⚡ LIVE  ';font-size:.58rem;letter-spacing:.12em;color:var(--warning)}
+.erupt.inferred .ev::before{content:'◈ PATTERN  ';color:var(--faint)}
+.erupt .yv{margin-top:10px;font-size:.87rem;background:hsl(260 90% 66% / .09);border-left:2px solid var(--primary);padding:10px 13px;border-radius:0 9px 9px 0}
+.erupt .yv b{color:var(--primary);font-family:var(--mono);font-size:.64rem;letter-spacing:.12em}
+.erupt .urg{position:absolute;top:14px;right:14px;font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;color:var(--warning);border:1px solid hsl(38 96% 60% / .4);border-radius:99px;padding:3px 9px;text-transform:uppercase}
+.pf-row{display:flex;gap:10px;flex-wrap:wrap}
+.pf-row input{flex:1;min-width:220px;background:hsl(230 24% 5% / .6);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-size:.95rem;padding:13px 15px;font-family:var(--sans)}
+.pf-row input:focus{outline:none;border-color:var(--accent)}
+#pfOut{margin-top:16px;display:none}
+.pfscore{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.pfscore .num{font-family:var(--mono);font-size:1.7rem;font-weight:700}
+.pfbar{flex:1;height:8px;border-radius:99px;background:var(--card2);overflow:hidden}
+.pfbar div{height:100%;border-radius:99px;background:linear-gradient(90deg,hsl(0 84% 60%),hsl(38 96% 60%),hsl(160 84% 50%));transition:width .8s}
+.pfverdict{font-size:.92rem;color:var(--fg);margin-bottom:12px}
+.rewrite{font-size:.92rem;font-weight:600;padding:10px 14px;border:1px solid var(--border2);border-radius:10px;margin-bottom:8px;background:hsl(230 24% 5% / .5);cursor:pointer;transition:border-color .15s}
+.rewrite:hover{border-color:var(--accent)}
+.rewrite small{display:block;font-weight:400;color:var(--faint);font-family:var(--mono);font-size:.6rem;margin-top:3px}
 footer{border-top:1px solid var(--border);padding:26px 0 44px;margin-top:30px}
 footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--faint)}
 footer a{color:var(--muted)}
@@ -242,6 +264,7 @@ footer a{color:var(--muted)}
         <div class="scoreinfo">
           <div class="sl">viral readiness</div>
           <div class="sv"><span id="rScore">—</span><small>/100</small></div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="shareCard()">↓ share score card</button>
         </div>
       </div>
     </div>
@@ -285,6 +308,11 @@ footer a{color:var(--muted)}
         <p style="font-size:.82rem;color:var(--muted);margin-top:12px" id="rSched"></p>
       </div>
 
+      <div class="card c12">
+        <div class="clabel">⚡ niche radar — erupting around you right now <span class="right" id="radarMode"></span></div>
+        <div class="erupts" id="rRadar"></div>
+      </div>
+
       <div class="card c6">
         <div class="clabel">what to fix, ranked by severity</div>
         <div id="rFixes"></div>
@@ -303,6 +331,15 @@ footer a{color:var(--muted)}
       <div class="card c6">
         <div class="clabel">30-day roadmap</div>
         <div class="roadmap" id="rRoad"></div>
+      </div>
+
+      <div class="card c12">
+        <div class="clabel">🛫 pre-flight — test any title before you upload</div>
+        <div class="pf-row">
+          <input id="pfTitle" type="text" maxlength="140" placeholder="paste the title youre about to use…">
+          <button class="btn btn-primary" id="pfBtn" onclick="preflight()">check it</button>
+        </div>
+        <div id="pfOut"></div>
       </div>
 
       <div class="card c12 upsell">
@@ -348,6 +385,7 @@ var SCAN_STEPS = [
   'computing your median + velocity…',
   'isolating outliers and dead zones…',
   'reading your posting patterns…',
+  'sweeping your niche for live eruptions…',
   'running the AI autopsy vs your niche…',
   'building your 30-day roadmap…'
 ];
@@ -467,13 +505,109 @@ function renderReport(d){
     + (nv.hook ? '<div class="hook"><b>open with:</b> '+esc(nv.hook)+'</div>' : '')
     + (nv.format ? '<div class="hook"><b>format:</b> '+esc(nv.format)+'</div>' : '');
 
+  var radar = (d.ai && d.ai.radar) || [];
+  $('radarMode').textContent = d.radar_live ? 'LIVE — pulled from your niche minutes ago' : 'pattern inference';
+  $('rRadar').innerHTML = radar.map(function(r){
+    return '<div class="erupt'+(d.radar_live?'':' inferred')+'"><div class="urg">'+esc(r.urgency||'soon')+'</div>'
+      + '<div class="tr">'+esc(r.trend)+'</div>'
+      + '<div class="ev">'+esc(r.evidence)+'</div>'
+      + '<div class="yv"><b>YOUR VERSION → </b>'+esc(r.your_version)+'</div></div>';
+  }).join('') || '<p style="color:var(--faint)">radar quiet — re-run the scan</p>';
+
   var road = (d.ai && d.ai.roadmap) || [];
   $('rRoad').innerHTML = road.map(function(w){
     return '<div class="week"><div class="wk">week '+esc(w.week)+'</div><h4>'+esc(w.focus)+'</h4><ul>'
       + (w.actions||[]).map(function(a){ return '<li>'+esc(a)+'</li>'; }).join('') + '</ul></div>';
   }).join('') || '<p style="color:var(--faint)">—</p>';
 
+  lastReport = d;
   try { localStorage.setItem('vh.last', JSON.stringify(d)); } catch(e){}
+}
+var lastReport = null;
+
+/* ---------- pre-flight title lab ---------- */
+function preflight(){
+  var t = $('pfTitle').value.trim();
+  var out = $('pfOut');
+  if (!t){ out.style.display='block'; out.innerHTML = '<p style="color:var(--faint)">paste a title first.</p>'; return; }
+  var btn = $('pfBtn'); btn.disabled = true; btn.textContent = 'checking…';
+  var ai = (lastReport && lastReport.ai) || {};
+  var outlierTitles = ((lastReport && lastReport.stats && lastReport.stats.uploads) || [])
+    .filter(function(u){ return u.r >= 2.5; }).map(function(u){ return u.t; }).join(' | ');
+  fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ mode:'title', title:t, niche: ai.niche || '', context: outlierTitles }) })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var r = d.result || {};
+    if (!d.ok) throw new Error(d.error || 'failed');
+    out.style.display='block';
+    out.innerHTML = '<div class="pfscore"><span class="num" style="color:'+(r.score>=70?'var(--success)':r.score>=45?'var(--warning)':'var(--danger)')+'">'+r.score+'</span>'
+      + '<div class="pfbar"><div style="width:'+r.score+'%"></div></div></div>'
+      + '<div class="pfverdict">'+esc(r.verdict)+'</div>'
+      + (r.rewrites||[]).map(function(rw){ return '<div class="rewrite" onclick="copyRw(this)" title="click to copy">'+esc(rw)+'<small>click to copy</small></div>'; }).join('')
+      + (r.hook ? '<p style="font-size:.86rem;color:var(--muted);margin-top:10px"><b style="color:var(--accent)">open with:</b> '+esc(r.hook)+'</p>' : '');
+  })
+  .catch(function(){ out.style.display='block'; out.innerHTML = '<p style="color:var(--danger)">pre-flight failed — try again.</p>'; })
+  .finally(function(){ btn.disabled = false; btn.textContent = 'check it'; });
+}
+function copyRw(el){
+  var t = el.childNodes[0].textContent;
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(function(){
+    el.querySelector('small').textContent = 'copied ✓';
+    setTimeout(function(){ el.querySelector('small').textContent = 'click to copy'; }, 1400);
+  });
+}
+
+/* ---------- share score card ---------- */
+function shareCard(){
+  var d = lastReport; if (!d) return;
+  var c = document.createElement('canvas'); c.width = 1200; c.height = 630;
+  var x = c.getContext('2d');
+  x.fillStyle = '#0a0b10'; x.fillRect(0,0,1200,630);
+  var g1 = x.createRadialGradient(1050,-50,50, 1050,-50,700);
+  g1.addColorStop(0,'rgba(139,92,246,.35)'); g1.addColorStop(1,'rgba(139,92,246,0)');
+  x.fillStyle = g1; x.fillRect(0,0,1200,630);
+  var g2 = x.createRadialGradient(80,630,50, 80,630,600);
+  g2.addColorStop(0,'rgba(34,211,238,.22)'); g2.addColorStop(1,'rgba(34,211,238,0)');
+  x.fillStyle = g2; x.fillRect(0,0,1200,630);
+  x.strokeStyle = 'rgba(233,238,242,.08)'; x.lineWidth = 1;
+  for (var i=0;i<1200;i+=56){ x.beginPath(); x.moveTo(i,0); x.lineTo(i,630); x.stroke(); }
+  // wordmark
+  x.font = '800 34px Inter,sans-serif'; x.fillStyle = '#e9eef2'; x.textAlign='left';
+  x.fillText('VIRAL', 70, 92);
+  var w = x.measureText('VIRAL').width;
+  var gg = x.createLinearGradient(70+w,60,70+w+120,100);
+  gg.addColorStop(0,'#8b5cf6'); gg.addColorStop(1,'#22d3ee');
+  x.fillStyle = gg; x.fillText('HIT', 70+w, 92);
+  // channel
+  x.font = '600 30px Inter,sans-serif'; x.fillStyle = 'rgba(233,238,242,.85)';
+  x.fillText((d.channel && d.channel.name || 'my channel').slice(0,34), 70, 210);
+  x.font = '500 20px JetBrains Mono,monospace'; x.fillStyle = 'rgba(139,151,161,.9)';
+  x.fillText('viral readiness', 70, 250);
+  // score
+  var score = (d.ai && d.ai.score) || 0;
+  x.font = '800 170px Inter,sans-serif';
+  var sg = x.createLinearGradient(70,300,470,470);
+  sg.addColorStop(0,'#8b5cf6'); sg.addColorStop(1,'#22d3ee');
+  x.fillStyle = sg; x.fillText(String(score), 70, 440);
+  x.font = '600 44px Inter,sans-serif'; x.fillStyle = 'rgba(139,151,161,.7)';
+  x.fillText('/100', 70 + x.measureText(String(score)).width * 3.4, 440);
+  // verdict wrap
+  x.font = '500 22px Inter,sans-serif'; x.fillStyle = 'rgba(233,238,242,.75)';
+  var words = String((d.ai && d.ai.verdict) || '').split(' ');
+  var line = '', y = 500, count = 0;
+  for (var wi=0; wi<words.length && count<3; wi++){
+    var test = line + words[wi] + ' ';
+    if (x.measureText(test).width > 1050){ x.fillText(line, 70, y); line = words[wi]+' '; y += 32; count++; }
+    else line = test;
+  }
+  if (count < 3 && line) x.fillText(line, 70, y);
+  x.font = '500 19px JetBrains Mono,monospace'; x.fillStyle = 'rgba(34,211,238,.9)';
+  x.fillText('scan yours free → viralhit', 70, 596);
+  var a = document.createElement('a');
+  a.download = 'viralhit-score.png';
+  a.href = c.toDataURL('image/png');
+  a.click();
 }
 function stat(n, l, cls){ return '<div class="stat"><div class="n '+(cls||'')+'">'+n+'</div><div class="l">'+l+'</div></div>'; }
 
@@ -549,7 +683,7 @@ function drawHeat(heat){
 
 /* ---------- client-side demo fallback (if API unreachable) ---------- */
 var DEMO = {
-  ok:true, demo:true,
+  ok:true, demo:true, radar_live:true,
   channel:{ id:'demo', name:'SignalFrame (demo)', url:'' },
   stats:{ count:14, median:8200, mean:31400, cadence_days:4,
     uploads:[
@@ -585,6 +719,11 @@ var DEMO = {
       { area:'title', yours:'descriptive, 0–1 numbers', viral:'personal + numeric ("7 days", "$500", "3 tools")' },
       { area:'cadence', yours:'every 4 days, mixed formats', viral:'2×/week, ONE repeatable format' }
     ] },
+    radar:[
+      { trend:'"AI agent does my job for a week" experiment wave', evidence:'TheoBuilds: I hired an AI employee for 7 days (11.2× their median, 5 days old)', your_version:'I let 3 AI agents fight over my job for a week — one gets hired', urgency:'make it this week' },
+      { trend:'cost-transparency builds ("$0 stack" content)', evidence:'LeanStack: My entire business runs on $0/month of AI (6.4× their median, 9 days old)', your_version:'My $0 AI stack that replaced $400/mo of tools — full walkthrough', urgency:'make it this week' },
+      { trend:'AI fails / honest disaster content is beating polished demos', evidence:'PromptDaily: My AI agent deleted my production database (8.9× their median, 12 days old)', your_version:'I gave AI full access to my business. heres everything it broke.', urgency:'this month' }
+    ],
     next_video:{ title_options:[
       'I let an AI agent run my YouTube channel for 7 days',
       'I spent $0 building an app with AI — heres what broke',
