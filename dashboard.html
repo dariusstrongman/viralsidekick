@@ -211,7 +211,7 @@ footer a{color:var(--muted)}
   <div class="wrap">
     <a class="logo" href="index.html">
       <svg viewBox="0 0 32 32" style="width:18px;height:18px" aria-hidden="true"><path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="hsl(260 90% 66%)"/></svg>
-      VIRAL<b>HIT</b>
+      VIRAL <b>SIDEKICK</b>
     </a>
     <div class="right">
       <button class="btn btn-ghost btn-sm" onclick="resetScan()" id="newScanBtn" style="display:none">new scan</button>
@@ -575,10 +575,10 @@ function shareCard(){
   // wordmark
   x.font = '800 34px Inter,sans-serif'; x.fillStyle = '#e9eef2'; x.textAlign='left';
   x.fillText('VIRAL', 70, 92);
-  var w = x.measureText('VIRAL').width;
-  var gg = x.createLinearGradient(70+w,60,70+w+120,100);
+  var w = x.measureText('VIRAL ').width;
+  var gg = x.createLinearGradient(70+w,60,70+w+220,100);
   gg.addColorStop(0,'#8b5cf6'); gg.addColorStop(1,'#22d3ee');
-  x.fillStyle = gg; x.fillText('HIT', 70+w, 92);
+  x.fillStyle = gg; x.fillText('SIDEKICK', 70+w, 92);
   // channel
   x.font = '600 30px Inter,sans-serif'; x.fillStyle = 'rgba(233,238,242,.85)';
   x.fillText((d.channel && d.channel.name || 'my channel').slice(0,34), 70, 210);
