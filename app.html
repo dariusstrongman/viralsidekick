@@ -253,13 +253,16 @@ function showApp(){
   loadHistory();
 }
 function loadProfile(){
-  sb.from('viralsidekick_profiles').select('*').eq('id', USER.id).maybeSingle().then(function(r){
+  /* ensure a profile row exists (no db trigger — the app owns this) */
+  sb.from('viralsidekick_profiles').upsert({ id: USER.id, email: USER.email }, { onConflict:'id', ignoreDuplicates:true }).then(function(){
+   sb.from('viralsidekick_profiles').select('*').eq('id', USER.id).maybeSingle().then(function(r){
     PROFILE = r.data || {};
     if(PROFILE.primary_channel_id || PROFILE.primary_channel_name){
       $('chIn').value = PROFILE.primary_channel_name || PROFILE.primary_channel_id || '';
       $('chSaved').textContent = 'watching: ' + (PROFILE.primary_channel_name || PROFILE.primary_channel_id);
     }
     $('proCard').classList.toggle('hide', PROFILE.plan === 'pro');
+   });
   });
 }
 function saveChannel(){
