@@ -651,6 +651,10 @@ footer a:hover{color:var(--fg)}
         <h1>This is you. Let's connect your channels.</h1>
         <p class="osub">ViralSidekick becomes your creator command center. Start with YouTube — it goes live instantly.</p>
         <div class="conn-row">
+          <label for="obName">Your display name</label>
+          <div class="rr"><input id="obName" type="text" maxlength="40" placeholder="what your team sees (e.g. Darius)"></div>
+        </div>
+        <div class="conn-row">
           <label for="obYt">
             <svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
             Your YouTube channel
@@ -919,7 +923,11 @@ footer a:hover{color:var(--fg)}
     <div class="mc">
       <button class="x" onclick="closeConnect()" aria-label="close">✕</button>
       <h2 id="connectModalTitle">Your channels</h2>
-      <p class="sm mut" style="margin-bottom:18px">Update the channels bound to your account.</p>
+      <p class="sm mut" style="margin-bottom:18px">Update your identity and the channels bound to your account.</p>
+      <div class="conn-row">
+        <label>Display name</label>
+        <div class="rr"><input id="cmName" type="text" maxlength="40" placeholder="what your team sees"></div>
+      </div>
       <div class="conn-row">
         <label for="cmYt">
           <svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
@@ -1047,7 +1055,7 @@ function scoreColor(s){ if(s==null) return 'var(--faint)'; if(s>=75) return 'var
 function gcolor(g){ var c=(g||'')[0]; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
 
 function showApp(){
-  $('navRight').innerHTML = '<span>'+esc(USER.email||'')+'</span><button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>';
+  $('navRight').innerHTML = '<span>'+esc((PROFILE&&PROFILE.display_name)||USER.email||'')+'</span><button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>';
   var pb = $('proBtn');
   if (pb) pb.href = 'https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n?client_reference_id=' + USER.id + '&prefilled_email=' + encodeURIComponent(USER.email || '');
   var tb = $('teamBtn');
@@ -1067,7 +1075,8 @@ function bootType(){
 
 /* ---------- profile: bind identity, then route ---------- */
 function loadProfile(){
-  sb.from('viralsidekick_profiles').upsert({ id: USER.id, email: USER.email }, { onConflict:'id', ignoreDuplicates:true }).then(function(){
+  sb.from('viralsidekick_profiles').upsert({ id: USER.id, email: USER.email,
+    display_name: (USER.user_metadata&&USER.user_metadata.full_name)||(USER.email||'').split('@')[0] }, { onConflict:'id', ignoreDuplicates:true }).then(function(){
    sb.from('viralsidekick_profiles').select('*').eq('id', USER.id).maybeSingle().then(function(r){
     PROFILE = r.data || {};
     IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
@@ -1154,7 +1163,7 @@ function roleChip(m){
   var me=(m.user_id===USER.id), mine=SPACE&&SPACE.members.filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
   var col=m.role==='owner'?'hsl(45 95% 62%)':(m.role==='admin'?'var(--accent)':'var(--muted)');
-  var html='<div class="q-item"><div class="q-b"><div class="t">'+esc(m.email||m.user_id.slice(0,8))
+  var html='<div class="q-item"><div class="q-b"><div class="t">'+esc(m.display_name||(m.email||'').split('@')[0]||m.user_id.slice(0,8))
     +(me?' <span class="q-sev med">you</span>':'')
     +' <span class="q-sev" style="color:'+col+';background:transparent;border:1px solid '+col+'">'+esc(m.role)+'</span></div></div>';
   if(myRole==='owner' && m.role!=='owner'){
@@ -1204,7 +1213,7 @@ function loadBoard(){
       return '<div class="bp'+(p.status==='done'?' done':'')+'">'
         +'<span class="bk '+esc(p.kind||'note')+'">'+esc(p.kind||'note')+'</span>'
         +'<div class="bb"><div class="bt">'+esc(p.body||'')+'</div>'
-        +'<div class="bm">'+esc((p.author_email||'').split('@')[0])+' · '+relTime(p.created_at)+'</div></div>'
+        +'<div class="bm">'+esc(p.author_name||(p.author_email||'').split('@')[0])+' · '+relTime(p.created_at)+'</div></div>'
         +(can?'<div class="bx">'
           +'<button class="bbtn" data-act="toggle" data-id="'+esc(p.id)+'" data-next="'+(p.status==='done'?'open':'done')+'">'+(p.status==='done'?'reopen':'done ✓')+'</button>'
           +'<button class="bbtn" data-act="del" data-id="'+esc(p.id)+'" aria-label="delete post">✕</button>'
@@ -1220,7 +1229,7 @@ document.addEventListener('click',function(e){
 });
 function postToBoard(){
   var body=$('postBody').value.trim(); if(!body||!SPACE) return;
-  sb.from('viralsidekick_posts').insert({workspace_id:SPACE.workspace.id,user_id:USER.id,author_email:USER.email,kind:$('postKind').value,body:body}).then(function(r){
+  sb.from('viralsidekick_posts').insert({workspace_id:SPACE.workspace.id,user_id:USER.id,author_email:USER.email,author_name:(PROFILE&&PROFILE.display_name)||null,kind:$('postKind').value,body:body}).then(function(r){
     if(!r.error){ $('postBody').value=''; loadBoard(); }
     else spaceNote(r.error.message.slice(0,60));
   });
@@ -1288,14 +1297,15 @@ function finishOnboard(){
     var f=$('obFound'); f.style.display='flex'; f.innerHTML='<div class="fn" style="color:var(--warning)">connect your YouTube channel first ↑</div>'; return;
   }
   IDENT.tiktok=$('obTt').value.trim(); IDENT.instagram=$('obIg').value.trim();
+  var dn=$('obName').value.trim(); if(dn){ PROFILE=PROFILE||{}; PROFILE.display_name=dn; }
   persistIdentity(function(){ enterHQ(); });
 }
 function persistIdentity(cb){
-  saveProfileFields({
+  saveProfileFields(Object.assign((PROFILE&&PROFILE.display_name)?{display_name:String(PROFILE.display_name).slice(0,40)}:{}, {
     primary_channel_id:IDENT.yt.id||null, primary_channel_name:IDENT.yt.name||null,
     primary_channel_handle:IDENT.yt.handle||null, primary_channel_avatar:IDENT.yt.avatar||null, primary_channel_subs:IDENT.yt.subs||null,
     tiktok_handle:IDENT.tiktok||null, instagram_handle:IDENT.instagram||null
-  }).then(function(){ if(cb) cb(); });
+  })).then(function(){ if(cb) cb(); });
 }
 function saveProfileFields(f){
   var base={ id:USER.id, email:USER.email, updated_at:new Date().toISOString() };
@@ -1510,9 +1520,10 @@ function copyCard(){
 }
 
 /* ---------- connect/edit modal ---------- */
-function openConnect(){ $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFound').style.display='none'; $('connectModal').classList.add('on'); }
+function openConnect(){ var cn=$('cmName'); if(cn) cn.value=(PROFILE&&PROFILE.display_name)||''; $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFound').style.display='none'; $('connectModal').classList.add('on'); }
 function closeConnect(){ $('connectModal').classList.remove('on'); }
 function saveConnect(){
+  var cn=$('cmName'); if(cn&&cn.value.trim()){ PROFILE=PROFILE||{}; PROFILE.display_name=cn.value.trim(); }
   IDENT.tiktok=$('cmTt').value.trim(); IDENT.instagram=$('cmIg').value.trim();
   var v=$('cmYt').value.trim();
   var changed = v && v!==(IDENT.yt.handle||'') && v!==(IDENT.yt.name||'') && v!==(IDENT.yt.id||'');
