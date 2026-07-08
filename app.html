@@ -1082,7 +1082,18 @@ function loadProfile(){
     IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
     IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||'';
     IS_PRO = (PROFILE.plan==='pro'||PROFILE.plan==='team');
-    if(IDENT.yt.id || IDENT.yt.name){ enterHQ(); } else { showOnboard(); }
+    if(IDENT.yt.id || IDENT.yt.name){ enterHQ(); }
+    else {
+      /* team member without their own channel: lock onto the space's LIVE channel */
+      teamsApi('my_space').then(function(d){
+        if(d && d.ok && d.workspace && d.channel && (d.channel.id||d.channel.name)){
+          SPACE=d;
+          IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
+          IDENT._adopted=true;
+          enterHQ();
+        } else showOnboard();
+      }).catch(function(){ showOnboard(); });
+    }
    });
   });
 }
@@ -1331,8 +1342,10 @@ function renderIdentity(){
   $('idHandle').innerHTML = yt.handle? '<b>'+esc(yt.handle)+'</b>' : '';
   $('idSubs').textContent = yt.subs? ('· '+yt.subs.replace(' subscribers',' subs')) : '';
   updateCardLinks();
+  var ty=document.querySelector('.tag-you');
+  if(ty){ var lf=ty.querySelector('#liveFlag'); if(lf){ ty.childNodes.forEach(function(n){ if(n.nodeType===3) n.textContent = IDENT._adopted ? ' · your team’s channel ' : ' · this is you '; }); } }
   /* self-heal: stored channel is a raw URL/id or missing avatar+subs — resolve the real identity live */
-  if((looksRaw(yt.name) || !yt.avatar || !yt.subs) && (yt.id||yt.name) && !IDENT._healing){
+  if(!IDENT._adopted && (looksRaw(yt.name) || !yt.avatar || !yt.subs) && (yt.id||yt.name) && !IDENT._healing){
     IDENT._healing = true;
     fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'connect',channel:yt.id||yt.name})})
       .then(function(r){return r.json();})
