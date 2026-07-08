@@ -441,10 +441,29 @@ footer a:hover{color:var(--fg)}
 .chan-field input{border:none;background:transparent;padding:8px 10px;font-size:.86rem;color:var(--fg);font-family:var(--sans)}
 .chan-field input:focus{outline:none}
 
+/* ===== TREND WIRE ===== */
+.wire-plays{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px;margin-bottom:11px}
+.wp{background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.wp-t{font-weight:700;font-size:.9rem}
+.wp-w{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--danger);background:hsl(0 84% 60% / .1);padding:1px 7px;border-radius:5px;margin-left:6px;vertical-align:middle}
+.wp-y{font-size:.78rem;color:var(--muted);margin-top:3px}
+.wp-a{font-size:.84rem;margin-top:8px;background:hsl(38 96% 60% / .07);border-left:2px solid var(--warning);padding:7px 10px;border-radius:0 8px 8px 0}
+.wp-a .k{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--warning);display:block;margin-bottom:2px}
+.wp-a .copy{float:right;cursor:pointer;color:var(--faint);font-size:.72rem}
+.wp-a .copy:hover{color:var(--warning)}
+.wire-chips{display:flex;flex-wrap:wrap;gap:7px}
+.wchip{font-family:var(--mono);font-size:.72rem;background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:99px;padding:5px 11px;color:var(--muted);cursor:default}
+.wchip b{color:var(--warning);font-weight:600}
+
 /* ===== THE ORDER (the coach speaks first) ===== */
 .order{position:relative;background:linear-gradient(120deg,hsl(38 96% 60% / .09),hsl(228 18% 8% / .7));
   border:1px solid hsl(38 96% 60% / .38);border-radius:16px;padding:18px 22px;margin-bottom:12px;overflow:hidden}
 .order::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,var(--warning),var(--primary))}
+.ord-goal{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:1rem;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid hsl(38 96% 60% / .2)}
+.ord-goal .gk{font-family:var(--mono);font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--success)}
+.ord-goal .gt{font-weight:800;font-size:1.05rem}
+.ord-goal .gd{font-family:var(--mono);font-size:.72rem;color:var(--warning)}
+.ord-goal .gp{width:100%;font-size:.84rem;color:var(--muted)}
 .ord-k{font-family:var(--mono);font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:var(--warning);display:flex;align-items:center;gap:9px;margin-bottom:10px}
 .ord-dot{width:7px;height:7px;border-radius:2px;transform:rotate(45deg);background:var(--warning);box-shadow:0 0 10px hsl(38 96% 60% / .7);animation:pulse 1.6s infinite}
 .ord-verdict{font-size:.95rem;color:var(--white-dim,#c3c7d6);line-height:1.6;max-width:90ch}
@@ -756,6 +775,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
       <!-- platform tabs -->
       <div class="order hide" id="orderStrip">
+        <div class="ord-goal hide" id="ordGoal"></div>
         <div class="ord-k"><span class="ord-dot"></span>the order · do this before anything else</div>
         <div class="ord-verdict" id="ordVerdict"></div>
         <div class="ord-cmd" id="ordCmd"></div>
@@ -779,7 +799,12 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <section class="zone" style="--zc:var(--primary)">
 <div class="zone-h"><span class="zdot"></span>this week · the intelligence</div>
 <div class="bento">
-<div class="tile radar s4" id="tRadar">
+<div class="tile s6" id="tWire" style="--tc:var(--warning);display:none">
+          <h3><span class="acc" aria-hidden="true">⚡</span> trend wire <span class="end"><span class="live-chip"><span class="dot"></span>THE INTERNET · RIGHT NOW</span></span></h3>
+          <div id="wireBody"><div class="tsub">Reading what the internet is chasing right now…</div></div>
+        </div>
+
+        <div class="tile radar s4" id="tRadar">
           <h3><span class="acc" aria-hidden="true">⚡</span> niche radar <span class="end" id="radarLive"></span></h3>
           <div id="radarBody"><div class="tsub">Sweeping your niche live for what's erupting right now…</div></div>
         </div>
@@ -1680,12 +1705,22 @@ function saveConnect(){
 function hydrateDeep(ai, radarLive, signals){
   ai = ai || {}; LASTAI = ai;
   renderSignals(signals||null);
+  loadTrends((ai&&ai.niche)||'');
   /* THE ORDER: the coach speaks first, in the open */
   (function(){
     var os=$('orderStrip'); if(!os) return;
     var f=(ai.fixes||[])[0];
     if(!ai.verdict && !f){ os.classList.add('hide'); return; }
     os.classList.remove('hide');
+    var g=ai.goal, og=$('ordGoal');
+    if(og){
+      if(g && g.target){
+        og.classList.remove('hide');
+        og.innerHTML='<span class="gk">🎯 the goal</span><span class="gt">'+esc(g.target)+'</span>'
+          +(g.deadline?'<span class="gd">'+esc(String(g.deadline)).replace(/^(\d+)$/,'$1 days')+'</span>':'')
+          +(g.path?'<span class="gp">'+esc(g.path)+'</span>':'');
+      } else og.classList.add('hide');
+    }
     $('ordVerdict').textContent = ai.verdict||'';
     $('ordCmd').innerHTML = f ? (esc(f.title||'')+(f.severity?' <span class="q-sev '+esc(String(f.severity).toLowerCase())+'">'+esc(f.severity)+'</span>':'')) : '';
     $('ordReceipt').innerHTML = f ? ('<b>the order:</b> '+esc(f['do']||'')+(f.why?' &nbsp;·&nbsp; <b>the receipt:</b> '+esc(f.why):'')) : '';
@@ -1731,6 +1766,47 @@ function hydrateDeep(ai, radarLive, signals){
   }).join('') : '<div class="tsub">A week-by-week plan drops here after your refresh.</div>';
 
   renderQueue(fixes);
+}
+
+/* ---------- trend wire: what is hot RIGHT NOW + your fast plays ---------- */
+var WIRE_LOADED=false;
+function loadTrends(niche){
+  var t=$('tWire'); if(!t) return;
+  t.style.display='';
+  if(WIRE_LOADED) return; WIRE_LOADED=true;
+  try{
+    var cch=JSON.parse(localStorage.getItem('vs_wire')||'null');
+    if(cch && cch.niche===niche && (Date.now()-cch.at)<30*60000){ renderWire(cch.d); return; }
+  }catch(e){}
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'trends',niche:niche||''})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d||!d.ok){ $('wireBody').innerHTML='<div class="tsub">wire is quiet — check back shortly.</div>'; return; }
+      try{ localStorage.setItem('vs_wire',JSON.stringify({at:Date.now(),niche:niche,d:d})); }catch(e){}
+      renderWire(d);
+    })
+    .catch(function(){ $('wireBody').innerHTML='<div class="tsub">wire is quiet — check back shortly.</div>'; });
+}
+function renderWire(d){
+  var html='';
+  var plays=d.plays||[];
+  if(plays.length){
+    html+='<div class="wire-plays">'+plays.map(function(p){
+      return '<div class="wp"><div class="wp-t">'+esc(p.trend||'')+' <span class="wp-w">'+esc(p.window||'')+'</span></div>'
+        +(p.why_now?'<div class="wp-y">'+esc(p.why_now)+'</div>':'')
+        +(p.your_angle?'<div class="wp-a"><span class="copy" data-copy="'+esc(p.your_angle)+'">copy ⧉</span><span class="k">your play</span>'+esc(p.your_angle)+'</div>':'')
+        +'</div>';
+    }).join('')+'</div>';
+  }
+  var srch=(d.searches||[]).slice(0,8);
+  if(srch.length){
+    html+='<div class="wire-chips">'+srch.map(function(s){
+      var tv=s.top_video;
+      return '<span class="wchip" title="'+esc(tv?('top yt: '+tv.title+' · '+tv.views+' views · '+tv.age):(s.context||''))+'">'+esc(s.term)+' <b>'+esc(s.traffic||'')+'</b></span>';
+    }).join('')+'</div>';
+  }
+  $('wireBody').innerHTML=html||'<div class="tsub">wire is quiet — check back shortly.</div>';
+  bindCopies($('wireBody'));
 }
 
 /* ---------- competitor analysis ---------- */
@@ -1832,6 +1908,18 @@ function renderSignals(S){
   if(S.power_words&&S.power_words.length) cards.push(sigCard('⚡','var(--primary)','power words',
     'these live in your winners and never in your dead zones: '+S.power_words.map(function(w){return '<span class="pw">'+esc(w)+'</span>';}).join(' ')));
   if(S.desc_effect) cards.push(sigCard('¶','var(--muted)','description effect','uploads with real descriptions (>200 chars) do <b>'+S.desc_effect.x+'x</b>.'));
+  if(S.formats && (S.formats.shorts_count||S.formats.long_count)){
+    var F=S.formats, bits=[];
+    if(F.shorts_count) bits.push('<b>'+F.shorts_count+'</b> shorts · median <b>'+nfmt(F.shorts_median)+'</b>'+(F.shorts_er!=null?' · '+F.shorts_er+'% likes':''));
+    if(F.long_count) bits.push('<b>'+F.long_count+'</b> long-form · median <b>'+nfmt(F.long_median)+'</b>'+(F.long_er!=null?' · '+F.long_er+'% likes':''));
+    var verdictF='';
+    if(F.shorts_count>=2&&F.long_count>=2){
+      verdictF = F.shorts_median>F.long_median*3 ? ' shorts carry your reach — long-form is where fans convert.' :
+                 F.long_median>F.shorts_median*3 ? ' long-form carries this channel — shorts are your top-funnel experiment.' :
+                 ' both formats pull their weight — feed them differently.';
+    }
+    cards.push(sigCard('▦','var(--primary)','two games, scored separately', bits.join(' &nbsp;|&nbsp; ')+verdictF));
+  }
   if(S.consistency!=null) cards.push(sigCard('◷','var(--accent)','rhythm score: <b>'+S.consistency+'/100</b>',
     S.consistency>=70?'your upload rhythm is steady — the algorithm can rely on you.':S.consistency>=40?'your gaps wobble. steadier spacing compounds reach.':'erratic schedule — the single cheapest fix you have.'));
   el.innerHTML='<div class="siggrid">'+cards.join('')+'</div>';
