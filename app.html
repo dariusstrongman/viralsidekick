@@ -45,11 +45,12 @@ nav .right{margin-left:auto;display:flex;gap:12px;align-items:center;font-size:.
 .btn-primary:hover{transform:translateY(-1px)}
 .btn:disabled{opacity:.55;cursor:wait;transform:none}
 .btn-ghost{border-color:var(--border2);color:var(--muted)}
-.btn-ghost:hover{color:var(--fg);border-color:var(--border2)}
+.btn-ghost:hover{color:#fff;border-color:hsl(260 90% 66% / .55);transform:translateY(-1px);box-shadow:0 4px 18px hsl(260 90% 66% / .15)}
 .btn-google{background:#fff;color:#1f2328;width:100%}
 .btn-google:hover{transform:translateY(-1px)}
 .btn-block{width:100%}
-main{padding:34px 0 80px}
+main{padding:34px 0 80px;animation:fadeup .45s ease both}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px)}}
 .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:var(--radius);padding:22px}
 .card+.card{margin-top:18px}
 .card h2{font-size:1.02rem;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;display:flex;align-items:center;gap:8px}
@@ -230,10 +231,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
   background:linear-gradient(120deg,hsl(260 90% 66% / .09),hsl(228 18% 8% / .6));
   border:1px solid var(--border2);border-radius:18px;padding:18px 22px;margin-bottom:14px;position:relative;overflow:hidden}
 .idhead::before{content:"";position:absolute;inset:0 auto 0 0;width:320px;background:radial-gradient(240px 170px at 0% 50%,var(--gc,var(--primary)),transparent 70%);opacity:.13;pointer-events:none}
-.avatar{width:72px;height:72px;border-radius:20px;object-fit:cover;border:2px solid var(--border2);background:linear-gradient(135deg,var(--primary),var(--accent));flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem;color:#fff;overflow:hidden}
+.avatar{width:76px;height:76px;border-radius:22px;object-fit:cover;border:2px solid var(--border2);background:linear-gradient(135deg,var(--primary),var(--accent));flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem;color:#fff;overflow:hidden;box-shadow:0 0 0 1px hsl(230 24% 5%),0 10px 34px hsl(260 90% 66% / .25)}
 .avatar img{width:100%;height:100%;object-fit:cover}
 .id-meta .tag-you{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:7px;margin-bottom:5px}
-.id-name{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.id-name{font-size:clamp(1.3rem,3vw,1.75rem);font-weight:800;letter-spacing:-.02em;line-height:1.1;overflow-wrap:anywhere}
 .id-sub{font-family:var(--mono);font-size:.8rem;color:var(--muted);margin-top:5px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .id-sub b{color:var(--fg)}
 .plat-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
@@ -245,6 +246,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .id-grade{display:flex;align-items:center;gap:16px}
 .gring2{position:relative;width:84px;height:84px}
 .gring2 svg{width:84px;height:84px;transform:rotate(-90deg)}
+.gring2 #hqRing{filter:drop-shadow(0 0 5px var(--gc,var(--primary)));transition:stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1)}
 .gring2 .gl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .gring2 .gl b{font-size:1.7rem;font-weight:800;color:var(--gc,var(--primary));line-height:1}
 .gring2 .gl small{font-family:var(--mono);font-size:.85rem;color:var(--muted);margin-top:1px}
@@ -297,17 +299,19 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 /* ============ LIVE PULSE odometer ============ */
 .pulse{--tc:var(--accent);background:linear-gradient(180deg,hsl(228 20% 7%),hsl(230 24% 5%))!important}
 .pulse-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-.pcounter{background:hsl(230 26% 4%);border:1px solid var(--border);border-radius:13px;padding:15px 16px;position:relative;overflow:hidden;contain:layout paint}
+.pcounter{background:linear-gradient(180deg,hsl(230 26% 4.5%),hsl(230 26% 3.5%));border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;contain:layout paint;transition:border-color .2s}
+.pcounter:hover{border-color:hsl(260 90% 66% / .35)}
 .pcounter::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:linear-gradient(90deg,transparent,var(--pc,var(--primary)),transparent);opacity:.6}
-.pcounter .pk{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.pcounter .pk{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:12px}
 .pcounter .pk .pi{width:13px;height:13px}
-.pcounter .pk .rate{margin-left:auto;color:var(--pc,var(--accent));letter-spacing:.04em}
-.odo{display:flex;align-items:center;font-family:var(--mono);font-weight:700;font-size:clamp(1.4rem,2.6vw,2rem);line-height:1;color:var(--fg);font-variant-numeric:tabular-nums}
+.pcounter .pk .rate{margin-left:auto;color:var(--pc,var(--accent));letter-spacing:.04em;background:hsl(190 92% 56% / .08);border:1px solid hsl(190 92% 56% / .22);padding:2px 9px;border-radius:99px}
+.pcounter .pk .rate:empty{display:none}
+.odo{display:flex;align-items:center;font-family:var(--mono);font-weight:700;font-size:clamp(1.5rem,2.6vw,2.15rem);line-height:1;color:var(--fg);font-variant-numeric:tabular-nums;letter-spacing:.01em}
 .odo .grp{display:flex}
-.odo .comma{opacity:.35;padding:0 1px;transform:translateY(-2px)}
-.odo .dcol{position:relative;height:1em;width:.62ch;overflow:hidden}
+.odo .comma{opacity:.35;padding:0 1px;align-self:flex-end}
+.odo .dcol{position:relative;height:1em;width:1ch;overflow:hidden}
 .odo .dstrip{position:absolute;left:0;top:0;display:flex;flex-direction:column;transition:transform .55s cubic-bezier(.25,.9,.3,1);will-change:transform}
-.odo .dstrip span{height:1em;display:block;text-align:center}
+.odo .dstrip span{height:1em;line-height:1;width:1ch;display:flex;align-items:center;justify-content:center}
 .pcounter .psub{font-size:.72rem;color:var(--faint);margin-top:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
 .pcounter .psub b{color:var(--muted);font-weight:600}
 .pulse .approx{font-size:.6rem;color:var(--faint);font-family:var(--mono);letter-spacing:.05em}
@@ -747,13 +751,29 @@ function saveProfileFields(f){
 }
 
 /* ---------- identity header ---------- */
+function looksRaw(s){ return !s || /^https?:|youtube\.com|^UC[0-9A-Za-z_-]{22}$/.test(String(s)); }
 function renderIdentity(){
   var yt=IDENT.yt, av=$('idAvatar');
-  if(yt.avatar){ av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="">'; } else { av.textContent=(yt.name||'Y').charAt(0).toUpperCase(); }
-  $('hqName').textContent=yt.name||'your channel';
+  if(yt.avatar){ av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="" loading="lazy">'; }
+  else { av.textContent=(String(yt.handle||yt.name||'Y').replace(/^@/,'').charAt(0)||'Y').toUpperCase(); }
+  var display = looksRaw(yt.name) ? (yt.handle || 'your channel') : yt.name;
+  $('hqName').textContent = display;
   $('idHandle').innerHTML = yt.handle? '<b>'+esc(yt.handle)+'</b>' : '';
   $('idSubs').textContent = yt.subs? ('· '+yt.subs.replace(' subscribers',' subs')) : '';
   updateCardLinks();
+  /* self-heal: stored channel is a raw URL/id or missing avatar+subs — resolve the real identity live */
+  if((looksRaw(yt.name) || !yt.avatar || !yt.subs) && (yt.id||yt.name) && !IDENT._healing){
+    IDENT._healing = true;
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'connect',channel:yt.id||yt.name})})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d&&d.ok&&d.channel&&d.channel.name){
+          IDENT.yt={ id:d.channel.id||yt.id, name:d.channel.name, avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
+          persistIdentity();
+          renderIdentity(); renderPlatChips();
+        }
+      }).catch(function(){});
+  }
 }
 function renderPlatChips(){
   var out=['<span class="plat-chip on">'+IC_YT+' YouTube</span>'];
