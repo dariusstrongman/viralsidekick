@@ -1206,13 +1206,18 @@ function loadBoard(){
         +'<div class="bb"><div class="bt">'+esc(p.body||'')+'</div>'
         +'<div class="bm">'+esc((p.author_email||'').split('@')[0])+' · '+relTime(p.created_at)+'</div></div>'
         +(can?'<div class="bx">'
-          +'<button class="bbtn" onclick="togglePost(''+p.id+'',''+(p.status==='done'?'open':'done')+'')">'+(p.status==='done'?'reopen':'done ✓')+'</button>'
-          +'<button class="bbtn" onclick="deletePost(''+p.id+'')" aria-label="delete post">✕</button>'
+          +'<button class="bbtn" data-act="toggle" data-id="'+esc(p.id)+'" data-next="'+(p.status==='done'?'open':'done')+'">'+(p.status==='done'?'reopen':'done ✓')+'</button>'
+          +'<button class="bbtn" data-act="del" data-id="'+esc(p.id)+'" aria-label="delete post">✕</button>'
           +'</div>':'')
         +'</div>';
     }).join('');
   });
 }
+document.addEventListener('click',function(e){
+  var b=e.target.closest('.bbtn'); if(!b)return;
+  if(b.getAttribute('data-act')==='toggle') togglePost(b.getAttribute('data-id'), b.getAttribute('data-next'));
+  if(b.getAttribute('data-act')==='del') deletePost(b.getAttribute('data-id'));
+});
 function postToBoard(){
   var body=$('postBody').value.trim(); if(!body||!SPACE) return;
   sb.from('viralsidekick_posts').insert({workspace_id:SPACE.workspace.id,user_id:USER.id,author_email:USER.email,kind:$('postKind').value,body:body}).then(function(r){
