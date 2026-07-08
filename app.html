@@ -633,8 +633,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
                 <defs><linearGradient id="g-auth" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
               </svg>
             </div>
-            <h1>Enter your HQ</h1>
-            <p class="sub">Track your channel, save every scan, and watch your score climb.</p>
+            <h1 id="authTitle">Enter your HQ</h1>
+            <p class="sub" id="authSub">Track your channel, save every scan, and watch your score climb.</p>
           </div>
 
           <div class="tabs" role="tablist">
@@ -1010,6 +1010,12 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* invited? stash the token first thing — oauth redirects and email confirms
+   strip the query string, localStorage carries it through */
+try{
+  var _q=new URLSearchParams(location.search), _inv=_q.get('invite');
+  if(_inv){ localStorage.setItem('vs_pending_invite',_inv); history.replaceState(null,'',location.pathname); }
+}catch(e){}
 var SB_URL = 'https://fzlwnsoknngbdkizxpnl.supabase.co';
 var SB_ANON = 'sb_publishable_K81b73rtZnF0fR6B5mnDWQ_I2CO_OK6';
 var API = 'https://n8n.stromation.com/webhook/viralsidekick-analyze';
@@ -1026,6 +1032,13 @@ function route(session){
   if (USER){ $('authGate').classList.add('hide'); $('appHome').classList.remove('hide'); showApp(); }
   else { $('appHome').classList.add('hide'); $('authGate').classList.remove('hide'); $('navRight').innerHTML='<a class="nav-scan" href="dashboard.html">Free scan</a>'; }
 }
+try{
+  if(localStorage.getItem('vs_pending_invite')){
+    var _at=document.getElementById('authTitle'), _as=document.getElementById('authSub');
+    if(_at) _at.textContent='You’re invited to a space';
+    if(_as) _as.textContent='One free account and you’re in — no channel setup, no forms. You’ll land straight in your team’s dashboard.';
+  }
+}catch(e){}
 var RECOVERY=false;
 sb.auth.getSession().then(function(r){ route(r.data.session); });
 sb.auth.onAuthStateChange(function(ev, session){
@@ -1124,18 +1137,36 @@ function loadProfile(){
     IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
     IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||'';
     IS_PRO = (PROFILE.plan==='pro'||PROFILE.plan==='team');
-    if(IDENT.yt.id || IDENT.yt.name){ enterHQ(); }
-    else {
-      /* team member without their own channel: lock onto the space's LIVE channel */
-      teamsApi('my_space').then(function(d){
-        if(d && d.ok && d.workspace && d.channel && (d.channel.id||d.channel.name)){
-          SPACE=d;
-          IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
-          IDENT._adopted=true;
-          enterHQ();
-        } else showOnboard();
-      }).catch(function(){ showOnboard(); });
+
+    /* INVITED? accept BEFORE any onboarding — team members walk straight into
+       the space, no channel setup, no forms. (token survives oauth redirects
+       + email confirms via localStorage) */
+    var pend=null; try{ pend=localStorage.getItem('vs_pending_invite'); }catch(e){}
+    function adoptAndEnter(d){
+      SPACE=d;
+      if(!(IDENT.yt.id||IDENT.yt.name) && d.channel && (d.channel.id||d.channel.name)){
+        IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
+        IDENT._adopted=true;
+      }
+      enterHQ();
     }
+    function normalFlow(){
+      if(IDENT.yt.id || IDENT.yt.name){ enterHQ(); }
+      else {
+        /* team member without their own channel: lock onto the space's LIVE channel */
+        teamsApi('my_space').then(function(d){
+          if(d && d.ok && d.workspace && d.channel && (d.channel.id||d.channel.name)){ adoptAndEnter(d); }
+          else showOnboard();
+        }).catch(function(){ showOnboard(); });
+      }
+    }
+    if(pend){
+      teamsApi('accept',{invite:pend}).then(function(d){
+        try{ localStorage.removeItem('vs_pending_invite'); }catch(e){}
+        if(d && d.ok && d.workspace){ adoptAndEnter(d); }
+        else normalFlow();
+      }).catch(normalFlow);
+    } else normalFlow();
    });
   });
 }
