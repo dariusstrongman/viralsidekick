@@ -441,6 +441,21 @@ footer a:hover{color:var(--fg)}
 .chan-field input{border:none;background:transparent;padding:8px 10px;font-size:.86rem;color:var(--fg);font-family:var(--sans)}
 .chan-field input:focus{outline:none}
 
+/* ===== VIEW SWITCH (drive model) ===== */
+.viewswitch{display:flex;gap:6px;margin-top:10px}
+.vsw{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;padding:6px 13px;border-radius:99px;border:1px solid var(--border2);background:hsl(230 24% 4%);color:var(--muted);cursor:pointer;transition:.15s}
+.vsw.on{color:#fff;border-color:hsl(45 95% 62% / .6);background:hsl(45 95% 62% / .1)}
+.vsw:disabled{opacity:.4;cursor:not-allowed}
+.vsw:hover:not(:disabled):not(.on){color:var(--fg)}
+
+/* ===== COMPETITOR TABLE ===== */
+table.cmp{width:100%;border-collapse:collapse;font-size:.84rem}
+table.cmp th{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)}
+table.cmp td{padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;font-variant-numeric:tabular-nums}
+table.cmp tr:last-child td{border-bottom:none}
+table.cmp tr.me td{background:hsl(260 90% 66% / .07)}
+table.cmp .dim{color:var(--faint);font-size:.74rem}
+
 /* ===== DEEP SIGNALS ===== */
 .siggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px}
 .sig{display:flex;gap:11px;background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
@@ -716,6 +731,7 @@ footer a:hover{color:var(--fg)}
             <span id="idHandle"></span><span id="idSubs"></span><span id="hqDelta" class="delta flat" aria-live="polite"></span>
           </div>
           <div class="plat-chips" id="platChips" role="list"></div>
+          <div id="viewSwitch" class="viewswitch" style="display:none"></div>
         </div>
         <div class="id-actions">
           <span class="sm mut" id="hqWhen" style="font-size:.74rem" aria-live="polite"></span>
@@ -763,6 +779,15 @@ footer a:hover{color:var(--fg)}
 <div class="tile s6" id="tSignals" style="--tc:var(--primary)">
           <h3><span class="acc" aria-hidden="true">◬</span> deep signals <span class="end">computed from every field the feed exposes</span></h3>
           <div id="signalsBody"><div class="tsub">Engagement, title DNA, power words, hidden gems — everything measurable lands here after a scan.</div></div>
+        </div>
+
+        <div class="tile s6" id="tRivals" style="--tc:var(--danger)">
+          <h3><span class="acc" aria-hidden="true">⚔</span> competitor analysis <span class="end" id="rivalEnd"></span></h3>
+          <div id="rivalBody"><div class="tsub">Add the channels you compete with — side-by-side grades, momentum and engagement, refreshed live.</div></div>
+          <div class="caprow" id="rivalAdd">
+            <input id="rivalIn" type="text" placeholder="add a competitor… @handle or URL" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')addRival()">
+            <button class="btn btn-ghost" style="flex:0 0 auto" onclick="addRival()">Add</button>
+          </div>
         </div>
 
         <div class="tile play s2" id="tPlay">
@@ -1125,10 +1150,33 @@ function enterHQ(){
 
 /* ============ YOUR SPACE: the shared brain ============ */
 var TEAMS_API='https://n8n.stromation.com/webhook/viralsidekick-teams';
+var VIEW = 'mine';  /* 'mine' = your channel+data, 'space' = the team's shared brain */
+function curCh(){
+  if(VIEW==='space' && SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)) return SPACE.channel;
+  return IDENT.yt;
+}
+function renderViewSwitch(){
+  var host=$('viewSwitch'); if(!host) return;
+  if(!SPACE || !SPACE.workspace){ host.style.display='none'; return; }
+  var ownCh = !!(IDENT.yt.id||IDENT.yt.name) && !IDENT._adopted;
+  host.style.display='flex';
+  host.innerHTML =
+    '<button class="vsw'+(VIEW==='mine'?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="connect your own channel first"')+'>◈ my dashboard</button>'
+   +'<button class="vsw'+(VIEW==='space'?' on':'')+'" data-view="space">⬡ '+esc(SPACE.workspace.name||'team space')+'</button>';
+  Array.prototype.forEach.call(host.querySelectorAll('.vsw'),function(b){
+    b.onclick=function(){ if(b.disabled)return; switchView(b.getAttribute('data-view')); };
+  });
+}
+function switchView(v){
+  if(v===VIEW) return;
+  VIEW=v; try{ localStorage.setItem('vs_view',v); }catch(e){}
+  renderViewSwitch(); renderIdentity(); goLive();
+}
 function spaceScans(){
-  /* the shared lens: your scans + your space's scans (RLS enforces membership) */
+  /* drive model: MY view = my scans; SPACE view = the team's shared record */
   var q=sb.from('viralsidekick_scans');
-  if(SPACE&&SPACE.workspace) return { select:function(cols){ return q.select(cols).or('user_id.eq.'+USER.id+',workspace_id.eq.'+SPACE.workspace.id); } };
+  if(VIEW==='space' && SPACE && SPACE.workspace)
+    return { select:function(cols){ return q.select(cols).eq('workspace_id', SPACE.workspace.id); } };
   return { select:function(cols){ return q.select(cols).eq('user_id', USER.id); } };
 }
 var SPACE=null;
@@ -1167,6 +1215,9 @@ function applySpace(d){
   }
   if(!d.workspace){ renderNoSpace(); return; }
   SPACE=d;
+  try{ var pv=localStorage.getItem('vs_view'); if(pv==='space'||(IDENT._adopted)) VIEW='space'; else if(pv==='mine') VIEW='mine'; }catch(e){}
+  if(IDENT._adopted) VIEW='space';
+  renderViewSwitch();
   renderSpace();
   loadBoard();
   goLive(); /* re-pull history with the shared lens */
@@ -1313,6 +1364,7 @@ function connectYouTube(inId, foundId, cb){
     .then(function(d){
       if(!d||!d.ok||!d.channel){ f.innerHTML='<div><div class="fn" style="color:var(--danger)">couldn\'t find that channel</div><div class="fs">try @handle, the full URL, or the UC… id</div></div>'; return; }
       IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
+      IDENT._dirty=true;
       f.innerHTML=(IDENT.yt.avatar?'<img src="'+esc(IDENT.yt.avatar)+'" alt="">':'')+'<div><div class="fn">'+esc(IDENT.yt.name)+' ✓ found you</div><div class="fs">'+esc((IDENT.yt.handle?IDENT.yt.handle+'  ·  ':'')+(IDENT.yt.subs||''))+'</div></div>';
       if(cb) cb();
     })
@@ -1329,11 +1381,20 @@ function finishOnboard(){
   persistIdentity(function(){ enterHQ(); });
 }
 function persistIdentity(cb){
+  /* channel binding is server-side now (bind_channel: verified + cooldown).
+     only the harmless fields persist directly. */
   saveProfileFields(Object.assign((PROFILE&&PROFILE.display_name)?{display_name:String(PROFILE.display_name).slice(0,40)}:{}, {
-    primary_channel_id:IDENT.yt.id||null, primary_channel_name:IDENT.yt.name||null,
-    primary_channel_handle:IDENT.yt.handle||null, primary_channel_avatar:IDENT.yt.avatar||null, primary_channel_subs:IDENT.yt.subs||null,
     tiktok_handle:IDENT.tiktok||null, instagram_handle:IDENT.instagram||null
-  })).then(function(){ if(cb) cb(); });
+  })).then(function(){
+    if(IDENT.yt && (IDENT.yt.id||IDENT.yt.name) && !IDENT._adopted && IDENT._dirty){
+      teamsApi('bind_channel',{channel:IDENT.yt.id||IDENT.yt.handle||IDENT.yt.name}).then(function(d){
+        IDENT._dirty=false;
+        if(d && d.ok && d.channel){ IDENT.yt={id:d.channel.id||'',name:d.channel.name||'',avatar:d.channel.avatar||'',subs:d.channel.subs||'',handle:d.channel.handle||''}; renderIdentity(); }
+        else if(d && d.error){ spaceNote(d.error); }
+        if(cb) cb();
+      }).catch(function(){ if(cb) cb(); });
+    } else if(cb) cb();
+  });
 }
 function saveProfileFields(f){
   var base={ id:USER.id, email:USER.email, updated_at:new Date().toISOString() };
@@ -1351,7 +1412,8 @@ function saveProfileFields(f){
 /* ---------- identity header ---------- */
 function looksRaw(s){ return !s || /^https?:|youtube\.com|^UC[0-9A-Za-z_-]{22}$/.test(String(s)); }
 function renderIdentity(){
-  var yt=IDENT.yt, av=$('idAvatar');
+  var yt=(VIEW==='space' && SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)) ? SPACE.channel : IDENT.yt;
+  var av=$('idAvatar');
   if(yt.avatar){ av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="" loading="lazy">'; }
   else { av.textContent=(String(yt.handle||yt.name||'Y').replace(/^@/,'').charAt(0)||'Y').toUpperCase(); }
   var display = looksRaw(yt.name) ? (yt.handle || 'your channel') : yt.name;
@@ -1360,9 +1422,9 @@ function renderIdentity(){
   $('idSubs').textContent = yt.subs? ('· '+yt.subs.replace(' subscribers',' subs')) : '';
   updateCardLinks();
   var ty=document.querySelector('.tag-you');
-  if(ty){ var lf=ty.querySelector('#liveFlag'); if(lf){ ty.childNodes.forEach(function(n){ if(n.nodeType===3) n.textContent = IDENT._adopted ? ' · your team’s channel ' : ' · this is you '; }); } }
+  if(ty){ var lf=ty.querySelector('#liveFlag'); if(lf){ ty.childNodes.forEach(function(n){ if(n.nodeType===3) n.textContent = (IDENT._adopted||VIEW==='space') ? ' · your team’s channel ' : ' · this is you '; }); } }
   /* self-heal: stored channel is a raw URL/id or missing avatar+subs — resolve the real identity live */
-  if(!IDENT._adopted && (looksRaw(yt.name) || !yt.avatar || !yt.subs) && (yt.id||yt.name) && !IDENT._healing){
+  if(!IDENT._adopted && VIEW!=='space' && (looksRaw(yt.name) || !yt.avatar || !yt.subs) && (yt.id||yt.name) && !IDENT._healing){
     IDENT._healing = true;
     fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'connect',channel:yt.id||yt.name})})
       .then(function(r){return r.json();})
@@ -1405,7 +1467,7 @@ function renderAlt(p){
 }
 
 /* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
-function goLive(){ liveVitals(); loadLatestFull(); loadHistory(); startPulse(); }
+function goLive(){ liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals(); }
 
 /* ============ LIVE PULSE: flip odometers polling real counts ============ */
 var PULSE={ poll:null, anim:null, c:{} }; /* c[key]={val,rate,lastVal,lastTs,el} */
@@ -1461,7 +1523,7 @@ function pulseSet(key, newVal, subHTML){
   if(r) r.textContent = c.rate>0 ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
 }
 function pollPulse(){
-  var q=IDENT.yt.id||IDENT.yt.name; if(!q) return;
+  var _c=curCh(); var q=_c.id||_c.name; if(!q) return;
   var body={ mode:'live', channel:q, website:'' };
   if(IDENT.tiktok) body.tiktok=IDENT.tiktok;
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
@@ -1491,7 +1553,7 @@ document.addEventListener('visibilitychange', function(){
   else if(USER && (IDENT.yt.id||IDENT.yt.name)) startPulse();
 });
 function liveVitals(){
-  var q=IDENT.yt.id||IDENT.yt.name; if(!q) return;
+  var _c=curCh(); var q=_c.id||_c.name; if(!q) return;
   $('liveFlag').className='liveflag';
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'card',channel:q})})
     .then(function(r){return r.json();})
@@ -1530,7 +1592,7 @@ function loadLatestFull(){
   });
 }
 function backgroundScan(){
-  var q=IDENT.yt.id||IDENT.yt.name; if(!q) return;
+  var _c=curCh(); var q=_c.id||_c.name; if(!q) return;
   showScanning('refreshing your intel + niche radar…');
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:q,email:USER.email,user_id:USER.id,workspace_id:(SPACE&&SPACE.workspace)?SPACE.workspace.id:null,website:''})})
     .then(function(r){return r.json();})
@@ -1544,7 +1606,7 @@ function refreshLive(){ liveVitals(); backgroundScan(); }
 function showScanning(t){ var e=$('scanRun'); if(e){ e.style.display='flex'; $('scanRunTxt').textContent=t||'refreshing…'; } var b=$('refreshBtn'); if(b) b.disabled=true; }
 function hideScanning(){ var e=$('scanRun'); if(e) e.style.display='none'; var b=$('refreshBtn'); if(b) b.disabled=false; }
 
-function updateCardLinks(){ var q=IDENT.yt.id||IDENT.yt.name||''; if(q) $('cardBtn').href='c.html?ch='+encodeURIComponent(q); }
+function updateCardLinks(){ var _c=curCh(); var q=_c.id||_c.name||''; if(q) $('cardBtn').href='c.html?ch='+encodeURIComponent(q); }
 function copyCard(){
   var q=IDENT.yt.id||IDENT.yt.name||''; if(!q) return;
   var u='https://viralsidekick.com/c.html?ch='+encodeURIComponent(q);
@@ -1609,6 +1671,80 @@ function hydrateDeep(ai, radarLive, signals){
   }).join('') : '<div class="tsub">A week-by-week plan drops here after your refresh.</div>';
 
   renderQueue(fixes);
+}
+
+/* ---------- competitor analysis ---------- */
+var RIVALS=[];
+function rivalScope(){
+  var q=sb.from('viralsidekick_channels').select('id,channel_id,handle,title').eq('is_competitor',true);
+  if(VIEW==='space' && SPACE && SPACE.workspace) return q.eq('workspace_id',SPACE.workspace.id);
+  return q.eq('user_id',USER.id).is('workspace_id',null);
+}
+function loadRivals(){
+  rivalScope().then(function(r){
+    RIVALS=r.data||[];
+    if(!RIVALS.length){ $('rivalBody').innerHTML='<div class="tsub">Add the channels you compete with — side-by-side grades, momentum and engagement, refreshed live.</div>'; $('rivalEnd').textContent=''; return; }
+    $('rivalEnd').textContent=RIVALS.length+' tracked';
+    runCompare();
+  });
+}
+function addRival(){
+  var v=$('rivalIn').value.trim(); if(!v) return;
+  if(RIVALS.length>=5){ $('rivalEnd').textContent='max 5'; return; }
+  $('rivalEnd').textContent='resolving…';
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'connect',channel:v})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d||!d.ok||!d.channel||!d.channel.id){ $('rivalEnd').textContent='not found'; return; }
+      var row={ channel_id:d.channel.id, handle:d.channel.handle||null, title:d.channel.name||null, is_competitor:true, user_id:USER.id };
+      if(VIEW==='space' && SPACE && SPACE.workspace) row.workspace_id=SPACE.workspace.id;
+      sb.from('viralsidekick_channels').insert(row).then(function(rr){
+        if(rr.error){ $('rivalEnd').textContent=rr.error.message.indexOf('policy')>=0?'viewers cannot edit':'already tracked?'; return; }
+        $('rivalIn').value=''; try{ localStorage.removeItem('vs_cmp'); }catch(e){}
+        loadRivals();
+      });
+    }).catch(function(){ $('rivalEnd').textContent='network hiccup'; });
+}
+function delRival(id){
+  sb.from('viralsidekick_channels').delete().eq('id',id).then(function(){ try{ localStorage.removeItem('vs_cmp'); }catch(e){} loadRivals(); });
+}
+function runCompare(){
+  var me=curCh();
+  var chans=[me.id||me.name].concat(RIVALS.map(function(r){return r.channel_id;})).filter(Boolean);
+  var ck='vs_cmp';
+  try{
+    var cach=JSON.parse(localStorage.getItem(ck)||'null');
+    if(cach && cach.key===chans.join(',') && (Date.now()-cach.at)<6*3600000){ renderCompare(cach.res, me); return; }
+  }catch(e){}
+  $('rivalBody').innerHTML='<div class="tsub">measuring '+chans.length+' channels live…</div>';
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'compare',channels:chans})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d||!d.ok){ $('rivalBody').innerHTML='<div class="tsub">compare failed — try again shortly.</div>'; return; }
+      try{ localStorage.setItem(ck,JSON.stringify({key:chans.join(','),at:Date.now(),res:d.results})); }catch(e){}
+      renderCompare(d.results, me);
+    }).catch(function(){ $('rivalBody').innerHTML='<div class="tsub">compare failed — try again shortly.</div>'; });
+}
+function renderCompare(res, me){
+  var rows=(res||[]).filter(function(x){return !x.error;});
+  if(!rows.length){ $('rivalBody').innerHTML='<div class="tsub">could not read those channels.</div>'; return; }
+  var meid=(me&&me.id)||'';
+  var html='<div style="overflow-x:auto"><table class="cmp"><thead><tr><th>channel</th><th>grade</th><th>median</th><th>momentum</th><th>like rate</th><th>rhythm</th><th></th></tr></thead><tbody>';
+  rows.forEach(function(x){
+    var isMe=x.id===meid || rows.indexOf(x)===0;
+    var riv=RIVALS.filter(function(r){return r.channel_id===x.id;})[0];
+    html+='<tr class="'+(isMe?'me':'')+'">'
+      +'<td>'+(isMe?'◈ ':'')+esc(x.name||x.input)+'</td>'
+      +'<td><b style="color:'+gcolor(x.grade)+'">'+esc(x.grade)+'</b> <span class="dim">'+x.score+'</span></td>'
+      +'<td>'+nfmt(x.median)+'</td>'
+      +'<td style="color:'+(x.momentum>=1?'var(--success)':'var(--warning)')+'">'+x.momentum+'x</td>'
+      +'<td>'+(x.engagement_pct!=null?x.engagement_pct+'%':'–')+'</td>'
+      +'<td>'+(x.consistency!=null?x.consistency:'–')+'</td>'
+      +'<td>'+(riv&&!isMe?'<button class="bbtn" onclick="delRival(\''+riv.id+'\')" aria-label="untrack">✕</button>':'')+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  $('rivalBody').innerHTML=html;
 }
 
 /* ---------- deep signals renderer ---------- */
