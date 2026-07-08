@@ -441,6 +441,19 @@ footer a:hover{color:var(--fg)}
 .chan-field input{border:none;background:transparent;padding:8px 10px;font-size:.86rem;color:var(--fg);font-family:var(--sans)}
 .chan-field input:focus{outline:none}
 
+/* ===== THE ORDER (the coach speaks first) ===== */
+.order{position:relative;background:linear-gradient(120deg,hsl(38 96% 60% / .09),hsl(228 18% 8% / .7));
+  border:1px solid hsl(38 96% 60% / .38);border-radius:16px;padding:18px 22px;margin-bottom:12px;overflow:hidden}
+.order::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,var(--warning),var(--primary))}
+.ord-k{font-family:var(--mono);font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:var(--warning);display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.ord-dot{width:7px;height:7px;border-radius:2px;transform:rotate(45deg);background:var(--warning);box-shadow:0 0 10px hsl(38 96% 60% / .7);animation:pulse 1.6s infinite}
+.ord-verdict{font-size:.95rem;color:var(--white-dim,#c3c7d6);line-height:1.6;max-width:90ch}
+.ord-verdict:empty{display:none}
+.ord-cmd{font-size:clamp(1.05rem,2vw,1.3rem);font-weight:800;letter-spacing:-.01em;margin-top:9px;line-height:1.3}
+.ord-cmd .q-sev{font-size:.6rem;vertical-align:middle}
+.ord-receipt{font-family:var(--mono);font-size:.78rem;color:var(--muted);margin-top:7px;line-height:1.55}
+.ord-receipt b{color:var(--warning)}
+
 /* ===== VIEW SWITCH (drive model) ===== */
 .viewswitch{display:flex;gap:6px;margin-top:10px}
 .vsw{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;padding:6px 13px;border-radius:99px;border:1px solid var(--border2);background:hsl(230 24% 4%);color:var(--muted);cursor:pointer;transition:.15s}
@@ -742,6 +755,13 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       </div>
 
       <!-- platform tabs -->
+      <div class="order hide" id="orderStrip">
+        <div class="ord-k"><span class="ord-dot"></span>the order · do this before anything else</div>
+        <div class="ord-verdict" id="ordVerdict"></div>
+        <div class="ord-cmd" id="ordCmd"></div>
+        <div class="ord-receipt" id="ordReceipt"></div>
+      </div>
+
       <div class="ptabs" id="ptabs" role="tablist" aria-label="platform selector"></div>
 
       <!-- YOUTUBE DECK -->
@@ -791,7 +811,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
 
         <div class="tile play s2" id="tPlay">
-          <h3><span class="acc" aria-hidden="true">◆</span> this week's play</h3>
+          <h3><span class="acc" aria-hidden="true">◆</span> next order</h3>
           <div id="playBody"><div class="tsub">Your #1 highest-leverage fix shows up here after a scan.</div></div>
         </div>
 
@@ -811,8 +831,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <div class="zone-h"><span class="zdot"></span>the plan · what you do next</div>
 <div class="bento">
 <div class="tile s3" id="tQueue">
-          <h3><span class="acc" aria-hidden="true">☑</span> action queue <span class="end" id="qCount"></span></h3>
-          <div id="queueBody"><div class="tsub">Your fixes become a checklist. Tick them off as you ship.</div></div>
+          <h3><span class="acc" aria-hidden="true">☑</span> marching orders <span class="end" id="qCount"></span></h3>
+          <div id="queueBody"><div class="tsub">Every order lands here. Ship it, check it, watch the score move.</div></div>
           <div class="caprow">
             <input id="capIn" type="text" placeholder="capture your own idea…"
               style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem"
@@ -1120,7 +1140,7 @@ function showApp(){
 }
 function bootType(){
   var el=$('bootLine'); if(!el || el._done) return; el._done=true;
-  var t='> viral hq online · niche radar armed · live feed connected';
+  var t='> the coach is in · your film is loaded · the data does not lie';
   if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){ el.textContent=t; return; }
   el.textContent='';
   var txt=document.createTextNode(''), cur=document.createElement('span'); cur.className='cur'; cur.textContent='▋';
@@ -1660,7 +1680,16 @@ function saveConnect(){
 function hydrateDeep(ai, radarLive, signals){
   ai = ai || {}; LASTAI = ai;
   renderSignals(signals||null);
-  $('hqName').title = ai.verdict||'';
+  /* THE ORDER: the coach speaks first, in the open */
+  (function(){
+    var os=$('orderStrip'); if(!os) return;
+    var f=(ai.fixes||[])[0];
+    if(!ai.verdict && !f){ os.classList.add('hide'); return; }
+    os.classList.remove('hide');
+    $('ordVerdict').textContent = ai.verdict||'';
+    $('ordCmd').innerHTML = f ? (esc(f.title||'')+(f.severity?' <span class="q-sev '+esc(String(f.severity).toLowerCase())+'">'+esc(f.severity)+'</span>':'')) : '';
+    $('ordReceipt').innerHTML = f ? ('<b>the order:</b> '+esc(f['do']||'')+(f.why?' &nbsp;·&nbsp; <b>the receipt:</b> '+esc(f.why):'')) : '';
+  })();
   var rb=$('radarBody'), rad=(ai.radar||[]).slice(0,3);
   $('radarLive').innerHTML = radarLive ? '<span class="live-chip"><span class="dot"></span>LIVE</span>' : 'pattern';
   if(rad.length){
@@ -1674,9 +1703,9 @@ function hydrateDeep(ai, radarLive, signals){
     bindCopies(rb);
   } else rb.innerHTML='<div class="tsub">No live eruptions surfaced this scan — check back after your next refresh.</div>';
 
-  var fixes=(ai.fixes||[]), f=fixes[0];
-  $('playBody').innerHTML = f ? ('<div class="tlead">'+esc(f.title||'')+(f.severity?' <span class="q-sev '+esc((f.severity||'').toLowerCase())+'">'+esc(f.severity)+'</span>':'')+'</div><div class="tsub">'+esc(f['do']||f.why||'')+'</div>')
-    : '<div class="tsub">No critical fix flagged — you are on track.</div>';
+  var fixes=(ai.fixes||[]), f2=fixes[1]||fixes[0];
+  $('playBody').innerHTML = f2 ? ('<div class="tlead">'+esc(f2.title||'')+(f2.severity?' <span class="q-sev '+esc((f2.severity||'').toLowerCase())+'">'+esc(f2.severity)+'</span>':'')+'</div><div class="tsub">'+esc(f2['do']||f2.why||'')+'</div>')
+    : '<div class="tsub">Nothing flagged. Keep shipping — the coach is watching.</div>';
 
   var nv=ai.next_video;
   if(nv && (nv.title_options||[]).length){
@@ -1822,7 +1851,9 @@ function renderQueue(fixes){
   var body=$('queueBody');
   if(!items.length){ body.innerHTML='<div class="tsub">Your fixes become a checklist here. Tick them off as you ship.</div>'; $('qCount').textContent=''; return; }
   var open=items.filter(function(it){return !done[it.id];}).length;
-  $('qCount').textContent=open+' open';
+  var shipped=items.length-open;
+  window._ordersShipped=shipped;
+  $('qCount').textContent=open+' open · '+shipped+' shipped';
   body.innerHTML = items.map(function(it){
     var d=!!done[it.id];
     return '<div class="q-item"><div class="q-check'+(d?' done':'')+'" data-q="'+esc(it.id)+'" role="checkbox" aria-checked="'+(d?'true':'false')+'" tabindex="0">'+(d?'✓':'')+'</div>'
@@ -1874,7 +1905,9 @@ function loadHistory(){
       var dEl=$('sigDelta'); dEl.className='delta '+(delta>0?'up':delta<0?'down':'flat'); dEl.textContent=(delta>0?'▲ +':delta<0?'▼ ':'– ')+(delta===0?'flat':Math.abs(delta));
       drawSpark(rows.slice().reverse());
       /* command-bar delta */
-      var cd=$('hqDelta'); cd.className='delta '+(delta>0?'up':delta<0?'down':'flat'); cd.textContent=(delta>0?'▲ +'+delta+' since last':delta<0?'▼ '+delta+' since last':'no change');
+      var cd=$('hqDelta'); cd.className='delta '+(delta>0?'up':delta<0?'down':'flat');
+      var followed=(window._ordersShipped||0)>0;
+      cd.textContent=(delta>0?'▲ +'+delta+(followed?' — told you':' since last'):delta<0?'▼ '+delta+' since last':'no change');
     } else {
       $('sigEmpty').style.display='block'; $('sigNow').style.display='none'; $('spark').style.display='none';
       $('hqDelta').className='delta flat'; $('hqDelta').textContent = rows.length? 'first scan logged' : 'no scans yet';
