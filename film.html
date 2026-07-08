@@ -168,6 +168,11 @@ a{color:inherit;text-decoration:none}
 #outro .ocap h2{font-family:var(--heading);font-weight:300;font-size:clamp(30px,4.2vw,52px);line-height:1.14}
 #outro .ocap h2 em{font-style:italic;background:linear-gradient(120deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
 #outro .ocap .osub{margin:14px 0 30px;font-size:15px;color:var(--white-dim)}
+#outro .xplain{margin:110px auto 0;max-width:880px}
+#outro .xtitle{font-family:var(--heading);font-weight:300;font-size:clamp(24px,3vw,36px);margin:14px 0 26px}
+#outro .xtitle em{font-style:italic;color:var(--cyan)}
+#outro .xframe{border:1px solid rgba(238,240,247,.1);border-radius:18px;overflow:hidden;background:#000;box-shadow:0 30px 80px rgba(5,6,10,.6)}
+#outro .xframe video{display:block;width:100%;height:auto}
 #outro .cred{margin-top:96px;font-family:var(--mono);font-size:9px;letter-spacing:.32em;text-transform:uppercase;color:var(--faint);line-height:3.2}
 #outro .cred b{color:var(--muted);font-weight:500}
 footer{background:#0d0e17;border-top:1px solid rgba(238,240,247,.06);padding:52px 6%;display:flex;flex-direction:column;align-items:center;gap:13px;position:relative;z-index:20}
@@ -312,8 +317,19 @@ footer .fline a{color:var(--muted)}
     <p class="osub">Thirty seconds to your autopsy. It might sting.</p>
     <a class="btn btn-fill" href="app.html">Sign in</a>
   </div>
+
+  <div class="xplain">
+    <div class="overline" style="justify-content:center">prefer it explained? · 60 seconds</div>
+    <h3 class="xtitle">What you're <em>actually getting.</em></h3>
+    <div class="xframe">
+      <video controls preload="metadata" poster="explainer-poster.webp" playsinline>
+        <source src="explainer.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
   <div class="cred">
-    written, designed &amp; rendered <b>in code</b> · no video files were harmed<br>
+    written, designed &amp; rendered <b>in code</b> · voiced by the machine<br>
     engine <b>viralsidekick analyze</b> · data <b>public youtube signals</b> · studio <b>stromation</b>
   </div>
 </section>
