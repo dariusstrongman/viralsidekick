@@ -1,33 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Privacy — ViralSidekick</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — ViralSidekick</title>
 <link rel="canonical" href="https://viralsidekick.com/privacy.html">
+<meta name="description" content="ViralSidekick privacy policy — what we collect, how we use it, and how to delete your data.">
 <meta name="theme-color" content="#0a0d16">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-body{background:hsl(230 24% 5%);color:hsl(220 12% 90%);font-family:Inter,system-ui,sans-serif;line-height:1.7;max-width:680px;margin:0 auto;padding:60px 24px}
-h1{font-size:1.6rem;letter-spacing:-.02em}h2{font-size:1.05rem;margin-top:28px}
-p{margin:10px 0;color:hsl(220 8% 68%)}a{color:hsl(190 92% 56%)}
-.top{font-size:.85rem;margin-bottom:30px;display:inline-block}
+:root{
+  --bg:hsl(230 24% 5%); --card:hsl(228 18% 8%);
+  --fg:hsl(220 12% 96%); --muted:hsl(220 8% 62%); --faint:hsl(220 8% 40%);
+  --border:hsl(228 14% 16%); --border2:hsl(228 14% 24%);
+  --primary:hsl(260 90% 66%); --accent:hsl(190 92% 56%);
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:hsl(260 90% 66% / .45);color:#fff}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px}
+
+.bg-app{position:fixed;inset:0;z-index:-1;background:radial-gradient(900px 500px at 80% -10%, hsl(260 90% 66% / .08), transparent 60%), var(--bg)}
+
+nav.top{position:sticky;top:0;z-index:50;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:hsl(230 24% 5% / .84);border-bottom:1px solid var(--border)}
+nav.top .inner{max-width:720px;margin:0 auto;padding:0 22px;display:flex;align-items:center;height:60px;gap:20px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.95rem;letter-spacing:-.02em;color:var(--fg);text-decoration:none}
+.logo .bolt{width:18px;height:18px}
+.logo b{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav-back{margin-left:auto;font-size:.84rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.nav-back:hover{color:var(--fg);text-decoration:none}
+
+.page{max-width:720px;margin:0 auto;padding:50px 22px 80px}
+.page header{margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.eyebrow{font-family:var(--mono);font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;display:block}
+.page h1{font-size:clamp(1.5rem,3.5vw,2rem);font-weight:800;letter-spacing:-.02em;margin-bottom:8px}
+.page .meta{font-family:var(--mono);font-size:.78rem;color:var(--faint)}
+
+.page h2{font-size:1rem;font-weight:700;margin-top:32px;margin-bottom:8px;color:var(--fg);display:flex;align-items:center;gap:8px}
+.page h2::before{content:'';display:inline-block;width:3px;height:1em;background:var(--primary);border-radius:2px;flex-shrink:0}
+.page p{margin:8px 0;color:var(--muted);font-size:.95rem}
+.page p+p{margin-top:10px}
+
+footer{border-top:1px solid var(--border);padding:24px 0}
+footer .inner{max-width:720px;margin:0 auto;padding:0 22px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--faint)}
+footer a{color:var(--muted)}
+footer a:hover{color:var(--fg);text-decoration:none}
 </style>
 </head>
 <body>
-<a class="top" href="index.html">← ViralSidekick</a>
-<h1>Privacy Policy</h1>
-<p>Last updated: July 2026. ViralSidekick is operated by Stromation LLC.</p>
-<h2>What we collect</h2>
-<p>Your email address (to associate your scans with you) and the channel identifier you submit. Channel analysis uses publicly available YouTube data only — we do not access your account, private analytics, or anything requiring a login unless you explicitly connect a channel via OAuth (a feature that will ask separately and clearly).</p>
-<h2>Accounts</h2>
-<p>If you create an account (email + password or Google sign-in), we store your login email, your connected channel identifiers (YouTube channel, and any TikTok or Instagram handles you add), and your scan history so your dashboard works. Authentication is handled by Supabase; Google sign-in shares only your name, email, and profile photo with us. Passwords are hashed — we never see them.</p>
-<h2>What we do with it</h2>
-<p>We generate your report, store the scan so you can get it again, and may email you about your report or the product. No spam. We never sell your data.</p>
-<h2>AI processing</h2>
-<p>Public channel statistics (titles, view counts, publish dates) are sent to AI providers (OpenAI) to generate your analysis. No personal account data is included.</p>
-<h2>Payments</h2>
-<p>Handled entirely by Stripe. We never see or store card numbers.</p>
-<h2>Deletion</h2>
-<p>Email <a href="mailto:contact@stromation.com">contact@stromation.com</a> and we delete your data. Simple as that.</p>
+<div class="bg-app" aria-hidden="true"></div>
+
+<nav class="top" role="navigation" aria-label="main navigation">
+  <div class="inner">
+    <a class="logo" href="index.html" aria-label="ViralSidekick home">
+      <svg class="bolt" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="url(#lg-p)"/>
+        <defs><linearGradient id="lg-p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+      </svg>
+      VIRAL <b>SIDEKICK</b>
+    </a>
+    <a class="nav-back" href="index.html">← Back to home</a>
+  </div>
+</nav>
+
+<main class="page">
+  <header>
+    <span class="eyebrow">legal</span>
+    <h1>Privacy Policy</h1>
+    <p class="meta">Last updated: July 2026 · ViralSidekick is operated by Stromation LLC</p>
+  </header>
+
+  <h2>What we collect</h2>
+  <p>Your email address (to associate your scans with you) and the channel identifier you submit. Channel analysis uses publicly available YouTube data only — we do not access your account, private analytics, or anything requiring a login unless you explicitly connect a channel via OAuth (a feature that will ask separately and clearly).</p>
+
+  <h2>Accounts</h2>
+  <p>If you create an account (email + password or Google sign-in), we store your login email, your connected channel identifiers (YouTube channel, and any TikTok or Instagram handles you add), and your scan history so your dashboard works. Authentication is handled by Supabase; Google sign-in shares only your name, email, and profile photo with us. Passwords are hashed — we never see them.</p>
+
+  <h2>What we do with it</h2>
+  <p>We generate your report, store the scan so you can get it again, and may email you about your report or the product. No spam. We never sell your data.</p>
+
+  <h2>AI processing</h2>
+  <p>Public channel statistics (titles, view counts, publish dates) are sent to AI providers (OpenAI) to generate your analysis. No personal account data is included.</p>
+
+  <h2>Payments</h2>
+  <p>Handled entirely by Stripe. We never see or store card numbers.</p>
+
+  <h2>Deletion</h2>
+  <p>Email <a href="mailto:contact@stromation.com">contact@stromation.com</a> and we delete your data. Simple as that.</p>
+</main>
+
+<footer role="contentinfo">
+  <div class="inner">
+    <span>© 2026 Stromation LLC</span>
+    <nav aria-label="footer links" style="display:flex;gap:18px">
+      <a href="terms.html">Terms</a>
+      <a href="dashboard.html">Free scan</a>
+      <a href="mailto:contact@stromation.com">Contact</a>
+    </nav>
+  </div>
+</footer>
 </body>
 </html>

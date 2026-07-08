@@ -1,8 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Channel report card — ViralSidekick</title>
 <meta name="description" content="A free letter grade for any YouTube channel. See the score, the vitals, and the breakout format — then get the full AI autopsy.">
 <link rel="canonical" href="https://viralsidekick.com/c.html">
@@ -13,13 +13,14 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta property="og:image" content="https://viralsidekick.com/og.png">
 <meta name="twitter:image" content="https://viralsidekick.com/og.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
 <meta name="theme-color" content="#0a0d16">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://n8n.stromation.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ===== DESIGN TOKENS ===== */
 :root{
   --bg:hsl(230 24% 5%); --card:hsl(228 18% 8%); --card2:hsl(228 16% 10%);
   --fg:hsl(220 12% 96%); --muted:hsl(220 8% 62%); --faint:hsl(220 8% 40%);
@@ -27,76 +28,111 @@
   --primary:hsl(260 90% 66%); --primary-soft:hsl(260 90% 66% / .14);
   --accent:hsl(190 92% 56%); --success:hsl(160 84% 50%); --warning:hsl(38 96% 60%); --danger:hsl(0 84% 62%);
   --radius:14px;
-  --sans:'Inter',system-ui,-apple-system,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
 }
+
+/* ===== RESET ===== */
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto};*{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 ::selection{background:hsl(260 90% 66% / .45);color:#fff}
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px}
-.bg-app{position:fixed;inset:0;z-index:-2;background:
-  radial-gradient(1200px 600px at 80% -10%, hsl(260 90% 66% / .16), transparent 60%),
-  radial-gradient(900px 500px at 0% 10%, hsl(190 92% 56% / .09), transparent 55%),
-  var(--bg)}
+
+/* ===== ATMOSPHERE ===== */
+.bg-app{position:fixed;inset:0;z-index:-2;
+  background:radial-gradient(1200px 600px at 80% -10%, hsl(260 90% 66% / .16), transparent 60%),
+    radial-gradient(900px 500px at 0% 10%, hsl(190 92% 56% / .09), transparent 55%), var(--bg)}
 .bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:linear-gradient(to right,hsl(228 14% 16% / .4) 1px,transparent 1px),
     linear-gradient(to bottom,hsl(228 14% 16% / .4) 1px,transparent 1px);
   background-size:56px 56px;
+  -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 80%);
   mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 80%)}
+
+/* ===== LAYOUT ===== */
 .wrap{width:100%;max-width:960px;margin:0 auto;padding:0 22px}
 
-/* nav */
-nav.top{position:sticky;top:0;z-index:40;backdrop-filter:blur(14px);background:hsl(230 24% 5% / .74);border-bottom:1px solid var(--border)}
-nav.top .wrap{display:flex;align-items:center;height:62px}
-.logo{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-weight:700;font-size:.98rem;letter-spacing:.02em}
+/* ===== NAV ===== */
+nav.top{
+  position:sticky;top:0;z-index:50;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  background:hsl(230 24% 5% / .84);border-bottom:1px solid var(--border);
+}
+nav.top .wrap{display:flex;align-items:center;height:62px;gap:20px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:.98rem;letter-spacing:-.02em;flex-shrink:0}
 .logo .bolt{width:20px;height:20px}
 .logo b{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
-nav.top .links{margin-left:auto;display:flex;gap:22px;font-size:.86rem;color:var(--muted);align-items:center}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.9rem;
-  padding:11px 20px;border-radius:11px;border:1px solid transparent;cursor:pointer;transition:all .18s;font-family:var(--sans);white-space:nowrap}
+.nav-links{margin-left:auto;display:flex;gap:22px;font-size:.86rem;color:var(--muted);align-items:center}
+.nav-links a:hover{color:var(--fg)}
+
+/* ===== BUTTONS ===== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-weight:600;font-size:.9rem;padding:11px 20px;border-radius:11px;
+  border:1px solid transparent;cursor:pointer;transition:all .18s;
+  font-family:var(--sans);white-space:nowrap;min-height:42px;
+}
 .btn-primary{background:linear-gradient(120deg,var(--primary),hsl(260 90% 60%));color:#fff;box-shadow:0 6px 24px hsl(260 90% 50% / .35)}
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 30px hsl(260 90% 50% / .5)}
+.btn-primary:active{transform:none}
 .btn-ghost{background:transparent;border-color:var(--border2);color:var(--fg)}
-.btn-ghost:hover{border-color:var(--primary);color:#fff}
-.btn-sm{padding:8px 15px;font-size:.82rem;border-radius:9px}
+.btn-ghost:hover{border-color:var(--primary);color:#fff;transform:translateY(-1px)}
+.btn-sm{padding:8px 15px;font-size:.82rem;border-radius:9px;min-height:36px}
 
-main{padding:34px 0 60px;min-height:70vh}
+/* ===== MAIN ===== */
+main{padding:34px 0 60px;min-height:70vh;animation:fadeup .4s ease both}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px)}}
+
+/* ===== EYEBROW ===== */
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.66rem;
   letter-spacing:.22em;text-transform:uppercase;color:var(--accent);border:1px solid hsl(190 92% 56% / .3);
   padding:6px 12px;border-radius:100px;background:hsl(190 92% 56% / .06)}
 .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2.4s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
-/* channel entry (no param) */
+/* ===== ENTRY (no param) ===== */
 .entry{max-width:520px;margin:6vh auto 0;text-align:center}
 .entry h1{font-size:clamp(1.7rem,4.4vw,2.5rem);font-weight:800;letter-spacing:-.02em;line-height:1.08;margin:18px 0 10px}
 .entry .grad{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 .entry p{color:var(--muted);margin-bottom:22px}
 .entryform{display:flex;gap:9px;background:var(--card);border:1px solid var(--border2);border-radius:13px;padding:7px}
-.entryform input{flex:1;background:transparent;border:none;color:var(--fg);font-size:1rem;padding:10px 12px;font-family:var(--sans);outline:none}
+.entryform input{flex:1;background:transparent;border:none;color:var(--fg);font-size:1rem;padding:10px 12px;font-family:var(--sans);outline:none;min-width:0}
 .entryform input::placeholder{color:var(--faint)}
 .entry .exs{margin-top:16px;font-family:var(--mono);font-size:.72rem;color:var(--faint);letter-spacing:.04em}
 .entry .exs a{color:var(--muted);border-bottom:1px dotted var(--border2)}
 .entry .exs a:hover{color:var(--accent)}
 
-/* loading */
+/* ===== LOADING ===== */
 .loading{max-width:520px;margin:12vh auto 0;text-align:center}
 .spinner{width:46px;height:46px;margin:0 auto 20px;border:3px solid var(--border2);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading .lg{font-family:var(--mono);font-size:.82rem;color:var(--muted);letter-spacing:.03em}
 
-/* error */
-.err{max-width:520px;margin:12vh auto 0;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:34px}
-.err h2{font-size:1.3rem;margin-bottom:8px}
-.err p{color:var(--muted);margin-bottom:20px}
+/* ===== ERROR ===== */
+.err-wrap{max-width:520px;margin:12vh auto 0;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:34px}
+.err-wrap h2{font-size:1.3rem;margin-bottom:8px}
+.err-wrap p{color:var(--muted);margin-bottom:20px}
 
-/* report */
+/* ===== REPORT ===== */
 .report{display:none}
-.card-main{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--border2);border-radius:22px;overflow:hidden;box-shadow:0 30px 70px hsl(230 40% 2% / .6)}
-.card-top{display:grid;grid-template-columns:auto 1fr;gap:26px;padding:30px 32px;align-items:center;border-bottom:1px solid var(--border);position:relative}
-.card-top::before{content:"";position:absolute;inset:0;background:radial-gradient(500px 240px at 12% 0%,var(--gcolor,var(--primary)),transparent 65%);opacity:.13;pointer-events:none}
+.card-main{
+  background:linear-gradient(180deg,var(--card2),var(--card));
+  border:1px solid var(--border2);border-radius:22px;overflow:hidden;
+  box-shadow:0 30px 70px hsl(230 40% 2% / .6);
+}
+.card-top{
+  display:grid;grid-template-columns:auto 1fr;gap:26px;
+  padding:30px 32px;align-items:center;border-bottom:1px solid var(--border);
+  position:relative;
+}
+.card-top::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(500px 240px at 12% 0%,var(--gcolor,var(--primary)),transparent 65%);
+  opacity:.13;pointer-events:none;
+}
 .gradewrap{position:relative;width:132px;height:132px;flex-shrink:0}
 .gradewrap svg{width:132px;height:132px;transform:rotate(-90deg)}
 .gradewrap .gletter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -106,73 +142,98 @@ main{padding:34px 0 60px;min-height:70vh}
 .ch-meta h1{font-size:clamp(1.4rem,3.6vw,2.05rem);font-weight:800;letter-spacing:-.02em;line-height:1.08}
 .ch-meta .score-line{margin-top:10px;font-family:var(--mono);font-size:.9rem;color:var(--muted)}
 .ch-meta .score-line b{color:var(--fg);font-size:1.1rem}
-.ch-meta .headline{margin-top:14px;color:var(--fg);font-size:.97rem;max-width:52ch;border-left:2px solid var(--gcolor,var(--primary));padding-left:13px}
+.ch-meta .headline{margin-top:14px;color:var(--fg);font-size:.97rem;max-width:52ch;border-left:2px solid var(--gcolor,var(--primary));padding-left:13px;line-height:1.5}
 
 .vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
 .vital{background:var(--card);padding:18px 16px;text-align:center}
 .vital .n{font-size:1.42rem;font-weight:800;font-family:var(--mono);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .vital .l{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:5px}
-.vital.pos .n{color:var(--success)} .vital.neg .n{color:var(--warning)}
+.vital.pos .n{color:var(--success)}
+.vital.neg .n{color:var(--warning)}
 
 .best{padding:20px 32px;display:flex;gap:14px;align-items:center;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .best .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--success);border:1px solid hsl(160 84% 50% / .3);padding:5px 9px;border-radius:7px;background:hsl(160 84% 50% / .07);flex-shrink:0}
 .best .t{flex:1;min-width:200px;font-weight:600;font-size:.95rem}
 .best .r{font-family:var(--mono);font-weight:700;color:var(--success);font-size:.95rem}
 
-/* locked teaser */
+/* ===== LOCKED TEASER ===== */
 .locked{position:relative;padding:26px 32px 30px}
 .locked h3{font-size:.72rem;font-family:var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
 .lockgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .lockcard{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative}
-.lockcard .lk{position:absolute;top:12px;right:12px;color:var(--faint)}
+.lockcard .lk{position:absolute;top:12px;right:12px;color:var(--faint);font-size:.9rem}
 .lockcard .h{font-weight:700;font-size:.9rem;margin-bottom:6px}
-.lockcard .b{color:var(--faint);font-size:.82rem;filter:blur(3.5px);user-select:none;line-height:1.5}
+.lockcard .b{color:var(--faint);font-size:.82rem;filter:blur(3.5px);user-select:none;line-height:1.5;pointer-events:none}
 .locked .cta-band{margin-top:22px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center}
 .locked .cta-band p{color:var(--muted);font-size:.92rem;width:100%;margin-bottom:4px}
 
-/* share + own-scan */
+/* ===== AFTER PANELS ===== */
 .after{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
-@media(max-width:640px){.after{grid-template-columns:1fr}.vitals{grid-template-columns:repeat(2,1fr)}.card-top{grid-template-columns:1fr;text-align:center}.ch-meta .headline{margin-left:auto;margin-right:auto}.gradewrap{margin:0 auto}}
-.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:border-color .2s}
+.panel:hover{border-color:var(--border2)}
 .panel h4{font-size:.7rem;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
 .panel p{color:var(--muted);font-size:.86rem;margin-bottom:14px}
 .sharerow{display:flex;gap:9px;flex-wrap:wrap}
-.miniform{display:flex;gap:8px;background:var(--card2);border:1px solid var(--border2);border-radius:11px;padding:6px}
+.miniform{display:flex;gap:8px;background:var(--card2);border:1px solid var(--border2);border-radius:11px;padding:6px;transition:border-color .15s}
+.miniform:focus-within{border-color:var(--primary)}
 .miniform input{flex:1;background:transparent;border:none;color:var(--fg);font-size:.92rem;padding:8px 10px;outline:none;font-family:var(--sans);min-width:0}
 .miniform input::placeholder{color:var(--faint)}
 
 .disc{text-align:center;font-family:var(--mono);font-size:.66rem;color:var(--faint);margin-top:26px;letter-spacing:.03em}
 .disc a{color:var(--muted)}
+.disc a:hover{color:var(--accent)}
 
+/* ===== RESPONSIVE ===== */
+@media(max-width:640px){
+  .after{grid-template-columns:1fr}
+  .vitals{grid-template-columns:repeat(2,1fr)}
+  .card-top{grid-template-columns:1fr;text-align:center}
+  .ch-meta .headline{margin-left:auto;margin-right:auto}
+  .gradewrap{margin:0 auto}
+  .lockgrid{grid-template-columns:1fr}
+  .best{flex-direction:column;align-items:flex-start}
+}
+
+/* ===== FOOTER ===== */
 footer{border-top:1px solid var(--border);margin-top:50px;padding:26px 0}
 footer .wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+footer .logo{font-size:.9rem}
+footer .logo .bolt{width:16px;height:16px}
 footer .flinks{display:flex;gap:18px;font-size:.8rem;color:var(--muted);flex-wrap:wrap;margin-left:auto}
+footer .flinks a:hover{color:var(--fg)}
 footer .fine{width:100%;margin-top:12px;font-family:var(--mono);font-size:.64rem;color:var(--faint)}
 footer .fine a{color:var(--muted)}
 </style>
 </head>
 <body>
-<div class="bg-app"></div><div class="bg-grid"></div>
+<div class="bg-app" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
 
-<nav class="top"><div class="wrap">
-  <a class="logo" href="index.html">
-    <svg class="bolt" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="url(#lg)"/><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(260 90% 66%)"/><stop offset="1" stop-color="hsl(190 92% 56%)"/></linearGradient></defs></svg>
-    VIRAL <b>SIDEKICK</b>
-  </a>
-  <div class="links">
-    <a href="app.html" class="hideable">Log in</a>
-    <a class="btn btn-primary btn-sm" href="dashboard.html">Free full scan</a>
+<nav class="top" role="navigation" aria-label="main navigation">
+  <div class="wrap">
+    <a class="logo" href="index.html" aria-label="ViralSidekick home">
+      <svg class="bolt" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="url(#lg-c)"/>
+        <defs><linearGradient id="lg-c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(260 90% 66%)"/><stop offset="1" stop-color="hsl(190 92% 56%)"/></linearGradient></defs>
+      </svg>
+      VIRAL <b>SIDEKICK</b>
+    </a>
+    <nav class="nav-links" aria-label="secondary navigation">
+      <a href="app.html">Log in</a>
+      <a class="btn btn-primary btn-sm" href="dashboard.html">Free full scan</a>
+    </nav>
   </div>
-</div></nav>
+</nav>
 
 <main class="wrap">
 
   <!-- entry (no channel in url) -->
-  <section id="entry" class="entry" style="display:none">
-    <span class="eyebrow"><span class="dot"></span>free channel report card</span>
+  <section id="entry" class="entry" style="display:none" aria-label="grade a channel">
+    <span class="eyebrow"><span class="dot" aria-hidden="true"></span>free channel report card</span>
     <h1>Grade any <span class="grad">YouTube channel</span> in seconds</h1>
     <p>Paste a channel. Get an instant A+ to F report card — score, vitals, and the breakout format. No signup.</p>
     <form class="entryform" id="entryForm">
+      <label for="entryInput" class="sr-only">YouTube channel handle, URL, or name</label>
       <input id="entryInput" type="text" placeholder="@mkbhd  ·  channel URL  ·  or name" autocomplete="off" autofocus>
       <button class="btn btn-primary" type="submit">Grade it</button>
     </form>
@@ -180,20 +241,20 @@ footer .fine a{color:var(--muted)}
   </section>
 
   <!-- loading -->
-  <section id="loading" class="loading" style="display:none">
-    <div class="spinner"></div>
-    <div class="lg" id="loadMsg">reading the last uploads...</div>
+  <section id="loading" class="loading" style="display:none" aria-live="polite" aria-label="loading">
+    <div class="spinner" role="status" aria-label="loading"></div>
+    <div class="lg" id="loadMsg">reading the last uploads…</div>
   </section>
 
   <!-- error -->
-  <section id="error" class="err" style="display:none">
-    <h2>Couldnt find that channel</h2>
+  <section id="error" class="err-wrap" style="display:none" aria-live="assertive">
+    <h2>Couldn't find that channel</h2>
     <p id="errMsg">Try a handle like <b style="color:var(--accent)">@mkbhd</b>, the full channel URL, or the channel name.</p>
     <a class="btn btn-ghost" href="c.html">Try another channel</a>
   </section>
 
   <!-- report -->
-  <section id="report" class="report">
+  <section id="report" class="report" aria-label="channel report card">
     <div class="card-main" id="cardMain">
       <div class="card-top">
         <div class="gradewrap">
@@ -201,7 +262,7 @@ footer .fine a{color:var(--muted)}
             <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="9"></circle>
             <circle id="ring" cx="60" cy="60" r="52" fill="none" stroke="var(--gcolor,var(--primary))" stroke-width="9" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327"></circle>
           </svg>
-          <div class="gletter"><b id="gLetter">–</b><small>grade</small></div>
+          <div class="gletter"><b id="gLetter" aria-label="grade">–</b><small>grade</small></div>
         </div>
         <div class="ch-meta">
           <div class="who">youtube report card</div>
@@ -211,7 +272,7 @@ footer .fine a{color:var(--muted)}
         </div>
       </div>
 
-      <div class="vitals" id="vitals"></div>
+      <div class="vitals" id="vitals" role="list" aria-label="channel vitals"></div>
 
       <div class="best" id="bestRow" style="display:none">
         <span class="tag">breakout hit</span>
@@ -221,10 +282,10 @@ footer .fine a{color:var(--muted)}
 
       <div class="locked">
         <h3>locked — the full ViralSidekick breakdown</h3>
-        <div class="lockgrid">
-          <div class="lockcard"><span class="lk">🔒</span><div class="h">AI autopsy</div><div class="b">Two surgical paragraphs on exactly why the channel over/under-performs, tied to real videos.</div></div>
-          <div class="lockcard"><span class="lk">🔒</span><div class="h">Niche radar (live)</div><div class="b">What is erupting in the niche right now and the exact video this channel should make about it.</div></div>
-          <div class="lockcard"><span class="lk">🔒</span><div class="h">30-day roadmap</div><div class="b">Week by week: what to post, when to post it, and which format to kill.</div></div>
+        <div class="lockgrid" aria-label="locked features">
+          <div class="lockcard"><span class="lk" aria-hidden="true">🔒</span><div class="h">AI autopsy</div><div class="b" aria-hidden="true">Two surgical paragraphs on exactly why the channel over/under-performs, tied to real videos.</div></div>
+          <div class="lockcard"><span class="lk" aria-hidden="true">🔒</span><div class="h">Niche radar (live)</div><div class="b" aria-hidden="true">What is erupting in the niche right now and the exact video this channel should make about it.</div></div>
+          <div class="lockcard"><span class="lk" aria-hidden="true">🔒</span><div class="h">30-day roadmap</div><div class="b" aria-hidden="true">A week-by-week action plan built from your actual data, not generic advice.</div></div>
         </div>
         <div class="cta-band">
           <p>This card is the teaser. The autopsy, live radar, posting windows and roadmap are one free scan away.</p>
@@ -247,38 +308,45 @@ footer .fine a{color:var(--muted)}
         <h4>grade your own channel</h4>
         <p>See where you stand. Free, instant, no signup.</p>
         <form class="miniform" id="ownForm">
+          <label for="ownInput" class="sr-only">Your YouTube channel handle</label>
           <input id="ownInput" type="text" placeholder="@yourchannel" autocomplete="off">
           <button class="btn btn-primary btn-sm" type="submit">Grade me</button>
         </form>
       </div>
     </div>
 
-    <div class="disc">viral-readiness is a heuristic on public upload data · not affiliated with youtube · <a href="dashboard.html">full scan</a></div>
+    <p class="disc">viral-readiness is a heuristic on public upload data · not affiliated with YouTube · <a href="dashboard.html">full scan</a></p>
   </section>
 
 </main>
 
-<footer><div class="wrap">
-  <a class="logo" href="index.html" style="font-size:.9rem">
-    <svg class="bolt" viewBox="0 0 32 32" style="width:16px;height:16px" aria-hidden="true"><path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="hsl(260 90% 66%)"/></svg>
-    VIRAL <b>SIDEKICK</b>
-  </a>
-  <div class="flinks">
-    <a href="dashboard.html">Free scan</a><a href="index.html#pricing">Pricing</a>
-    <a href="privacy.html">Privacy</a><a href="terms.html">Terms</a>
-    <a href="mailto:contact@stromation.com">Contact</a>
+<footer role="contentinfo">
+  <div class="wrap">
+    <a class="logo" href="index.html" aria-label="ViralSidekick home">
+      <svg class="bolt" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="hsl(260 90% 66%)"/></svg>
+      VIRAL <b>SIDEKICK</b>
+    </a>
+    <nav class="flinks" aria-label="footer links">
+      <a href="dashboard.html">Free scan</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="mailto:contact@stromation.com">Contact</a>
+    </nav>
+    <div class="fine">© 2026 Stromation LLC · ViralSidekick is a <a href="https://www.stromation.com" target="_blank" rel="noopener">Stromation</a> product · ideas in, products out</div>
   </div>
-  <div class="fine">© 2026 Stromation LLC · ViralSidekick is a <a href="https://www.stromation.com" target="_blank" rel="noopener">Stromation</a> product · ideas in, products out</div>
-</div></footer>
+</footer>
+
+<!-- screen-reader only utility -->
+<style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
 
 <script>
 var API = 'https://n8n.stromation.com/webhook/viralsidekick-analyze';
 function $(id){ return document.getElementById(id); }
-function show(which){ ['entry','loading','error','report'].forEach(function(s){ $(s).style.display = (s===which ? (s==='report'?'block':'block') : 'none'); }); }
+function show(which){ ['entry','loading','error','report'].forEach(function(s){ $(s).style.display = (s===which ? 'block' : 'none'); }); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function nfmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e3) return (n/1e3).toFixed(n>=1e4?0:1)+'K'; return String(Math.round(n)); }
 
-// grade -> color
 function gcolor(g){
   var c=(g||'')[0];
   if(c==='A') return 'var(--success)';
@@ -288,19 +356,18 @@ function gcolor(g){
   return 'var(--danger)';
 }
 
-var LOAD_MSGS=['reading the last uploads...','measuring against the channel median...','finding the breakout hits...','scoring viral readiness...'];
+var LOAD_MSGS=['reading the last uploads…','measuring against the channel median…','finding the breakout hits…','scoring viral readiness…'];
 var loadTimer=null;
 function startLoad(handle){
   show('loading');
-  $('loadMsg').textContent = 'reading '+handle+' uploads...';
+  $('loadMsg').textContent = 'reading '+handle+' uploads…';
   var i=0; clearInterval(loadTimer);
   loadTimer=setInterval(function(){ i=(i+1)%LOAD_MSGS.length; $('loadMsg').textContent=LOAD_MSGS[i]; },1400);
 }
 
-var CARD=null; // last report
+var CARD=null;
 function grade(channel){
-  var handle = channel;
-  startLoad(esc(handle));
+  startLoad(esc(channel));
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'card',channel:channel})})
     .then(function(r){return r.json();})
     .then(function(d){
@@ -319,10 +386,8 @@ function render(d){
   $('chName').textContent=d.channel&&d.channel.name?d.channel.name:'this channel';
   $('scoreN').textContent=d.score;
   $('headline').textContent=d.headline||'';
-  // ring
   var pct=Math.max(0,Math.min(100,d.score))/100, C=327;
   var ring=$('ring'); ring.style.stroke=col; ring.setAttribute('stroke-dashoffset', Math.round(C-C*pct));
-  // vitals
   var v=d.vitals||{};
   var cells=[
     {n:nfmt(v.median), l:'median views'},
@@ -333,69 +398,55 @@ function render(d){
     {n:(v.momentum!=null? v.momentum+'x':'—'), l:'recent momentum', cls:(v.momentum>=1?'pos':(v.momentum>0?'neg':''))}
   ];
   var grid=$('vitals'); grid.style.gridTemplateColumns='repeat('+(cells.length>4?3:cells.length)+',1fr)';
-  grid.innerHTML=cells.map(function(c){return '<div class="vital '+(c.cls||'')+'"><div class="n">'+esc(c.n)+'</div><div class="l">'+esc(c.l)+'</div></div>';}).join('');
-  // best
+  grid.innerHTML=cells.map(function(c){return '<div class="vital '+(c.cls||'')+'" role="listitem"><div class="n">'+esc(c.n)+'</div><div class="l">'+esc(c.l)+'</div></div>';}).join('');
   if(d.best && d.best.title){ $('bestRow').style.display='flex'; $('bestT').textContent=d.best.title; $('bestR').textContent=d.best.ratio+'x median · '+nfmt(d.best.views)+' views'; }
   else $('bestRow').style.display='none';
-  // deep links prefilled with this channel
   var chParam=(d.channel&&d.channel.id)?d.channel.id:'';
   $('fullBtn').href='dashboard.html?c='+encodeURIComponent(chParam||'');
-  // share
   var shareUrl='https://viralsidekick.com/c.html?ch='+encodeURIComponent(currentHandle||chParam);
   var tw=$('tweetBtn');
   tw.href='https://twitter.com/intent/tweet?text='+encodeURIComponent((d.channel.name||'This channel')+' scored '+d.score+'/100 ('+g+') on ViralSidekick. grade any channel free:')+'&url='+encodeURIComponent(shareUrl);
-  // title
   document.title=(d.channel.name||'Channel')+' — '+g+' ('+d.score+'/100) — ViralSidekick';
   show('report');
 }
 
-// share-card PNG (1200x630) client-side
 function drawShareCard(d){
   var cv=document.createElement('canvas'); cv.width=1200; cv.height=630; var x=cv.getContext('2d');
   var g=d.grade||'F';
   var colmap={A:'#34e5a4',B:'#3ad0f0',C:'#f6c23e',D:'#f08a2a',F:'#f0524d'};
   var col=colmap[(g[0])]||'#8b5cf6';
-  // bg
   x.fillStyle='#0a0c14'; x.fillRect(0,0,1200,630);
   var grd=x.createRadialGradient(1000,-60,80,1000,-60,900); grd.addColorStop(0,'rgba(139,92,246,0.28)'); grd.addColorStop(1,'rgba(10,12,20,0)'); x.fillStyle=grd; x.fillRect(0,0,1200,630);
-  // grid lines
   x.strokeStyle='rgba(255,255,255,0.04)'; x.lineWidth=1;
   for(var i=0;i<1200;i+=60){x.beginPath();x.moveTo(i,0);x.lineTo(i,630);x.stroke();}
   for(var j=0;j<630;j+=60){x.beginPath();x.moveTo(0,j);x.lineTo(1200,j);x.stroke();}
-  // wordmark
   x.fillStyle='#8b5cf6'; x.font='700 26px Inter, sans-serif'; x.fillText('VIRAL', 70, 82);
   x.fillStyle='#e8ebf2'; x.fillText('SIDEKICK', 70+x.measureText('VIRAL ').width, 82);
   x.fillStyle='rgba(200,205,220,0.55)'; x.font='500 18px "JetBrains Mono", monospace'; x.fillText('youtube channel report card', 70, 112);
-  // grade ring
   var cx=280, cy=360, r=140;
   x.lineWidth=26; x.strokeStyle='rgba(255,255,255,0.08)'; x.beginPath(); x.arc(cx,cy,r,0,Math.PI*2); x.stroke();
   var pct=Math.max(0,Math.min(100,d.score))/100;
   x.strokeStyle=col; x.lineCap='round'; x.beginPath(); x.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*pct); x.stroke();
   x.fillStyle=col; x.textAlign='center'; x.font='800 120px Inter, sans-serif'; x.fillText(g, cx, cy+38);
   x.textAlign='left';
-  // channel name + score
   var name=(d.channel&&d.channel.name)||'this channel'; if(name.length>26) name=name.slice(0,25)+'…';
   x.fillStyle='#f4f6fb'; x.font='800 58px Inter, sans-serif'; x.fillText(name, 480, 300);
   x.fillStyle=col; x.font='700 40px "JetBrains Mono", monospace'; x.fillText(d.score+'/100', 480, 360);
   x.fillStyle='rgba(200,205,220,0.6)'; x.font='500 26px "JetBrains Mono", monospace'; x.fillText('viral-readiness score', 480+x.measureText(d.score+'/100  ').width, 360);
-  // headline (wrap)
   x.fillStyle='rgba(216,220,232,0.9)'; x.font='400 27px Inter, sans-serif';
   var words=(d.headline||'').split(' '), line='', yy=420, maxw=660;
   for(var w=0;w<words.length;w++){ var test=line+words[w]+' '; if(x.measureText(test).width>maxw && line){ x.fillText(line,480,yy); line=words[w]+' '; yy+=38; if(yy>520)break; } else line=test; }
   if(line && yy<=520) x.fillText(line,480,yy);
-  // footer cta
   x.fillStyle='#8b5cf6'; x.font='700 24px "JetBrains Mono", monospace'; x.fillText('grade your channel free → viralsidekick.com', 480, 580);
   return cv;
 }
 
-// events
 var currentHandle='';
 $('entryForm') && $('entryForm').addEventListener('submit',function(e){ e.preventDefault(); var v=$('entryInput').value.trim(); if(v) location.search='?ch='+encodeURIComponent(v); });
 $('ownForm') && $('ownForm').addEventListener('submit',function(e){ e.preventDefault(); var v=$('ownInput').value.trim(); if(v) location.search='?ch='+encodeURIComponent(v); });
 $('copyLink').addEventListener('click',function(){ var u=location.href; navigator.clipboard.writeText(u).then(function(){ var b=$('copyLink'); var t=b.textContent; b.textContent='Copied ✓'; setTimeout(function(){b.textContent=t;},1400); }); });
 $('dlCard').addEventListener('click',function(){ if(!CARD)return; var cv=drawShareCard(CARD); var a=document.createElement('a'); a.download='viralsidekick-'+((CARD.channel&&CARD.channel.name)||'card').replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'.png'; a.href=cv.toDataURL('image/png'); a.click(); });
 
-// boot
 (function(){
   var p=new URLSearchParams(location.search);
   var ch=p.get('ch')||p.get('c');
