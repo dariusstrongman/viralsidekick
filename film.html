@@ -665,5 +665,19 @@ function animate(t){
   else requestAnimationFrame(animate);
 })();
 </script>
+<!-- vs session aware -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  try{
+    var sbc=window.supabase.createClient('https://fzlwnsoknngbdkizxpnl.supabase.co','sb_publishable_K81b73rtZnF0fR6B5mnDWQ_I2CO_OK6');
+    sbc.auth.getSession().then(function(r){
+      if(!(r&&r.data&&r.data.session)) return;
+      document.querySelectorAll('a[href="app.html"]').forEach(function(a){ if(/log ?in/i.test(a.textContent)) a.textContent='My HQ'; });
+      var s=document.getElementById('sessCta'); if(s){ s.textContent='Open my HQ'; s.href='app.html'; }
+    });
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
