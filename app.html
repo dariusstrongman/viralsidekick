@@ -251,7 +251,7 @@ footer a:hover{color:var(--fg)}
 
 /* ===== IDENTITY HEADER ===== */
 .idhead{
-  display:grid;grid-template-columns:auto auto 1fr auto;gap:20px;align-items:center;
+  display:grid;grid-template-columns:auto 1fr auto auto;gap:22px;align-items:center;
   background:linear-gradient(120deg,hsl(260 90% 66% / .09),hsl(228 18% 8% / .6));
   border:1px solid var(--border2);border-radius:18px;padding:18px 22px;
   margin-bottom:14px;position:relative;overflow:hidden;
@@ -285,9 +285,12 @@ footer a:hover{color:var(--fg)}
 .plat-chip.on{color:#fff;border-color:var(--gc,var(--primary));background:var(--primary-soft)}
 .plat-chip.add{border-style:dashed;color:var(--faint)}
 .plat-chip .pi{width:14px;height:14px;flex:0 0 auto}
-.id-grade{display:flex;align-items:center;gap:16px}
-.gring2{position:relative;width:84px;height:84px}
-.gring2 svg{width:84px;height:84px;transform:rotate(-90deg)}
+.id-grade{display:flex;align-items:center;gap:16px;order:3;padding-left:22px;border-left:1px solid var(--border)}
+.id-meta{order:2}
+.avatar{order:1}
+.id-actions{order:4}
+.gring2{position:relative;width:96px;height:96px}
+.gring2 svg{width:96px;height:96px;transform:rotate(-90deg)}
 .gring2 #hqRing{filter:drop-shadow(0 0 5px var(--gc,var(--primary)));transition:stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1)}
 .gring2 .gl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .gring2 .gl b{font-size:1.7rem;font-weight:800;color:var(--gc,var(--primary));line-height:1}
@@ -304,7 +307,7 @@ footer a:hover{color:var(--fg)}
 .delta.flat{color:var(--muted);background:var(--border)}
 @media(max-width:900px){
   .idhead{grid-template-columns:auto 1fr;gap:14px}
-  .id-grade{grid-column:1/-1;justify-content:space-between}
+  .id-grade{grid-column:1/-1;justify-content:space-between;order:5;border-left:none;padding-left:0;border-top:1px solid var(--border);padding-top:14px}
   .id-actions{align-items:stretch}
 }
 
@@ -317,8 +320,15 @@ footer a:hover{color:var(--fg)}
 .ptab .st{font-family:var(--mono);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
 .ptab.on .st{color:var(--accent)}
 
+/* ===== ZONES: the console reads NOW -> WEEK -> PLAN -> ORBIT ===== */
+.zone{margin-top:30px}
+#ytDeck .zone:first-child{margin-top:4px}
+.zone-h{display:flex;align-items:center;gap:11px;margin:0 2px 12px;font-family:var(--mono);font-size:.64rem;font-weight:500;letter-spacing:.26em;text-transform:uppercase;color:var(--zc,var(--muted))}
+.zone-h::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent 82%);opacity:.7}
+.zone-h .zdot{width:6px;height:6px;border-radius:2px;transform:rotate(45deg);background:var(--zc,var(--primary));box-shadow:0 0 10px var(--zc,var(--primary));flex:0 0 auto}
+
 /* ===== BENTO GRID ===== */
-.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;align-items:start;grid-auto-rows:auto}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;align-items:start;grid-auto-rows:auto}
 .s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.s6{grid-column:span 6}
 @media(max-width:1080px){
   .bento{grid-template-columns:repeat(4,1fr)}
@@ -347,13 +357,26 @@ footer a:hover{color:var(--fg)}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}}
 .no-anim .tile{animation:none!important}
 .tile h3{
-  font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;
 }
 .tile h3 .acc{color:var(--tc,var(--primary))}
 .tile h3 .end{margin-left:auto;letter-spacing:.05em;color:var(--faint)}
 .tile.radar{--tc:var(--accent)}
 .tile.play{--tc:var(--warning)}
+/* HERO tile: the radar is the moat - let it glow */
+#tRadar{background:linear-gradient(180deg,hsl(196 45% 8% / .92),var(--card2));border-color:hsl(190 92% 56% / .3);
+  box-shadow:0 24px 70px hsl(190 92% 56% / .07), inset 0 1px 0 hsl(190 92% 56% / .14);padding:20px 22px}
+#tRadar::before{opacity:.55;background:linear-gradient(90deg,transparent,var(--accent),transparent);background-size:45% 100%;background-repeat:no-repeat;animation:radarsweep 5.5s linear infinite}
+@keyframes radarsweep{from{background-position:-80% 0}to{background-position:180% 0}}
+#tRadar h3{color:var(--accent);font-size:.66rem}
+#tRadar:hover{border-color:hsl(190 92% 56% / .5)}
+/* QUIET tiles: utilities whisper */
+.tile.quiet{background:hsl(228 18% 7% / .5);border-color:hsl(228 14% 13%)}
+.tile.quiet:hover{transform:none;border-color:var(--border2)}
+.tile.quiet h3{color:var(--faint)}
+/* SELL tile: the one loud invitation */
+.tile.sell{background:linear-gradient(120deg,hsl(45 60% 9% / .55),var(--card2))}
 .live-chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.56rem;letter-spacing:.12em;color:var(--accent);border:1px solid hsl(190 92% 56% / .4);border-radius:100px;padding:2px 8px}
 .live-chip .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 7px var(--accent);animation:pulse 1.8s infinite}
 
@@ -677,21 +700,26 @@ footer a:hover{color:var(--fg)}
       <div class="ptabs" id="ptabs" role="tablist" aria-label="platform selector"></div>
 
       <!-- YOUTUBE DECK -->
-      <div class="bento" id="ytDeck" role="tabpanel" aria-label="YouTube analytics">
-
-        <!-- LIVE PULSE -->
-        <div class="tile pulse s6" id="tPulse" style="display:none">
+      <div id="ytDeck" role="tabpanel" aria-label="YouTube analytics">
+<section class="zone" style="--zc:var(--accent)">
+<div class="zone-h"><span class="zdot"></span>live · right now</div>
+<div class="bento">
+<div class="tile pulse s6" id="tPulse" style="display:none">
           <h3><span class="acc" aria-hidden="true">⦿</span> live pulse <span class="end liveflag"><span class="dot" aria-hidden="true"></span>updating live</span></h3>
           <div class="pulse-grid" id="pulseGrid"></div>
         </div>
+</div>
+</section>
 
-        <!-- ROW 1: niche radar (tall, 4 cols) + vitals (2 cols) -->
-        <div class="tile radar s4" id="tRadar">
+<section class="zone" style="--zc:var(--primary)">
+<div class="zone-h"><span class="zdot"></span>this week · the intelligence</div>
+<div class="bento">
+<div class="tile radar s4" id="tRadar">
           <h3><span class="acc" aria-hidden="true">⚡</span> niche radar <span class="end" id="radarLive"></span></h3>
           <div id="radarBody"><div class="tsub">Sweeping your niche live for what's erupting right now…</div></div>
         </div>
 
-        <div class="tile s2" id="tVitals">
+<div class="tile s2" id="tVitals">
           <h3><span class="acc" aria-hidden="true">◉</span> live vitals <span class="end liveflag" style="letter-spacing:.05em"><span class="dot" aria-hidden="true"></span></span></h3>
           <div class="vit" id="vitBody">
             <div class="v"><div class="n" id="vMed">–</div><div class="l">median views</div></div>
@@ -701,24 +729,44 @@ footer a:hover{color:var(--fg)}
           </div>
         </div>
 
-        <!-- ROW 2: this week's play (2) + next video (2) + posting window (2) -->
-        <div class="tile play s2" id="tPlay">
+<div class="tile play s2" id="tPlay">
           <h3><span class="acc" aria-hidden="true">◆</span> this week's play</h3>
           <div id="playBody"><div class="tsub">Your #1 highest-leverage fix shows up here after a scan.</div></div>
         </div>
 
-        <div class="tile s2" id="tNext">
+<div class="tile s2" id="tNext">
           <h3><span class="acc" aria-hidden="true">▶</span> next video</h3>
           <div id="nextBody"><div class="tsub">Title options + the opening hook, from your data.</div></div>
         </div>
 
-        <div class="tile s2" id="tWindow">
+<div class="tile s2" id="tWindow">
           <h3><span class="acc" aria-hidden="true">◷</span> best posting window</h3>
           <div id="winBody"><div class="tsub">When your top videos actually went up.</div></div>
         </div>
+</div>
+</section>
 
-        <!-- ROW 3: title lab (3) + viral signal (3) — both variable height, pair them -->
-        <div class="tile s3" id="tLab">
+<section class="zone" style="--zc:hsl(38 96% 60%)">
+<div class="zone-h"><span class="zdot"></span>the plan · what you do next</div>
+<div class="bento">
+<div class="tile s3" id="tQueue">
+          <h3><span class="acc" aria-hidden="true">☑</span> action queue <span class="end" id="qCount"></span></h3>
+          <div id="queueBody"><div class="tsub">Your fixes become a checklist. Tick them off as you ship.</div></div>
+          <div class="caprow">
+            <input id="capIn" type="text" placeholder="capture your own idea…"
+              style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem"
+              onkeydown="if(event.key==='Enter')captureIdea()"
+              aria-label="add a custom action item">
+            <button class="btn btn-ghost" style="flex:0 0 auto" onclick="captureIdea()">Add</button>
+          </div>
+        </div>
+
+<div class="tile s3" id="tRoad">
+          <h3><span class="acc" aria-hidden="true">◈</span> 30-day roadmap</h3>
+          <div id="roadBody"><div class="tsub">A week-by-week plan drops here after your scan.</div></div>
+        </div>
+
+<div class="tile s3" id="tLab">
           <h3><span class="acc" aria-hidden="true">✎</span> title lab <span class="end">pre-flight</span></h3>
           <div class="tsub" style="margin-bottom:9px">Test a title before you commit. Scored against your niche.</div>
           <div class="lab-form">
@@ -732,7 +780,7 @@ footer a:hover{color:var(--fg)}
           </div>
         </div>
 
-        <div class="tile s3" id="tSignal">
+<div class="tile s3" id="tSignal">
           <h3><span class="acc" aria-hidden="true">◗</span> viral signal <span class="end" id="sigCount"></span></h3>
           <canvas id="spark" width="420" height="90" style="width:100%;height:90px;display:none" aria-label="score trend sparkline"></canvas>
           <div id="sigEmpty" class="tsub">Your score trend appears after 2+ scans.</div>
@@ -740,21 +788,18 @@ footer a:hover{color:var(--fg)}
             <span>now <b id="sigNowV">–</b></span><span id="sigDelta" class="delta flat" aria-live="polite"></span>
           </div>
         </div>
+</div>
+</section>
 
-        <!-- ROW 4: action queue (4) + milestones (2) -->
-        <div class="tile s4" id="tQueue">
-          <h3><span class="acc" aria-hidden="true">☑</span> action queue <span class="end" id="qCount"></span></h3>
-          <div id="queueBody"><div class="tsub">Your fixes become a checklist. Tick them off as you ship.</div></div>
-          <div class="caprow">
-            <input id="capIn" type="text" placeholder="capture your own idea…"
-              style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem"
-              onkeydown="if(event.key==='Enter')captureIdea()"
-              aria-label="add a custom action item">
-            <button class="btn btn-ghost" style="flex:0 0 auto" onclick="captureIdea()">Add</button>
-          </div>
+<section class="zone" style="--zc:hsl(45 95% 62%)">
+<div class="zone-h"><span class="zdot"></span>your orbit · people + account</div>
+<div class="bento">
+<div class="tile s4" id="tSpace" style="--tc:hsl(45 95% 62%)">
+          <h3><span class="acc" aria-hidden="true">⬡</span> your space <span class="end" id="spaceEnd"></span></h3>
+          <div id="spaceBody"><div class="tsub">Loading your space…</div></div>
         </div>
 
-        <div class="tile s2" id="tMiles">
+<div class="tile s2 quiet" id="tMiles">
           <h3><span class="acc" aria-hidden="true">✦</span> milestones</h3>
           <div class="ms" id="milesBody">
             <div class="m"><div class="n" id="msScans">0</div><div class="l">scans run</div></div>
@@ -764,26 +809,14 @@ footer a:hover{color:var(--fg)}
           </div>
         </div>
 
-        <!-- your space: the shared brain -->
-        <div class="tile s4" id="tSpace" style="--tc:hsl(45 95% 62%)">
-          <h3><span class="acc" aria-hidden="true">⬡</span> your space <span class="end" id="spaceEnd"></span></h3>
-          <div id="spaceBody"><div class="tsub">Loading your space…</div></div>
-        </div>
-
-        <div class="tile s2" id="tTeamUp" style="border-color:hsl(45 90% 60% / .35);--tc:hsl(45 95% 62%)">
+<div class="tile s4 sell" id="tTeamUp" style="border-color:hsl(45 90% 60% / .35);--tc:hsl(45 95% 62%)">
           <h3><span class="acc" aria-hidden="true">⬡</span> team plan</h3>
           <div class="tbig" style="color:hsl(45 95% 62%)">$49<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
           <div class="tsub" style="margin:8px 0 12px">One shared space, up to 5 members. Everything in Pro for the whole team — scans, radar, grades, the plan.</div>
           <a id="teamBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/14AaEZfgI9SN61iaDG5wI0o" target="_blank" rel="noopener">Upgrade to Team</a>
         </div>
 
-        <!-- ROW 5: 30-day roadmap (4) + report card (2) -->
-        <div class="tile s4" id="tRoad">
-          <h3><span class="acc" aria-hidden="true">◈</span> 30-day roadmap</h3>
-          <div id="roadBody"><div class="tsub">A week-by-week plan drops here after your scan.</div></div>
-        </div>
-
-        <div class="tile s2" id="tReport">
+<div class="tile s2 quiet" id="tReport">
           <h3><span class="acc" aria-hidden="true">↗</span> report card</h3>
           <div class="tsub" style="margin-bottom:12px">A public A+→F card for your channel. Share it anywhere.</div>
           <div class="chiprow" style="margin-top:12px">
@@ -792,8 +825,7 @@ footer a:hover{color:var(--fg)}
           </div>
         </div>
 
-        <!-- ROW 6: pro card (full width when free, hidden when pro) -->
-        <div class="tile s6" id="proCard" style="border-color:hsl(190 92% 56% / .35);--tc:var(--accent)">
+<div class="tile s6" id="proCard" style="border-color:hsl(190 92% 56% / .35);--tc:var(--accent)">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
             <div>
               <h3 style="margin-bottom:8px"><span class="acc" aria-hidden="true">★</span> go pro — unlock everything</h3>
@@ -809,8 +841,9 @@ footer a:hover{color:var(--fg)}
             </div>
           </div>
         </div>
-
-      </div><!-- /ytDeck -->
+</div>
+</section>
+</div><!-- /ytDeck -->
 
       <!-- ALT PLATFORM PANEL (tiktok / instagram) -->
       <div class="altpanel hide" id="altPanel" role="tabpanel">
