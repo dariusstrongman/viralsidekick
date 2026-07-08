@@ -1176,10 +1176,11 @@ function renderPro(){
   if(IS_PRO || isTeamPlan){
     if(badge) badge.innerHTML='<span class="pro-badge">'+(isTeamPlan?'TEAM':'PRO')+'</span>';
     if(head) head.classList.add('pro');
+    var tu0=$('tTeamUp'); if(tu0 && isTeamPlan) tu0.style.display='none';  /* team members never see the upsell */
     if(tile){
       tile.style.borderColor='hsl(45 90% 60% / .45)'; tile.style.setProperty('--tc','hsl(45 95% 62%)');
-      tile.innerHTML='<h3><span class="acc" style="color:hsl(45 95% 62%)">★</span> pro member <span class="end" style="color:hsl(45 95% 62%)">active</span></h3>'
-        +'<div class="tsub" style="margin-bottom:12px">You are on <b style="color:hsl(45 95% 62%)">ViralSidekick Pro</b>. Everything is unlocked.</div>'
+      tile.innerHTML='<h3><span class="acc" style="color:hsl(45 95% 62%)">★</span> '+(isTeamPlan?'team plan':'pro member')+' <span class="end" style="color:hsl(45 95% 62%)">active</span></h3>'
+        +'<div class="tsub" style="margin-bottom:12px">You are on <b style="color:hsl(45 95% 62%)">'+(isTeamPlan?'ViralSidekick Team — everything unlocked for your whole space (5 seats).':'ViralSidekick Pro')+'</b>'+(isTeamPlan?'':'. Everything is unlocked.')+'</div>'
         +'<div style="margin-bottom:4px">'
         +'<div class="perk"><span class="ck">✓</span><span>Weekly auto-pulse to your inbox</span></div>'
         +'<div class="perk"><span class="ck">✓</span><span>Unlimited title-lab tests</span></div>'
