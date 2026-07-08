@@ -764,6 +764,19 @@ footer a:hover{color:var(--fg)}
           </div>
         </div>
 
+        <!-- your space: the shared brain -->
+        <div class="tile s4" id="tSpace" style="--tc:hsl(45 95% 62%)">
+          <h3><span class="acc" aria-hidden="true">⬡</span> your space <span class="end" id="spaceEnd"></span></h3>
+          <div id="spaceBody"><div class="tsub">Loading your space…</div></div>
+        </div>
+
+        <div class="tile s2" id="tTeamUp" style="border-color:hsl(45 90% 60% / .35);--tc:hsl(45 95% 62%)">
+          <h3><span class="acc" aria-hidden="true">⬡</span> team plan</h3>
+          <div class="tbig" style="color:hsl(45 95% 62%)">$49<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
+          <div class="tsub" style="margin:8px 0 12px">One shared space, up to 5 members. Everything in Pro for the whole team — scans, radar, grades, the plan.</div>
+          <a id="teamBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/14AaEZfgI9SN61iaDG5wI0o" target="_blank" rel="noopener">Upgrade to Team</a>
+        </div>
+
         <!-- ROW 5: 30-day roadmap (4) + report card (2) -->
         <div class="tile s4" id="tRoad">
           <h3><span class="acc" aria-hidden="true">◈</span> 30-day roadmap</h3>
@@ -893,8 +906,10 @@ var $ = function(id){ return document.getElementById(id); };
 var mode = 'login', USER = null, PROFILE = null;
 
 /* ---------- routing ---------- */
+var ACCESS=null;
 function route(session){
   USER = session ? session.user : null;
+  ACCESS = session ? session.access_token : null;
   if (USER){ $('authGate').classList.add('hide'); $('appHome').classList.remove('hide'); showApp(); }
   else { $('appHome').classList.add('hide'); $('authGate').classList.remove('hide'); $('navRight').innerHTML='<a class="nav-scan" href="dashboard.html">Free scan</a>'; }
 }
@@ -972,6 +987,8 @@ function showApp(){
   $('navRight').innerHTML = '<span>'+esc(USER.email||'')+'</span><button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>';
   var pb = $('proBtn');
   if (pb) pb.href = 'https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n?client_reference_id=' + USER.id + '&prefilled_email=' + encodeURIComponent(USER.email || '');
+  var tb = $('teamBtn');
+  if (tb) tb.href = 'https://buy.stripe.com/14AaEZfgI9SN61iaDG5wI0o?client_reference_id=' + USER.id + '&prefilled_email=' + encodeURIComponent(USER.email || '');
   bootType();
   loadProfile();
 }
@@ -992,7 +1009,7 @@ function loadProfile(){
     PROFILE = r.data || {};
     IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
     IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||'';
-    IS_PRO = (PROFILE.plan==='pro');
+    IS_PRO = (PROFILE.plan==='pro'||PROFILE.plan==='team');
     if(IDENT.yt.id || IDENT.yt.name){ enterHQ(); } else { showOnboard(); }
    });
   });
@@ -1001,14 +1018,123 @@ function showOnboard(){ $('hqWrap').classList.add('hide'); $('onboard').classLis
 function enterHQ(){
   $('onboard').classList.add('hide'); $('hqWrap').classList.remove('hide');
   renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube');
-  renderPro(); goLive();
+  renderPro(); goLive(); initSpace();
   /* let the entrance play once, then freeze tile animations so tab switches don't replay them */
   setTimeout(function(){ $('ytDeck').classList.add('no-anim'); $('altPanel').classList.add('no-anim'); }, 900);
 }
+
+/* ============ YOUR SPACE: the shared brain ============ */
+var TEAMS_API='https://n8n.stromation.com/webhook/viralsidekick-teams';
+function spaceScans(){
+  /* the shared lens: your scans + your space's scans (RLS enforces membership) */
+  var q=sb.from('viralsidekick_scans');
+  if(SPACE&&SPACE.workspace) return { select:function(cols){ return q.select(cols).or('user_id.eq.'+USER.id+',workspace_id.eq.'+SPACE.workspace.id); } };
+  return { select:function(cols){ return q.select(cols).eq('user_id', USER.id); } };
+}
+var SPACE=null;
+function teamsApi(action, extra){
+  return fetch(TEAMS_API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(Object.assign({action:action, token:ACCESS}, extra||{}))})
+    .then(function(r){ return r.json(); });
+}
+function initSpace(){
+  /* accept a pending invite first if we arrived via ?invite=TOKEN */
+  var p=new URLSearchParams(location.search), inv=p.get('invite');
+  var go=function(){ teamsApi('my_space').then(applySpace).catch(function(){ spaceFallback(); }); };
+  if(inv){
+    history.replaceState(null,'',location.pathname);
+    teamsApi('accept',{invite:inv}).then(function(d){
+      if(d&&d.ok){ applySpace(d); }
+      else { spaceNote(d&&d.error?d.error:'invite failed'); go(); }
+    }).catch(function(){ go(); });
+  } else go();
+}
+function spaceFallback(){ $('spaceBody').innerHTML='<div class="tsub">Spaces are warming up — check back shortly.</div>'; }
+function spaceNote(t){ var e=$('spaceEnd'); if(e){ e.textContent=t; setTimeout(function(){e.textContent= SPACE?'':'';},4000); } }
+function applySpace(d){
+  if(!d || d.error){
+    if(d && /not signed in/.test(d.error||'')) spaceFallback();
+    else renderNoSpace();
+    return;
+  }
+  if(!d.workspace){ renderNoSpace(); return; }
+  SPACE=d;
+  renderSpace();
+  goLive(); /* re-pull history with the shared lens */
+}
+function renderNoSpace(){
+  SPACE=null;
+  $('spaceEnd').textContent='';
+  $('spaceBody').innerHTML=
+    '<div class="tsub" style="margin-bottom:12px">A space is a shared brain — invite your editor, your co-host, your team. Everyone sees the scans, the radar, the plan.</div>'
+    +'<div class="caprow" style="margin-top:4px">'
+    +'<input id="spName" type="text" placeholder="name your space (e.g. DMGDaily)" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key===\'Enter\')createSpace()">'
+    +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="createSpace()">Create space</button>'
+    +'</div>';
+}
+function createSpace(){
+  var name=$('spName').value.trim()||'my space';
+  $('spaceBody').innerHTML='<div class="tsub">forging your space…</div>';
+  teamsApi('create_space',{name:name}).then(applySpace).catch(spaceFallback);
+}
+function roleChip(m){
+  var me=(m.user_id===USER.id), mine=SPACE&&SPACE.members.filter(function(x){return x.user_id===USER.id;})[0];
+  var myRole=mine?mine.role:'viewer';
+  var col=m.role==='owner'?'hsl(45 95% 62%)':(m.role==='admin'?'var(--accent)':'var(--muted)');
+  var html='<div class="q-item"><div class="q-b"><div class="t">'+esc(m.email||m.user_id.slice(0,8))
+    +(me?' <span class="q-sev med">you</span>':'')
+    +' <span class="q-sev" style="color:'+col+';background:transparent;border:1px solid '+col+'">'+esc(m.role)+'</span></div></div>';
+  if(myRole==='owner' && m.role!=='owner'){
+    html+='<button class="btn btn-ghost btn-sm" onclick="chRole(\''+m.user_id+'\',\''+(m.role==='admin'?'viewer':'admin')+'\')">'+(m.role==='admin'?'make viewer':'make admin')+'</button>';
+  }
+  if((myRole==='owner'||myRole==='admin') && m.role!=='owner' && !me){
+    html+='<button class="btn btn-ghost btn-sm" onclick="rmMember(\''+m.user_id+'\')" aria-label="remove member">✕</button>';
+  }
+  return html+'</div>';
+}
+function renderSpace(){
+  var ws=SPACE.workspace, mem=SPACE.members||[], inv=SPACE.invites||[];
+  var mine=mem.filter(function(x){return x.user_id===USER.id;})[0];
+  var myRole=mine?mine.role:'viewer';
+  var isTeam=(ws.plan==='team');
+  $('spaceEnd').innerHTML=(isTeam?'<span style="color:hsl(45 95% 62%)">TEAM · '+mem.length+'/5</span>':mem.length+'/5 seats');
+  var html='<div class="tlead" style="margin-bottom:8px">'+esc(ws.name||'your space')
+    +(isTeam?' <span class="q-sev" style="color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1)">team plan</span>':'')+'</div>';
+  html+=mem.map(roleChip).join('');
+  inv.forEach(function(i){ html+='<div class="q-item"><div class="q-b done"><div class="t">'+esc(i.email)+' <span class="q-sev med">invited · pending</span></div></div></div>'; });
+  if(myRole==='owner'||myRole==='admin'){
+    html+='<div class="caprow" style="margin-top:12px">'
+      +'<input id="invEmail" type="email" placeholder="invite by email…" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key===\'Enter\')inviteMember()">'
+      +'<select id="invRole" style="background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);padding:9px;font-family:var(--sans);font-size:.84rem"><option value="viewer">viewer</option><option value="admin">admin</option></select>'
+      +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="inviteMember()">Invite</button>'
+      +'</div>';
+  }
+  if(!isTeam){
+    html+='<div class="tsub" style="margin-top:12px">This space is on the free plan — <a href="#" onclick="document.getElementById(\'teamBtn\').click();return false" style="color:hsl(45 95% 62%)">upgrade to Team</a> to unlock Pro for every member.</div>';
+  }
+  $('spaceBody').innerHTML=html;
+  var tu=$('tTeamUp'); if(tu) tu.style.display = isTeam ? 'none' : '';
+}
+function inviteMember(){
+  var em=$('invEmail').value.trim(), role=$('invRole').value;
+  if(!em) return;
+  teamsApi('invite',{workspace_id:SPACE.workspace.id,email:em,role:role}).then(function(d){
+    if(d&&d.ok){ $('invEmail').value=''; spaceNote('invite sent ✓'); teamsApi('my_space').then(applySpace); }
+    else spaceNote(d&&d.error||'invite failed');
+  });
+}
+function rmMember(uid2){
+  teamsApi('remove',{workspace_id:SPACE.workspace.id,member_user_id:uid2}).then(applySpace);
+}
+function chRole(uid2, role){
+  teamsApi('change_role',{workspace_id:SPACE.workspace.id,member_user_id:uid2,role:role}).then(applySpace);
+}
+
 function renderPro(){
   var badge=$('proBadge'), tile=$('proCard'), head=$('idhead');
-  if(IS_PRO){
-    if(badge) badge.innerHTML='<span class="pro-badge">PRO</span>';
+  var isTeamPlan = PROFILE && PROFILE.plan==='team';
+  if(IS_PRO || isTeamPlan){
+    if(badge) badge.innerHTML='<span class="pro-badge">'+(isTeamPlan?'TEAM':'PRO')+'</span>';
     if(head) head.classList.add('pro');
     if(tile){
       tile.style.borderColor='hsl(45 90% 60% / .45)'; tile.style.setProperty('--tc','hsl(45 95% 62%)');
@@ -1233,7 +1359,7 @@ function applyLive(c){
   $('hqWhen').textContent='live · updated just now';
 }
 function loadLatestFull(){
-  sb.from('viralsidekick_scans').select('channel_id,report,created_at').eq('user_id', USER.id).order('created_at',{ascending:false}).limit(6).then(function(r){
+  spaceScans().select('channel_id,report,created_at').order('created_at',{ascending:false}).limit(6).then(function(r){
     var rows=(r.data||[]); var row=null;
     for(var i=0;i<rows.length;i++){ if(rows[i].report && rows[i].report.ai){ row=rows[i]; break; } }
     var needScan=true;
@@ -1250,7 +1376,7 @@ function loadLatestFull(){
 function backgroundScan(){
   var q=IDENT.yt.id||IDENT.yt.name; if(!q) return;
   showScanning('refreshing your intel + niche radar…');
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:q,email:USER.email,user_id:USER.id,website:''})})
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:q,email:USER.email,user_id:USER.id,workspace_id:(SPACE&&SPACE.workspace)?SPACE.workspace.id:null,website:''})})
     .then(function(r){return r.json();})
     .then(function(d){
       hideScanning();
@@ -1382,7 +1508,7 @@ function titleTest(inId, outId){
 
 /* ---------- history: signal tile + milestones ---------- */
 function loadHistory(){
-  sb.from('viralsidekick_scans').select('channel_name,score,created_at').eq('user_id', USER.id).order('created_at',{ascending:false}).limit(60).then(function(r){
+  spaceScans().select('channel_name,score,created_at').order('created_at',{ascending:false}).limit(60).then(function(r){
     var rows = (r.data||[]).filter(function(x){ return x.score!=null; });
     /* signal tile */
     $('sigCount').textContent = rows.length ? rows.length+' scans' : '';
