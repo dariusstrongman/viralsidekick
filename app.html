@@ -318,7 +318,7 @@ footer a:hover{color:var(--fg)}
 .ptab.on .st{color:var(--accent)}
 
 /* ===== BENTO GRID ===== */
-.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;align-items:start;grid-auto-rows:auto}
 .s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.s6{grid-column:span 6}
 @media(max-width:1080px){
   .bento{grid-template-columns:repeat(4,1fr)}
@@ -335,6 +335,7 @@ footer a:hover{color:var(--fg)}
   border:1px solid var(--border);border-radius:16px;padding:17px 18px;
   position:relative;overflow:hidden;transition:border-color .2s,transform .2s;
   animation:rise .5s cubic-bezier(.2,.8,.2,1) both;display:flex;flex-direction:column;
+  align-self:start;
 }
 .tile:hover{border-color:var(--tc,hsl(260 90% 66% / .4));transform:translateY(-1px)}
 .tile::before{
@@ -684,6 +685,7 @@ footer a:hover{color:var(--fg)}
           <div class="pulse-grid" id="pulseGrid"></div>
         </div>
 
+        <!-- ROW 1: niche radar (tall, 4 cols) + vitals (2 cols) -->
         <div class="tile radar s4" id="tRadar">
           <h3><span class="acc" aria-hidden="true">⚡</span> niche radar <span class="end" id="radarLive"></span></h3>
           <div id="radarBody"><div class="tsub">Sweeping your niche live for what's erupting right now…</div></div>
@@ -699,15 +701,7 @@ footer a:hover{color:var(--fg)}
           </div>
         </div>
 
-        <div class="tile s2" id="tSignal">
-          <h3><span class="acc" aria-hidden="true">◗</span> viral signal <span class="end" id="sigCount"></span></h3>
-          <canvas id="spark" width="420" height="90" style="width:100%;height:90px;display:none" aria-label="score trend sparkline"></canvas>
-          <div id="sigEmpty" class="tsub">Your score trend appears after 2+ scans.</div>
-          <div id="sigNow" class="ident-meta" style="margin-top:10px;display:none">
-            <span>now <b id="sigNowV">–</b></span><span id="sigDelta" class="delta flat" aria-live="polite"></span>
-          </div>
-        </div>
-
+        <!-- ROW 2: this week's play (2) + next video (2) + posting window (2) -->
         <div class="tile play s2" id="tPlay">
           <h3><span class="acc" aria-hidden="true">◆</span> this week's play</h3>
           <div id="playBody"><div class="tsub">Your #1 highest-leverage fix shows up here after a scan.</div></div>
@@ -723,6 +717,7 @@ footer a:hover{color:var(--fg)}
           <div id="winBody"><div class="tsub">When your top videos actually went up.</div></div>
         </div>
 
+        <!-- ROW 3: title lab (3) + viral signal (3) — both variable height, pair them -->
         <div class="tile s3" id="tLab">
           <h3><span class="acc" aria-hidden="true">✎</span> title lab <span class="end">pre-flight</span></h3>
           <div class="tsub" style="margin-bottom:9px">Test a title before you commit. Scored against your niche.</div>
@@ -737,11 +732,16 @@ footer a:hover{color:var(--fg)}
           </div>
         </div>
 
-        <div class="tile s3" id="tRoad">
-          <h3><span class="acc" aria-hidden="true">◈</span> 30-day roadmap</h3>
-          <div id="roadBody"><div class="tsub">A week-by-week plan drops here after your scan.</div></div>
+        <div class="tile s3" id="tSignal">
+          <h3><span class="acc" aria-hidden="true">◗</span> viral signal <span class="end" id="sigCount"></span></h3>
+          <canvas id="spark" width="420" height="90" style="width:100%;height:90px;display:none" aria-label="score trend sparkline"></canvas>
+          <div id="sigEmpty" class="tsub">Your score trend appears after 2+ scans.</div>
+          <div id="sigNow" style="margin-top:10px;display:none;align-items:center;gap:10px">
+            <span>now <b id="sigNowV">–</b></span><span id="sigDelta" class="delta flat" aria-live="polite"></span>
+          </div>
         </div>
 
+        <!-- ROW 4: action queue (4) + milestones (2) -->
         <div class="tile s4" id="tQueue">
           <h3><span class="acc" aria-hidden="true">☑</span> action queue <span class="end" id="qCount"></span></h3>
           <div id="queueBody"><div class="tsub">Your fixes become a checklist. Tick them off as you ship.</div></div>
@@ -764,20 +764,37 @@ footer a:hover{color:var(--fg)}
           </div>
         </div>
 
+        <!-- ROW 5: 30-day roadmap (4) + report card (2) -->
+        <div class="tile s4" id="tRoad">
+          <h3><span class="acc" aria-hidden="true">◈</span> 30-day roadmap</h3>
+          <div id="roadBody"><div class="tsub">A week-by-week plan drops here after your scan.</div></div>
+        </div>
+
         <div class="tile s2" id="tReport">
           <h3><span class="acc" aria-hidden="true">↗</span> report card</h3>
           <div class="tsub" style="margin-bottom:12px">A public A+→F card for your channel. Share it anywhere.</div>
-          <div class="chiprow" style="margin-top:auto">
+          <div class="chiprow" style="margin-top:12px">
             <a class="btn btn-ghost btn-sm" id="cardBtn" href="c.html" target="_blank" rel="noopener">Open my card</a>
             <button class="btn btn-ghost btn-sm" id="cardCopy" onclick="copyCard()">Copy link</button>
           </div>
         </div>
 
-        <div class="tile s2" id="proCard" style="border-color:hsl(190 92% 56% / .35);--tc:var(--accent)">
-          <h3><span class="acc" aria-hidden="true">★</span> go pro</h3>
-          <div class="tbig" style="color:var(--accent)">$19<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
-          <div class="tsub" style="margin:8px 0 12px">Weekly auto-pulse, unlimited title tests, and priority access to real retention curves.</div>
-          <a id="proBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Upgrade to Pro</a>
+        <!-- ROW 6: pro card (full width when free, hidden when pro) -->
+        <div class="tile s6" id="proCard" style="border-color:hsl(190 92% 56% / .35);--tc:var(--accent)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin-bottom:8px"><span class="acc" aria-hidden="true">★</span> go pro — unlock everything</h3>
+              <div style="display:flex;gap:24px;flex-wrap:wrap">
+                <span class="tsub">✓ Weekly auto-pulse to your inbox</span>
+                <span class="tsub">✓ Unlimited title-lab tests</span>
+                <span class="tsub">✓ Priority retention autopsy</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
+              <div><span style="font-size:1.6rem;font-weight:800;color:var(--accent)">$19</span><span style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</span></div>
+              <a id="proBtn" class="btn btn-primary" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Upgrade to Pro</a>
+            </div>
+          </div>
         </div>
 
       </div><!-- /ytDeck -->
