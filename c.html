@@ -156,6 +156,10 @@ main{padding:34px 0 60px;min-height:70vh;animation:fadeup .4s ease both}
 .best .t{flex:1;min-width:200px;font-weight:600;font-size:.95rem}
 .best .r{font-family:var(--mono);font-weight:700;color:var(--success);font-size:.95rem}
 
+/* signed-in: the locks come off */
+body.member .lockcard .b{filter:none!important;color:var(--muted)}
+body.member .lockcard .lk{color:var(--success)}
+body.member .locked{border-top:1px solid hsl(160 84% 50% / .2)}
 /* ===== LOCKED TEASER ===== */
 .locked{position:relative;padding:26px 32px 30px}
 .locked h3{font-size:.72rem;font-family:var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
@@ -219,8 +223,8 @@ footer .fine a{color:var(--muted)}
       VIRAL <b>SIDEKICK</b>
     </a>
     <nav class="nav-links" aria-label="secondary navigation">
-      <a href="app.html">Log in</a>
-      <a class="btn btn-primary btn-sm" href="dashboard.html">Free full scan</a>
+      <a href="app.html" id="navAuth">Log in</a>
+      <a class="btn btn-primary btn-sm" id="navCta" href="dashboard.html">Free full scan</a>
     </nav>
   </div>
 </nav>
@@ -281,14 +285,14 @@ footer .fine a{color:var(--muted)}
       </div>
 
       <div class="locked">
-        <h3>locked — the full ViralSidekick breakdown</h3>
+        <h3 id="lockTitle">locked — the full ViralSidekick breakdown</h3>
         <div class="lockgrid" aria-label="locked features">
           <div class="lockcard"><span class="lk" aria-hidden="true">🔒</span><div class="h">AI autopsy</div><div class="b" aria-hidden="true">Two surgical paragraphs on exactly why the channel over/under-performs, tied to real videos.</div></div>
           <div class="lockcard"><span class="lk" aria-hidden="true">🔒</span><div class="h">Niche radar (live)</div><div class="b" aria-hidden="true">What is erupting in the niche right now and the exact video this channel should make about it.</div></div>
           <div class="lockcard"><span class="lk" aria-hidden="true">🔒</span><div class="h">30-day roadmap</div><div class="b" aria-hidden="true">A week-by-week action plan built from your actual data, not generic advice.</div></div>
         </div>
         <div class="cta-band">
-          <p>This card is the teaser. The autopsy, live radar, posting windows and roadmap are one free scan away.</p>
+          <p id="lockPitch">This card is the teaser. The autopsy, live radar, posting windows and roadmap are one free scan away.</p>
           <a class="btn btn-primary" id="fullBtn" href="dashboard.html">Get the full AI breakdown — free</a>
         </div>
       </div>
@@ -452,6 +456,26 @@ $('dlCard').addEventListener('click',function(){ if(!CARD)return; var cv=drawSha
   var ch=p.get('ch')||p.get('c');
   if(ch){ currentHandle=ch; grade(ch); }
   else show('entry');
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* signed-in visitors are members, not prospects — no fake locks, no "log in" */
+(function(){
+  try{
+    var sbc = window.supabase.createClient('https://fzlwnsoknngbdkizxpnl.supabase.co','sb_publishable_K81b73rtZnF0fR6B5mnDWQ_I2CO_OK6');
+    sbc.auth.getSession().then(function(r){
+      var s = r && r.data && r.data.session;
+      if(!s) return;
+      document.body.classList.add('member');
+      var na=document.getElementById('navAuth'); if(na){ na.textContent='My HQ'; na.href='app.html'; }
+      var nc=document.getElementById('navCta'); if(nc){ nc.textContent='Open my HQ'; nc.href='app.html'; }
+      var lt=document.getElementById('lockTitle'); if(lt) lt.textContent='your full breakdown — unlocked in your HQ';
+      var lp=document.getElementById('lockPitch'); if(lp) lp.textContent='You are signed in. The autopsy, live radar, posting windows and roadmap are waiting in your HQ.';
+      var fb=document.getElementById('fullBtn'); if(fb){ fb.textContent='Open my HQ →'; fb.href='app.html'; }
+      document.querySelectorAll('.lockcard .lk').forEach(function(el){ el.textContent='✓'; });
+    });
+  }catch(e){}
 })();
 </script>
 </body>
