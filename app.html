@@ -441,6 +441,22 @@ footer a:hover{color:var(--fg)}
 .chan-field input{border:none;background:transparent;padding:8px 10px;font-size:.86rem;color:var(--fg);font-family:var(--sans)}
 .chan-field input:focus{outline:none}
 
+/* ===== TEAM BOARD ===== */
+.bp{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--border)}
+.bp:first-child{border-top:none}
+.bp .bk{font-family:var(--mono);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:5px;flex:0 0 auto;margin-top:2px}
+.bp .bk.idea{color:var(--primary);background:hsl(260 90% 66% / .12)}
+.bp .bk.note{color:var(--accent);background:hsl(190 92% 56% / .1)}
+.bp .bk.win{color:var(--success);background:hsl(160 84% 50% / .1)}
+.bp .bk.question{color:var(--warning);background:hsl(38 96% 60% / .1)}
+.bp .bb{flex:1;min-width:0}
+.bp .bb .bt{font-size:.9rem;font-weight:500;overflow-wrap:anywhere}
+.bp.done .bb .bt{text-decoration:line-through;color:var(--faint)}
+.bp .bb .bm{font-family:var(--mono);font-size:.68rem;color:var(--faint);margin-top:2px}
+.bp .bx{display:flex;gap:6px;flex:0 0 auto}
+.bp .bbtn{background:none;border:1px solid var(--border2);border-radius:7px;color:var(--muted);cursor:pointer;font-size:.72rem;padding:3px 8px;font-family:var(--mono)}
+.bp .bbtn:hover{color:var(--fg);border-color:var(--primary)}
+
 /* ===== MILESTONES ===== */
 .ms{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .ms .m{background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:11px;padding:12px;text-align:center}
@@ -808,7 +824,22 @@ footer a:hover{color:var(--fg)}
           </div>
         </div>
 
-<div class="tile s4 sell" id="tTeamUp" style="border-color:hsl(45 90% 60% / .35);--tc:hsl(45 95% 62%)">
+<div class="tile s6" id="tBoard" style="--tc:hsl(45 95% 62%);display:none">
+          <h3><span class="acc" aria-hidden="true">▤</span> team board <span class="end" id="boardCount"></span></h3>
+          <div class="caprow" style="margin-top:0;margin-bottom:10px">
+            <select id="postKind" aria-label="post type" style="background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);padding:9px;font-family:var(--sans);font-size:.84rem">
+              <option value="idea">💡 video idea</option>
+              <option value="note">✎ note</option>
+              <option value="win">✦ win</option>
+              <option value="question">? question</option>
+            </select>
+            <input id="postBody" type="text" placeholder="drop a video idea for the team…" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')postToBoard()">
+            <button class="btn btn-ghost" style="flex:0 0 auto" onclick="postToBoard()">Post</button>
+          </div>
+          <div id="boardList"><div class="tsub">Ideas, notes, wins — everything your space posts lands here.</div></div>
+        </div>
+
+        <div class="tile s4 sell" id="tTeamUp" style="border-color:hsl(45 90% 60% / .35);--tc:hsl(45 95% 62%)">
           <h3><span class="acc" aria-hidden="true">⬡</span> team plan</h3>
           <div class="tbig" style="color:hsl(45 95% 62%)">$29.99<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
           <div class="tsub" style="margin:8px 0 12px">One shared space, up to 5 members. Everything in Pro for the whole team — scans, radar, grades, the plan.</div>
@@ -1100,10 +1131,12 @@ function applySpace(d){
   if(!d.workspace){ renderNoSpace(); return; }
   SPACE=d;
   renderSpace();
+  loadBoard();
   goLive(); /* re-pull history with the shared lens */
 }
 function renderNoSpace(){
   SPACE=null;
+  var tb=$('tBoard'); if(tb) tb.style.display='none';
   $('spaceEnd').textContent='';
   $('spaceBody').innerHTML=
     '<div class="tsub" style="margin-bottom:12px">A space is a shared brain — invite your editor, your co-host, your team. Everyone sees the scans, the radar, the plan.</div>'
@@ -1155,6 +1188,41 @@ function renderSpace(){
   $('spaceBody').innerHTML=html;
   var tu=$('tTeamUp'); if(tu) tu.style.display = isTeam ? 'none' : '';
 }
+/* ---------- team board: the space's shared scratchpad ---------- */
+function loadBoard(){
+  var t=$('tBoard'); if(!t) return;
+  if(!SPACE){ t.style.display='none'; return; }
+  t.style.display='';
+  sb.from('viralsidekick_posts').select('*').eq('workspace_id',SPACE.workspace.id).order('created_at',{ascending:false}).limit(60).then(function(r){
+    var rows=r.data||[];
+    $('boardCount').textContent=rows.length? rows.filter(function(p){return p.status!=='done';}).length+' open':'';
+    if(!rows.length){ $('boardList').innerHTML='<div class="tsub">Nothing yet — drop the first video idea.</div>'; return; }
+    var mine=SPACE.members.filter(function(m){return m.user_id===USER.id;})[0];
+    var canMod=mine&&(mine.role==='owner'||mine.role==='admin');
+    $('boardList').innerHTML=rows.map(function(p){
+      var can=canMod||p.user_id===USER.id;
+      return '<div class="bp'+(p.status==='done'?' done':'')+'">'
+        +'<span class="bk '+esc(p.kind||'note')+'">'+esc(p.kind||'note')+'</span>'
+        +'<div class="bb"><div class="bt">'+esc(p.body||'')+'</div>'
+        +'<div class="bm">'+esc((p.author_email||'').split('@')[0])+' · '+relTime(p.created_at)+'</div></div>'
+        +(can?'<div class="bx">'
+          +'<button class="bbtn" onclick="togglePost(''+p.id+'',''+(p.status==='done'?'open':'done')+'')">'+(p.status==='done'?'reopen':'done ✓')+'</button>'
+          +'<button class="bbtn" onclick="deletePost(''+p.id+'')" aria-label="delete post">✕</button>'
+          +'</div>':'')
+        +'</div>';
+    }).join('');
+  });
+}
+function postToBoard(){
+  var body=$('postBody').value.trim(); if(!body||!SPACE) return;
+  sb.from('viralsidekick_posts').insert({workspace_id:SPACE.workspace.id,user_id:USER.id,author_email:USER.email,kind:$('postKind').value,body:body}).then(function(r){
+    if(!r.error){ $('postBody').value=''; loadBoard(); }
+    else spaceNote(r.error.message.slice(0,60));
+  });
+}
+function togglePost(id,status){ sb.from('viralsidekick_posts').update({status:status}).eq('id',id).then(loadBoard); }
+function deletePost(id){ sb.from('viralsidekick_posts').delete().eq('id',id).then(loadBoard); }
+
 function inviteMember(){
   var em=$('invEmail').value.trim(), role=$('invRole').value;
   if(!em) return;

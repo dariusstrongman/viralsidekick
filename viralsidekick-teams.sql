@@ -118,3 +118,33 @@ drop policy if exists "own videos" on viralsidekick_scan_videos;
 drop policy if exists "workspace videos read" on viralsidekick_scan_videos;
 create policy "workspace videos read" on viralsidekick_scan_videos for select
   using (workspace_id in (select vs_my_workspaces()) or auth.uid() = user_id);
+
+-- ============================================================================
+-- TEAM BOARD: members post video ideas, notes, wins, questions to the space.
+-- Reads + writes straight from the app under RLS (no service key needed).
+-- ============================================================================
+create table if not exists viralsidekick_posts (
+  id uuid primary key default gen_random_uuid(),
+  workspace_id uuid references viralsidekick_workspaces(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete set null,
+  author_email text,
+  kind text default 'idea',
+  body text,
+  status text default 'open',
+  created_at timestamptz default now()
+);
+create index if not exists vs_posts_ws_idx on viralsidekick_posts(workspace_id, created_at desc);
+alter table viralsidekick_posts enable row level security;
+drop policy if exists "members read posts" on viralsidekick_posts;
+create policy "members read posts" on viralsidekick_posts for select
+  using (workspace_id in (select vs_my_workspaces()));
+drop policy if exists "members write posts" on viralsidekick_posts;
+create policy "members write posts" on viralsidekick_posts for insert
+  with check (workspace_id in (select vs_my_workspaces()) and user_id = auth.uid());
+drop policy if exists "author or admin updates posts" on viralsidekick_posts;
+create policy "author or admin updates posts" on viralsidekick_posts for update
+  using (user_id = auth.uid() or vs_role(workspace_id) in ('owner','admin'))
+  with check (workspace_id in (select vs_my_workspaces()));
+drop policy if exists "author or admin deletes posts" on viralsidekick_posts;
+create policy "author or admin deletes posts" on viralsidekick_posts for delete
+  using (user_id = auth.uid() or vs_role(workspace_id) in ('owner','admin'));
