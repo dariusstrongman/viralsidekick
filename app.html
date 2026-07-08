@@ -1049,6 +1049,14 @@ function initSpace(){
     }).catch(function(){ go(); });
   } else go();
 }
+function openBilling(btn){
+  var orig=btn.textContent; btn.textContent='opening…'; btn.disabled=true;
+  teamsApi('billing_portal').then(function(d){
+    btn.textContent=orig; btn.disabled=false;
+    if(d&&d.ok&&d.url){ window.open(d.url,'_blank','noopener'); }
+    else { btn.textContent=(d&&d.error)||'try again'; setTimeout(function(){btn.textContent=orig;},2500); }
+  }).catch(function(){ btn.textContent='try again'; btn.disabled=false; setTimeout(function(){btn.textContent=orig;},2500); });
+}
 function spaceFallback(){ $('spaceBody').innerHTML='<div class="tsub">Spaces are warming up — check back shortly.</div>'; }
 function spaceNote(t){ var e=$('spaceEnd'); if(e){ e.textContent=t; setTimeout(function(){e.textContent= SPACE?'':'';},4000); } }
 function applySpace(d){
@@ -1145,7 +1153,7 @@ function renderPro(){
         +'<div class="perk"><span class="ck">✓</span><span>Unlimited title-lab tests</span></div>'
         +'<div class="perk"><span class="ck">✓</span><span>Priority retention autopsy</span></div>'
         +'</div>'
-        +'<a class="btn btn-ghost btn-sm" style="margin-top:auto" href="mailto:contact@stromation.com?subject=Manage%20ViralSidekick%20Pro">Manage billing</a>';
+        +'<button class="btn btn-ghost btn-sm" style="margin-top:auto" id="billingBtn" onclick="openBilling(this)">Manage billing</button>';
     }
   } else {
     if(badge) badge.innerHTML=''; if(head) head.classList.remove('pro');
