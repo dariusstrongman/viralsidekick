@@ -234,6 +234,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .avatar{width:76px;height:76px;border-radius:22px;object-fit:cover;border:2px solid var(--border2);background:linear-gradient(135deg,var(--primary),var(--accent));flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem;color:#fff;overflow:hidden;box-shadow:0 0 0 1px hsl(230 24% 5%),0 10px 34px hsl(260 90% 66% / .25)}
 .avatar img{width:100%;height:100%;object-fit:cover}
 .id-meta .tag-you{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.pro-badge{font-family:var(--mono);font-weight:700;letter-spacing:.14em;color:#1a1305;background:linear-gradient(120deg,hsl(45 95% 62%),hsl(38 96% 55%));padding:2px 9px;border-radius:6px;box-shadow:0 0 14px hsl(45 95% 60% / .5)}
+.idhead.pro{border-color:hsl(45 90% 60% / .45)}
+.idhead.pro::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
+.perk{display:flex;gap:9px;align-items:flex-start;font-size:.86rem;padding:3px 0}
+.perk .ck{color:hsl(45 95% 62%);font-weight:800;flex:0 0 auto}
 .id-name{font-size:clamp(1.3rem,3vw,1.75rem);font-weight:800;letter-spacing:-.02em;line-height:1.1;overflow-wrap:anywhere}
 .id-sub{font-family:var(--mono);font-size:.8rem;color:var(--muted);margin-top:5px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .id-sub b{color:var(--fg)}
@@ -400,7 +405,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
           </div>
         </div>
         <div class="id-meta">
-          <div class="tag-you"><span class="liveflag" id="liveFlag"><span class="dot"></span>live</span> · this is you</div>
+          <div class="tag-you"><span class="liveflag" id="liveFlag"><span class="dot"></span>live</span> · this is you <span id="proBadge"></span></div>
           <div class="id-name" id="hqName">your channel</div>
           <div class="id-sub">
             <span id="idHandle"></span><span id="idSubs"></span><span id="hqDelta" class="delta flat"></span>
@@ -660,7 +665,7 @@ function logout(){ sb.auth.signOut(); }
 
 /* ================= VIRAL HQ: identity + platforms + live ================= */
 var IDENT = { yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'' };
-var PLATFORM='youtube', LASTAI=null, LIVE=null, lastFullAt=0;
+var PLATFORM='youtube', LASTAI=null, LIVE=null, lastFullAt=0, IS_PRO=false;
 var IC_YT='<svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>';
 var IC_TT='<svg class="pi pi-tt" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.2 1.8 3.9 4 4.1v2.7c-1.4.1-2.7-.3-4-1v6.3a6 6 0 1 1-6-6c.3 0 .5 0 .8.1v2.9a3.1 3.1 0 1 0 2.2 3V3h3z"/></svg>';
 var IC_IG='<svg class="pi pi-ig" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3 0 4.1.1 1 0 1.6.2 2 .4.5.2.9.5 1.3.9.4.4.7.8.9 1.3.2.4.3 1 .4 2C20.9 8 21 8.3 21 11s0 3-.1 4.1c0 1-.2 1.6-.4 2a3.5 3.5 0 0 1-.9 1.3c-.4.4-.8.7-1.3.9-.4.2-1 .3-2 .4-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-1 0-1.6-.2-2-.4a3.5 3.5 0 0 1-1.3-.9 3.5 3.5 0 0 1-.9-1.3c-.2-.4-.3-1-.4-2C3 15 3 14.7 3 12s0-3 .1-4.1c0-1 .2-1.6.4-2 .2-.5.5-.9.9-1.3.4-.4.8-.7 1.3-.9.4-.2 1-.3 2-.4C8.8 3 9.1 3 12 3zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8zM17.8 6a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1z"/></svg>';
@@ -693,7 +698,7 @@ function loadProfile(){
     PROFILE = r.data || {};
     IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
     IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||'';
-    $('proCard').style.display = (PROFILE.plan==='pro') ? 'none' : '';
+    IS_PRO = (PROFILE.plan==='pro');
     if(IDENT.yt.id || IDENT.yt.name){ enterHQ(); } else { showOnboard(); }
    });
   });
@@ -702,9 +707,30 @@ function showOnboard(){ $('hqWrap').classList.add('hide'); $('onboard').classLis
 function enterHQ(){
   $('onboard').classList.add('hide'); $('hqWrap').classList.remove('hide');
   renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube');
-  goLive();
+  renderPro(); goLive();
   /* let the entrance play once, then freeze tile animations so tab switches don't replay them */
   setTimeout(function(){ $('ytDeck').classList.add('no-anim'); $('altPanel').classList.add('no-anim'); }, 900);
+}
+function renderPro(){
+  var badge=$('proBadge'), tile=$('proCard'), head=$('idhead');
+  if(IS_PRO){
+    if(badge) badge.innerHTML='<span class="pro-badge">PRO</span>';
+    if(head) head.classList.add('pro');
+    if(tile){
+      tile.style.borderColor='hsl(45 90% 60% / .45)'; tile.style.setProperty('--tc','hsl(45 95% 62%)');
+      tile.innerHTML='<h3><span class="acc" style="color:hsl(45 95% 62%)">★</span> pro member <span class="end" style="color:hsl(45 95% 62%)">active</span></h3>'
+        +'<div class="tsub" style="margin-bottom:12px">You are on <b style="color:hsl(45 95% 62%)">ViralSidekick Pro</b>. Everything is unlocked.</div>'
+        +'<div style="margin-bottom:4px">'
+        +'<div class="perk"><span class="ck">✓</span><span>Weekly auto-pulse to your inbox</span></div>'
+        +'<div class="perk"><span class="ck">✓</span><span>Unlimited title-lab tests</span></div>'
+        +'<div class="perk"><span class="ck">✓</span><span>Priority retention autopsy</span></div>'
+        +'</div>'
+        +'<a class="btn btn-ghost btn-sm" style="margin-top:auto" href="mailto:contact@stromation.com?subject=Manage%20ViralSidekick%20Pro">Manage billing</a>';
+    }
+  } else {
+    if(badge) badge.innerHTML=''; if(head) head.classList.remove('pro');
+    if(tile) tile.style.display='';
+  }
 }
 
 /* ---------- connect a youtube channel = claim your identity ---------- */
@@ -845,25 +871,20 @@ function pulseCounter(key, label, icon, color){
   $('tPulse').style.display='';
   return (PULSE.c[key]={ val:0, rate:0, lastVal:null, lastTs:0, el:$('po_'+key) });
 }
-function pulseSet(key, newVal, subHTML, rateHint){
+/* honest, poll-driven: the odometer only flips to REAL polled numbers, and the
+   "+X/hr" badge only shows growth we actually measured between polls. no fabrication. */
+function pulseSet(key, newVal, subHTML){
   var c=PULSE.c[key]; if(!c || newVal==null) return;
   var now=Date.now();
-  if(newVal < c.val*0.9){ /* target changed (e.g. a fresh upload took the "latest video" slot) — reset */
-    c.val=newVal; c.rate=rateHint||0; c.lastVal=newVal; c.lastTs=now; c._shown=Math.floor(newVal);
-    odoRender(c.el, c.val); if(subHTML!=null) $('ps_'+key).innerHTML=subHTML;
-    var r0=$('pr_'+key); if(r0) r0.textContent = c.rate>=(1/3600) ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
-    return;
+  if(c.lastVal!=null && now>c.lastTs){
+    var grew=newVal-c.lastVal;
+    c.rate = grew>0 ? grew/((now-c.lastTs)/1000) : 0; /* real measured velocity; 0 when not moving */
   }
-  if(c.lastVal!=null && newVal>c.lastVal && now>c.lastTs){
-    c.rate=(newVal-c.lastVal)/((now-c.lastTs)/1000); /* measured live velocity */
-  } else if(c.lastVal==null && rateHint){ c.rate=rateHint; }
-  if(c.lastVal==null || newVal!==c.lastVal){ c.lastVal=newVal; c.lastTs=now; }
-  if(newVal>c.val || c.val===0) c.val=newVal;
-  c._shown=Math.floor(c.val);
-  odoRender(c.el, c.val);
+  c.lastVal=newVal; c.lastTs=now; c.val=newVal;
+  odoRender(c.el, newVal); /* flip straight to the true number */
   if(subHTML!=null) $('ps_'+key).innerHTML=subHTML;
   var r=$('pr_'+key);
-  if(r) r.textContent = c.rate>=(1/3600) ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
+  if(r) r.textContent = c.rate>0 ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
 }
 function pollPulse(){
   var q=IDENT.yt.id||IDENT.yt.name; if(!q) return;
@@ -881,7 +902,7 @@ function pollPulse(){
       var lv=(yt.latest||[])[0];
       if(lv){
         pulseCounter('lv','latest video · views',IC_YT,'var(--primary)');
-        pulseSet('lv', lv.views, esc(lv.title||''), (lv.vph||0)/3600);
+        pulseSet('lv', lv.views, esc(lv.title||''));
       }
       if(d.tiktok && d.tiktok.followers!=null){
         pulseCounter('tt','tiktok followers',IC_TT,'var(--accent)');
@@ -889,27 +910,7 @@ function pollPulse(){
       }
     }).catch(function(){});
 }
-var REDUCE_MOTION = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-function tickPulse(){ /* interpolate between polls so the digits actually roll */
-  var dirty=false;
-  for(var k in PULSE.c){ var c=PULSE.c[k];
-    if(c.rate>0 && c.val>0){
-      c.val+=c.rate;
-      var f=Math.floor(c.val);
-      if(f!==c._shown){ c._shown=f; dirty=true; }
-    }
-  }
-  if(!dirty) return; /* integers didn't move — skip the frame entirely */
-  requestAnimationFrame(function(){
-    for(var k in PULSE.c){ var c=PULSE.c[k]; if(c._shown!=null) odoRender(c.el, c._shown); }
-  });
-}
-function startPulse(){
-  stopPulse();
-  pollPulse();
-  PULSE.poll=setInterval(pollPulse, 45000);
-  if(!REDUCE_MOTION) PULSE.anim=setInterval(tickPulse, 1000); /* reduced-motion users get poll-only updates */
-}
+function startPulse(){ stopPulse(); pollPulse(); PULSE.poll=setInterval(pollPulse, 45000); }
 function stopPulse(){ if(PULSE.poll){clearInterval(PULSE.poll);PULSE.poll=null;} if(PULSE.anim){clearInterval(PULSE.anim);PULSE.anim=null;} }
 document.addEventListener('visibilitychange', function(){
   if(document.hidden) stopPulse();
