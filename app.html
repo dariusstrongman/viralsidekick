@@ -441,6 +441,16 @@ footer a:hover{color:var(--fg)}
 .chan-field input{border:none;background:transparent;padding:8px 10px;font-size:.86rem;color:var(--fg);font-family:var(--sans)}
 .chan-field input:focus{outline:none}
 
+/* ===== DEEP SIGNALS ===== */
+.siggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px}
+.sig{display:flex;gap:11px;background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.sig .sic{font-size:1rem;flex:0 0 auto;padding-top:1px}
+.sig .sit{font-size:.84rem;font-weight:600}
+.sig .sit b{color:var(--fg)}
+.sig .sid{font-size:.78rem;color:var(--muted);line-height:1.5;margin-top:2px}
+.sig .sid b{color:var(--fg)}
+.pw{font-family:var(--mono);font-size:.74rem;background:hsl(260 90% 66% / .12);color:var(--primary);border-radius:6px;padding:1px 7px;margin-right:4px}
+
 /* ===== TEAM BOARD ===== */
 .bp{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--border)}
 .bp:first-child{border-top:none}
@@ -745,10 +755,17 @@ footer a:hover{color:var(--fg)}
             <div class="v"><div class="n" id="vMom">–</div><div class="l">momentum</div></div>
             <div class="v"><div class="n" id="vOut">–</div><div class="l">breakout hits</div></div>
             <div class="v"><div class="n" id="vCad">–</div><div class="l">cadence</div></div>
+            <div class="v"><div class="n" id="vEng">–</div><div class="l">like rate</div></div>
+            <div class="v"><div class="n" id="vCons">–</div><div class="l">consistency</div></div>
           </div>
         </div>
 
-<div class="tile play s2" id="tPlay">
+<div class="tile s6" id="tSignals" style="--tc:var(--primary)">
+          <h3><span class="acc" aria-hidden="true">◬</span> deep signals <span class="end">computed from every field the feed exposes</span></h3>
+          <div id="signalsBody"><div class="tsub">Engagement, title DNA, power words, hidden gems — everything measurable lands here after a scan.</div></div>
+        </div>
+
+        <div class="tile play s2" id="tPlay">
           <h3><span class="acc" aria-hidden="true">◆</span> this week's play</h3>
           <div id="playBody"><div class="tsub">Your #1 highest-leverage fix shows up here after a scan.</div></div>
         </div>
@@ -1492,6 +1509,8 @@ function applyLive(c){
   $('vMom').textContent=(v.momentum!=null?v.momentum+'x':'–'); $('vMom').style.color=v.momentum>=1?'var(--success)':(v.momentum>0?'var(--warning)':'');
   $('vOut').textContent=(v.outliers!=null?v.outliers:'–'); $('vOut').style.color=v.outliers>0?'var(--success)':'';
   $('vCad').textContent=(v.cadence_days!=null?v.cadence_days+'d':'–');
+  $('vEng').textContent=(v.engagement_pct!=null?v.engagement_pct+'%':'–'); $('vEng').style.color=v.engagement_pct>=3.5?'var(--success)':'';
+  $('vCons').textContent=(v.consistency!=null?v.consistency:'–'); $('vCons').style.color=v.consistency>=70?'var(--success)':(v.consistency!=null&&v.consistency<40?'var(--warning)':'');
   $('liveFlag').className='liveflag';
   $('hqWhen').textContent='live · updated just now';
 }
@@ -1504,7 +1523,7 @@ function loadLatestFull(){
       lastFullAt=new Date(row.created_at).getTime();
       var stale=(Date.now()-lastFullAt)>864e5; /* 24h */
       var mismatch=(IDENT.yt.id && row.channel_id && row.channel_id!==IDENT.yt.id);
-      hydrateDeep(row.report.ai, row.report.radar_live);
+      hydrateDeep(row.report.ai, row.report.radar_live, row.report.signals);
       needScan = stale || mismatch;
     }
     if(needScan) backgroundScan();
@@ -1517,7 +1536,7 @@ function backgroundScan(){
     .then(function(r){return r.json();})
     .then(function(d){
       hideScanning();
-      if(d&&d.ai){ hydrateDeep(d.ai,d.radar_live); lastFullAt=Date.now(); setTimeout(loadHistory,1200); }
+      if(d&&d.ai){ hydrateDeep(d.ai,d.radar_live,d.signals); lastFullAt=Date.now(); setTimeout(loadHistory,1200); }
     })
     .catch(function(){ hideScanning(); });
 }
@@ -1545,8 +1564,9 @@ function saveConnect(){
 }
 
 /* ---------- deep intel tiles (from full scan) ---------- */
-function hydrateDeep(ai, radarLive){
+function hydrateDeep(ai, radarLive, signals){
   ai = ai || {}; LASTAI = ai;
+  renderSignals(signals||null);
   $('hqName').title = ai.verdict||'';
   var rb=$('radarBody'), rad=(ai.radar||[]).slice(0,3);
   $('radarLive').innerHTML = radarLive ? '<span class="live-chip"><span class="dot"></span>LIVE</span>' : 'pattern';
@@ -1589,6 +1609,36 @@ function hydrateDeep(ai, radarLive){
   }).join('') : '<div class="tsub">A week-by-week plan drops here after your refresh.</div>';
 
   renderQueue(fixes);
+}
+
+/* ---------- deep signals renderer ---------- */
+function sigCard(icon,color,title,body){
+  return '<div class="sig"><div class="sic" style="color:'+color+'">'+icon+'</div><div class="sib"><div class="sit">'+title+'</div><div class="sid">'+body+'</div></div></div>';
+}
+function renderSignals(S){
+  var el=$('signalsBody'); if(!el) return;
+  if(!S || !Object.keys(S).length){ el.innerHTML='<div class="tsub">Not enough spread in the data yet — signals sharpen with every upload.</div>'; return; }
+  var cards=[];
+  if(S.engagement) cards.push(sigCard('♥','var(--danger)','<b>'+S.engagement.avg_pct+'%</b> like rate',
+    'across your last '+S.engagement.n+' uploads. '+(S.engagement.avg_pct>=4?'elite — your viewers convert to fans.':S.engagement.avg_pct>=2.5?'healthy for your size.':'low — hooks are getting clicks the content is not earning.')));
+  if(S.gem) cards.push(sigCard('◆','var(--success)','hidden gem: <b>'+esc(S.gem.title)+'</b>',
+    'your audience liked it '+S.gem.er_x+'x harder than usual but the algorithm under-served it ('+S.gem.ratio+'x median). remake it, short it, or re-push it.'));
+  if(S.risk) cards.push(sigCard('▲','var(--warning)','clickbait drift: <b>'+esc(S.risk.title)+'</b>',
+    'big views, weak approval ('+S.risk.er_x+'x your normal like rate). the packaging over-promised — that erodes trust.'));
+  if(S.title_dna){
+    var facts=[];
+    if(S.title_dna.numbers) facts.push('titles with numbers do <b>'+S.title_dna.numbers.x+'x</b>');
+    if(S.title_dna.question) facts.push('question titles do <b>'+S.title_dna.question.x+'x</b>');
+    if(S.title_dna.short_title) facts.push('short titles (≤45 chars) do <b>'+S.title_dna.short_title.x+'x</b>');
+    if(S.title_dna.brackets) facts.push('bracketed titles do <b>'+S.title_dna.brackets.x+'x</b>');
+    if(facts.length) cards.push(sigCard('✎','var(--accent)','your title DNA', facts.join(' · ')+' vs the rest of your uploads.'));
+  }
+  if(S.power_words&&S.power_words.length) cards.push(sigCard('⚡','var(--primary)','power words',
+    'these live in your winners and never in your dead zones: '+S.power_words.map(function(w){return '<span class="pw">'+esc(w)+'</span>';}).join(' ')));
+  if(S.desc_effect) cards.push(sigCard('¶','var(--muted)','description effect','uploads with real descriptions (>200 chars) do <b>'+S.desc_effect.x+'x</b>.'));
+  if(S.consistency!=null) cards.push(sigCard('◷','var(--accent)','rhythm score: <b>'+S.consistency+'/100</b>',
+    S.consistency>=70?'your upload rhythm is steady — the algorithm can rely on you.':S.consistency>=40?'your gaps wobble. steadier spacing compounds reach.':'erratic schedule — the single cheapest fix you have.'));
+  el.innerHTML='<div class="siggrid">'+cards.join('')+'</div>';
 }
 
 /* ---------- action queue (second brain) ---------- */
