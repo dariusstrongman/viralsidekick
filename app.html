@@ -488,6 +488,20 @@ table.cmp tr:last-child td{border-bottom:none}
 table.cmp tr.me td{background:hsl(260 90% 66% / .07)}
 table.cmp .dim{color:var(--faint);font-size:.74rem}
 
+/* ===== BLUEPRINT ===== */
+.bp-sec{margin-top:13px}
+.bp-k{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+.bp-hook{background:hsl(230 24% 4%);border-left:2px solid var(--primary);border-radius:0 9px 9px 0;padding:11px 13px;font-size:.9rem;line-height:1.65;white-space:pre-wrap}
+.bp-beat{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:.86rem}
+.bp-beat:first-child{border-top:none}
+.bp-beat .n{font-family:var(--mono);font-size:.66rem;color:var(--primary);flex:0 0 auto;padding-top:2px}
+.bp-beat .w{color:var(--fg)} .bp-beat .y{color:var(--faint);font-size:.78rem}
+.bp-rule{background:hsl(38 96% 60% / .08);border:1px solid hsl(38 96% 60% / .3);border-radius:10px;padding:10px 13px;font-size:.88rem;font-weight:600;margin-top:13px}
+.mini-act{display:inline-flex;align-items:center;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;border:1px solid var(--border2);border-radius:7px;padding:2px 8px;color:var(--muted);cursor:pointer;transition:.15s;margin-left:6px;vertical-align:middle}
+.mini-act:hover{color:#fff;border-color:var(--primary)}
+.mini-act.b{color:hsl(45 95% 62%);border-color:hsl(45 95% 62% / .4)}
+.mini-act.b:hover{border-color:hsl(45 95% 62%)}
+
 /* ===== DEEP SIGNALS ===== */
 .siggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px}
 .sig{display:flex;gap:11px;background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
@@ -951,6 +965,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
             <div>
               <h3 style="margin-bottom:8px"><span class="acc" aria-hidden="true">★</span> go pro — unlock everything</h3>
               <div style="display:flex;gap:24px;flex-wrap:wrap">
+                <span class="tsub">✓ Video blueprints — hook scripts, beats, thumbnails</span>
                 <span class="tsub">✓ Weekly auto-pulse to your inbox</span>
                 <span class="tsub">✓ Unlimited title-lab tests</span>
                 <span class="tsub">✓ Priority retention autopsy</span>
@@ -993,6 +1008,16 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
     </div><!-- /hqWrap -->
   </section>
+
+  <!-- blueprint modal (PRO): assignment -> shoot-ready plan -->
+  <div class="modal" id="bpModal">
+    <div class="mc" style="max-width:640px">
+      <span class="x" onclick="document.getElementById('bpModal').classList.remove('on')">✕</span>
+      <h2>🎬 production blueprint</h2>
+      <p class="sm mut" id="bpIdea" style="margin-bottom:14px"></p>
+      <div id="bpBody"><div class="tsub">the coach is building it…</div></div>
+    </div>
+  </div>
 
   <!-- set new password (from reset link) -->
   <div class="modal" id="pwModal" role="dialog" aria-modal="true" aria-labelledby="pwModalTitle">
@@ -1445,6 +1470,7 @@ function renderPro(){
       tile.innerHTML='<h3><span class="acc" style="color:hsl(45 95% 62%)">★</span> '+(isTeamPlan?'team plan':'pro member')+' <span class="end" style="color:hsl(45 95% 62%)">active</span></h3>'
         +'<div class="tsub" style="margin-bottom:12px">You are on <b style="color:hsl(45 95% 62%)">'+(isTeamPlan?'ViralSidekick Team — everything unlocked for your whole space (5 seats).':'ViralSidekick Pro')+'</b>'+(isTeamPlan?'':'. Everything is unlocked.')+'</div>'
         +'<div style="margin-bottom:4px">'
+        +'<div class="perk"><span class="ck">✓</span><span>Video blueprints on every assignment</span></div>'
         +'<div class="perk"><span class="ck">✓</span><span>Weekly auto-pulse to your inbox</span></div>'
         +'<div class="perk"><span class="ck">✓</span><span>Unlimited title-lab tests</span></div>'
         +'<div class="perk"><span class="ck">✓</span><span>Priority retention autopsy</span></div>'
@@ -1730,6 +1756,7 @@ function saveConnect(){
 /* ---------- deep intel tiles (from full scan) ---------- */
 function hydrateDeep(ai, radarLive, signals){
   ai = ai || {}; LASTAI = ai;
+  window._lastSignals = signals||{};
   renderSignals(signals||null);
   loadTrends((ai&&ai.niche)||'');
   /* THE ORDER: the coach speaks first, in the open */
@@ -1758,7 +1785,7 @@ function hydrateDeep(ai, radarLive, signals){
       var u=(x.urgency||'').toLowerCase(), uc=u.indexOf('week')>=0?'now':'soon';
       return '<div class="rd"><div class="trend"><span>'+esc(x.trend||'')+'</span><span class="urg '+uc+'">'+esc(x.urgency||'')+'</span></div>'
         +(x.evidence?'<div class="ev">'+esc(x.evidence)+'</div>':'')
-        +(x.your_version?'<div class="yv"><span class="copy" data-copy="'+esc(x.your_version)+'">copy ⧉</span><span class="k">your version</span>'+esc(x.your_version)+'</div>':'')
+        +(x.your_version?'<div class="yv"><span class="copy" data-copy="'+esc(x.your_version)+'">copy ⧉</span><span class="k">your version</span>'+esc(x.your_version)+'<div style="margin-top:6px">'+miniActs(x.your_version)+'</div></div>':'')
         +'</div>';
     }).join('');
     bindCopies(rb);
@@ -1772,7 +1799,7 @@ function hydrateDeep(ai, radarLive, signals){
   if(nv && (nv.title_options||[]).length){
     $('nextBody').innerHTML = '<div class="tsub" style="margin-bottom:8px">'+(nv.format?esc(nv.format):'tap a title to copy')+'</div>'
       + '<div class="chiprow" style="flex-direction:column;align-items:stretch;padding-top:0">'
-      + nv.title_options.slice(0,3).map(function(t){ return '<div class="copychip" data-copy="'+esc(t)+'">'+esc(t)+'</div>'; }).join('')
+      + nv.title_options.slice(0,3).map(function(t){ return '<div style="display:flex;align-items:center;gap:4px"><div class="copychip" data-copy="'+esc(t)+'" style="flex:1">'+esc(t)+'</div>'+miniActs(t)+'</div>'; }).join('')
       + '</div>' + (nv.hook?'<div class="tsub" style="margin-top:9px"><b style="color:var(--accent)">hook:</b> '+esc(nv.hook)+'</div>':'');
     bindCopies($('nextBody'));
   } else $('nextBody').innerHTML='<div class="tsub">Refresh to generate your next title options.</div>';
@@ -1820,7 +1847,7 @@ function renderWire(d){
     html+='<div class="wire-plays">'+plays.map(function(p){
       return '<div class="wp"><div class="wp-t">'+esc(p.trend||'')+' <span class="wp-w">'+esc(p.window||'')+'</span></div>'
         +(p.why_now?'<div class="wp-y">'+esc(p.why_now)+'</div>':'')
-        +(p.your_angle?'<div class="wp-a"><span class="copy" data-copy="'+esc(p.your_angle)+'">copy ⧉</span><span class="k">your play</span>'+esc(p.your_angle)+'</div>':'')
+        +(p.your_angle?'<div class="wp-a"><span class="copy" data-copy="'+esc(p.your_angle)+'">copy ⧉</span><span class="k">your play</span>'+esc(p.your_angle)+'<div style="margin-top:6px">'+miniActs(p.your_angle)+'</div></div>':'')
         +'</div>';
     }).join('')+'</div>';
   }
@@ -1908,6 +1935,73 @@ function renderCompare(res, me){
   html+='</tbody></table></div>';
   $('rivalBody').innerHTML=html;
 }
+
+/* ---------- blueprints: order -> shoot-ready plan (PRO) ---------- */
+function fmtHint(){
+  var F=(window._lastSignals||{}).formats;
+  if(F && F.shorts_count>F.long_count) return 'short';
+  return 'longform';
+}
+function miniActs(text){
+  var e=encodeURIComponent(text);
+  return '<span class="mini-act b" data-bp="'+e+'">▶ build it</span><span class="mini-act" data-qadd="'+e+'">+ queue</span>';
+}
+function addToQueue(text){
+  var m=loadQ(); m.__custom=(m.__custom||[]);
+  if(m.__custom.indexOf(text)<0){ m.__custom.push(text); saveQ(m); renderQueue((LASTAI&&LASTAI.fixes)||[]); }
+}
+function buildIt(idea){
+  var modal=$('bpModal');
+  if(!IS_PRO){
+    modal.classList.add('on');
+    $('bpIdea').textContent=idea;
+    $('bpBody').innerHTML='<div class="tsub" style="margin-bottom:14px">Blueprints are the Pro weapon: the coach turns any assignment into a shoot-ready plan — verbatim hook script, beat-by-beat structure, thumbnail concept, the one rule that makes or breaks it.</div>'
+      +'<a class="btn btn-primary" href="'+($('proBtn')?$('proBtn').href:'#')+'" target="_blank" rel="noopener">Unlock with Pro — $19/mo</a>';
+    return;
+  }
+  modal.classList.add('on');
+  $('bpIdea').textContent=idea;
+  $('bpBody').innerHTML='<div class="tsub"><span class="spin" style="display:inline-block;vertical-align:middle;margin-right:8px"></span>the coach is building it…</div>';
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mode:'blueprint',idea:idea,niche:(LASTAI&&LASTAI.niche)||'',format:fmtHint(),token:ACCESS,website:''})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d||!d.ok||!d.blueprint){ $('bpBody').innerHTML='<div class="tsub">'+esc((d&&d.detail)||'could not build that one — try again.')+'</div>'; return; }
+      var bp=d.blueprint, html='';
+      html+='<div class="bp-sec"><div class="bp-k">title</div><div class="tlead">'+esc(bp.title||'')+'</div>'
+        +(bp.alt_title?'<div class="tsub">alt: '+esc(bp.alt_title)+'</div>':'')+'</div>';
+      if(bp.hook_script) html+='<div class="bp-sec"><div class="bp-k">the hook — say this, shoot this</div><div class="bp-hook">'+esc(bp.hook_script)+'</div></div>';
+      if(bp.beats&&bp.beats.length){
+        html+='<div class="bp-sec"><div class="bp-k">structure</div>'+bp.beats.map(function(x,i){
+          return '<div class="bp-beat"><span class="n">'+(i+1)+'</span><div><div class="w">'+esc(x.beat||'')+' — '+esc(x.what||'')+'</div><div class="y">'+esc(x.why||'')+'</div></div></div>';
+        }).join('')+'</div>';
+      }
+      if(bp.thumbnail) html+='<div class="bp-sec"><div class="bp-k">thumbnail</div><div class="tsub" style="color:var(--fg)">'+esc(bp.thumbnail.concept||'')
+        +(bp.thumbnail.text_overlay?' · text: <b>'+esc(bp.thumbnail.text_overlay)+'</b>':'')
+        +(bp.thumbnail.emotion?' · '+esc(bp.thumbnail.emotion):'')+'</div></div>';
+      if(bp.description) html+='<div class="bp-sec"><div class="bp-k">description</div><div class="tsub">'+esc(bp.description)+'</div></div>';
+      if(bp.hashtags&&bp.hashtags.length) html+='<div class="bp-sec"><div class="bp-k">tags</div><div class="tsub">'+bp.hashtags.map(function(t){return esc(String(t).indexOf('#')===0?t:'#'+t);}).join(' ')+'</div></div>';
+      if(bp.length) html+='<div class="bp-sec"><div class="bp-k">target length</div><div class="tsub">'+esc(String(bp.length))+' · format: '+esc(d.format)+'</div></div>';
+      if(bp.one_rule) html+='<div class="bp-rule">⚠ the one rule: '+esc(bp.one_rule)+'</div>';
+      html+='<div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">'
+        +'<button class="btn btn-ghost btn-sm" data-qadd="'+encodeURIComponent(bp.title||idea)+'">+ queue this</button>'
+        +'<button class="btn btn-ghost btn-sm" id="bpCopyAll">copy everything</button></div>';
+      $('bpBody').innerHTML=html;
+      var ca=$('bpCopyAll');
+      if(ca) ca.onclick=function(){
+        var txt='TITLE: '+(bp.title||'')+'\nHOOK:\n'+(bp.hook_script||'')+'\n\nBEATS:\n'+(bp.beats||[]).map(function(x,i){return (i+1)+'. '+(x.beat||'')+' — '+(x.what||'');}).join('\n')
+          +'\n\nTHUMBNAIL: '+((bp.thumbnail||{}).concept||'')+'\nDESCRIPTION: '+(bp.description||'')+'\nTAGS: '+((bp.hashtags||[]).join(' '))+'\nONE RULE: '+(bp.one_rule||'');
+        navigator.clipboard.writeText(txt); ca.textContent='copied ✓'; setTimeout(function(){ca.textContent='copy everything';},1500);
+      };
+    })
+    .catch(function(){ $('bpBody').innerHTML='<div class="tsub">network hiccup — try again.</div>'; });
+}
+document.addEventListener('click',function(e){
+  var bpb=e.target.closest('[data-bp]');
+  if(bpb){ buildIt(decodeURIComponent(bpb.getAttribute('data-bp'))); return; }
+  var qb=e.target.closest('[data-qadd]');
+  if(qb){ addToQueue(decodeURIComponent(qb.getAttribute('data-qadd'))); qb.textContent='queued ✓'; }
+});
 
 /* ---------- deep signals renderer ---------- */
 function sigCard(icon,color,title,body){
