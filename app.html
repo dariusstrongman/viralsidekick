@@ -1764,8 +1764,24 @@ function pollPulse(){
 }
 /* self-scheduling with exponential backoff so a throttling YouTube/TikTok endpoint
    is not hammered every 45s by 30 open tabs (root cause of IP soft-blocks) */
-function schedulePulse(){ if(document.hidden) return; var delay=45000*Math.min(6, 1+(PULSE.fails||0)); PULSE.poll=setTimeout(function(){ pollPulse().then(schedulePulse); }, delay); }
-function startPulse(){ stopPulse(); PULSE.fails=0; pollPulse().then(schedulePulse); }
+function schedulePulse(){
+  if(document.hidden) return;
+  PULSE.cycles=(PULSE.cycles||0)+1;
+  /* an open-but-idle tab was polling the free live endpoint forever (~80 runs/hr).
+     after ~40 min of no interaction, park it and re-arm on the next click/key/focus. */
+  if(PULSE.cycles>26){ armPulseResume(); return; }
+  var delay=90000*Math.min(4, 1+(PULSE.fails||0));
+  PULSE.poll=setTimeout(function(){ pollPulse().then(schedulePulse); }, delay);
+}
+function armPulseResume(){
+  if(PULSE._armed) return; PULSE._armed=true;
+  function resume(){ if(!PULSE._armed) return; PULSE._armed=false;
+    ['pointerdown','keydown','focus'].forEach(function(ev){ window.removeEventListener(ev,resume); });
+    if(USER && (IDENT.yt.id||IDENT.yt.name)) startPulse();
+  }
+  ['pointerdown','keydown','focus'].forEach(function(ev){ window.addEventListener(ev,resume); });
+}
+function startPulse(){ stopPulse(); PULSE.fails=0; PULSE.cycles=0; PULSE._armed=false; pollPulse().then(schedulePulse); }
 function stopPulse(){ if(PULSE.poll){clearTimeout(PULSE.poll);PULSE.poll=null;} if(PULSE.anim){clearInterval(PULSE.anim);PULSE.anim=null;} }
 document.addEventListener('visibilitychange', function(){
   if(document.hidden) stopPulse();
