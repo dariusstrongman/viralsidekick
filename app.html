@@ -682,7 +682,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
               </svg>
             </div>
             <h1 id="authTitle">Enter your HQ</h1>
-            <p class="sub" id="authSub">Track your channel, save every scan, and watch your score climb.</p>
+            <p class="sub" id="authSub">Live data, a coach with orders, and your score trend over time.</p>
           </div>
 
           <div class="tabs" role="tablist">
@@ -839,7 +839,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
 <div class="tile s6" id="tSignals" style="--tc:var(--primary)">
           <h3><span class="acc" aria-hidden="true">◬</span> deep signals <span class="end">computed from every field the feed exposes</span></h3>
-          <div id="signalsBody"><div class="tsub">Engagement, title DNA, power words, hidden gems — everything measurable lands here after a scan.</div></div>
+          <div id="signalsBody"><div class="tsub">Engagement, title DNA, power words, hidden gems — measured live off your feed.</div></div>
         </div>
 
         <div class="tile s6" id="tRivals" style="--tc:var(--danger)">
@@ -853,7 +853,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
         <div class="tile play s2" id="tPlay">
           <h3><span class="acc" aria-hidden="true">◆</span> next order</h3>
-          <div id="playBody"><div class="tsub">Your #1 highest-leverage fix shows up here after a scan.</div></div>
+          <div id="playBody"><div class="tsub">Your next order lands here after the coach's first review.</div></div>
         </div>
 
 <div class="tile s2" id="tNext">
@@ -885,7 +885,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
 <div class="tile s3" id="tRoad">
           <h3><span class="acc" aria-hidden="true">◈</span> 30-day roadmap</h3>
-          <div id="roadBody"><div class="tsub">A week-by-week plan drops here after your scan.</div></div>
+          <div id="roadBody"><div class="tsub">The program drops here after the coach's first review.</div></div>
         </div>
 
 <div class="tile s3" id="tLab">
@@ -905,7 +905,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <div class="tile s3" id="tSignal">
           <h3><span class="acc" aria-hidden="true">◗</span> viral signal <span class="end" id="sigCount"></span></h3>
           <canvas id="spark" width="420" height="90" style="width:100%;height:90px;display:none" aria-label="score trend sparkline"></canvas>
-          <div id="sigEmpty" class="tsub">Your score trend appears after 2+ scans.</div>
+          <div id="sigEmpty" class="tsub">Your score trend appears after two coach reviews.</div>
           <div id="sigNow" style="margin-top:10px;display:none;align-items:center;gap:10px">
             <span>now <b id="sigNowV">–</b></span><span id="sigDelta" class="delta flat" aria-live="polite"></span>
           </div>
@@ -949,7 +949,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="tile s4 sell" id="tTeamUp" style="border-color:hsl(45 90% 60% / .35);--tc:hsl(45 95% 62%)">
           <h3><span class="acc" aria-hidden="true">⬡</span> team plan</h3>
           <div class="tbig" style="color:hsl(45 95% 62%)">$29.99<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
-          <div class="tsub" style="margin:8px 0 12px">One shared space, up to 5 members. Everything in Pro for the whole team — scans, radar, grades, the plan.</div>
+          <div class="tsub" style="margin:8px 0 12px">One shared space, up to 5 members. Everything in Pro for the whole team — live data, radar, grades, the plan.</div>
           <a id="teamBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/7sY28t1pSe932P69zC5wI0p" target="_blank" rel="noopener">Upgrade to Team</a>
         </div>
 
@@ -1333,7 +1333,7 @@ function renderNoSpace(){
   var tb=$('tBoard'); if(tb) tb.style.display='none';
   $('spaceEnd').textContent='';
   $('spaceBody').innerHTML=
-    '<div class="tsub" style="margin-bottom:12px">A space is a shared brain — invite your editor, your co-host, your team. Everyone sees the scans, the radar, the plan.</div>'
+    '<div class="tsub" style="margin-bottom:12px">A space is a shared brain — invite your editor, your co-host, your team. Everyone sees the live channel, the radar, the plan.</div>'
     +'<div class="caprow" style="margin-top:4px">'
     +'<input id="spName" type="text" placeholder="name your space (e.g. DMGDaily)" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key===\'Enter\')createSpace()">'
     +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="createSpace()">Create space</button>'
@@ -1815,7 +1815,7 @@ function hydrateDeep(ai, radarLive, signals){
         +'</div>';
     }).join('');
     bindCopies(rb);
-  } else rb.innerHTML='<div class="tsub">No live eruptions surfaced this scan — check back after your next refresh.</div>';
+  } else rb.innerHTML='<div class="tsub">No live eruptions right now — the radar sweeps again on the next review.</div>';
 
   var fixes=(ai.fixes||[]), f2=fixes[1]||fixes[0];
   $('playBody').innerHTML = f2 ? ('<div class="tlead">'+esc(f2.title||'')+(f2.severity?' <span class="q-sev '+esc((f2.severity||'').toLowerCase())+'">'+esc(f2.severity)+'</span>':'')+'</div><div class="tsub">'+esc(f2['do']||f2.why||'')+'</div>')
