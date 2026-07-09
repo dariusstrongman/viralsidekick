@@ -666,7 +666,7 @@ function fmt(n){
   return String(Math.round(n));
 }
 function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(ch){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
-function gradeOf(s){ var t=[[95,'S'],[80,'A'],[65,'B'],[50,'C'],[35,'D']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
+function gradeOf(s){ var t=[[97,'S'],[90,'A'],[80,'B'],[70,'C'],[60,'D']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
 function gradeColor(g){ var c=(g||'')[0]; if(c==='S')return 'hsl(45 95% 62%)'; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
 
 function renderSigStrip(S){
@@ -697,7 +697,7 @@ function renderReport(d){
   $('rScore').textContent = score;
   drawDial(score);
   var gl = gradeOf(score), gc = gradeColor(gl);
-  var gp = $('rGrade'); if (gp){ gp.textContent = gl; gp.style.color = gc; gp.title = 'viral-readiness grade. S 95+, A 80+, B 65+, C 50+, D 35+, F below. read from your outliers, dead zones and momentum, not your subscriber count.'; }
+  var gp = $('rGrade'); if (gp){ gp.textContent = gl; gp.style.color = gc; gp.title = 'viral-readiness grade. S 97+, A 90+, B 80+, C 70+, D 60+, F below 60. read from your outliers, dead zones and momentum, not your subscriber count.'; }
   var cl = $('rCardLink'); if (cl){ var _cid = ch.id || ch.handle || ($('fC')&&$('fC').value.trim()); if(_cid) cl.href = 'c.html?ch=' + encodeURIComponent(_cid); }
   var bo = d.breakout, out0 = (d.outliers||[]).length, flop0 = (d.flops||[]).length;
   var why = 'this grade reads your outliers, dead zones and momentum. ' + (flop0 ? ('held back by ' + flop0 + ' dead zone' + (flop0>1?'s':'')) : '') + (flop0&&out0 ? ', ' : '') + (out0 ? ('lifted by ' + out0 + ' breakout' + (out0>1?'s':'')) : '') + '.';
