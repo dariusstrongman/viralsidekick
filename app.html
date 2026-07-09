@@ -924,7 +924,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <div class="tile s2 quiet" id="tMiles">
           <h3><span class="acc" aria-hidden="true">✦</span> milestones</h3>
           <div class="ms" id="milesBody">
-            <div class="m"><div class="n" id="msScans">0</div><div class="l">scans run</div></div>
+            <div class="m"><div class="n" id="msScans">0</div><div class="l">coach reviews</div></div>
             <div class="m"><div class="n" id="msBest">–</div><div class="l">best score</div></div>
             <div class="m"><div class="n" id="msGrade">–</div><div class="l">top grade</div></div>
             <div class="m"><div class="n" id="msStreak">0</div><div class="l">wk streak</div></div>
@@ -1669,6 +1669,18 @@ function pollPulse(){
       if(lv){
         pulseCounter('lv','latest video · views',IC_YT,'var(--primary)');
         pulseSet('lv', lv.views, esc(lv.title||''));
+        /* NEW UPLOAD = the coach reviews immediately. no stale timers. */
+        if(lv.id){
+          var key='vs_reviewed_'+((curCh().id)||'x');
+          var seen=null; try{ seen=localStorage.getItem(key); }catch(e){}
+          if(seen && seen!==lv.id && window._autoRev!==lv.id){
+            window._autoRev=lv.id;
+            try{ localStorage.setItem(key,lv.id); }catch(e){}
+            var os=$('orderStrip');
+            if(os){ os.classList.remove('hide'); $('ordCmd').innerHTML='new upload spotted — the coach is reviewing it now…'; }
+            backgroundScan();
+          } else if(!seen){ try{ localStorage.setItem(key,lv.id); }catch(e){} }
+        }
       }
       if(d.tiktok && d.tiktok.followers!=null){
         pulseCounter('tt','tiktok followers',IC_TT,'var(--accent)');
@@ -1685,13 +1697,19 @@ document.addEventListener('visibilitychange', function(){
 function liveVitals(){
   var _c=curCh(); var q=_c.id||_c.name; if(!q) return;
   $('liveFlag').className='liveflag';
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'card',channel:q})})
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'card',channel:q,fresh:1})})
     .then(function(r){return r.json();})
     .then(function(d){ if(d&&d.ok) applyLive(d); })
     .catch(function(){});
 }
+var LIVE_SIG=false;
 function applyLive(c){
   LIVE=c;
+  /* signals straight off the feed — computed seconds ago, not from a stored review */
+  if(c.signals && Object.keys(c.signals).length){
+    LIVE_SIG=true; window._lastSignals=c.signals; renderSignals(c.signals);
+  }
+  if(c.latest_vid) window._liveLatestVid=c.latest_vid;
   var sc=c.score!=null?c.score:50, g=c.grade||gradeOf(sc), col=gcolor(g);
   document.documentElement.style.setProperty('--gc',col); $('idhead').style.setProperty('--gc',col);
   $('hqGrade').textContent=g; $('hqGrade').style.color=col; $('hqScore').textContent=sc;
@@ -1704,7 +1722,7 @@ function applyLive(c){
   $('vEng').textContent=(v.engagement_pct!=null?v.engagement_pct+'%':'–'); $('vEng').style.color=v.engagement_pct>=3.5?'var(--success)':'';
   $('vCons').textContent=(v.consistency!=null?v.consistency:'–'); $('vCons').style.color=v.consistency>=70?'var(--success)':(v.consistency!=null&&v.consistency<40?'var(--warning)':'');
   $('liveFlag').className='liveflag';
-  $('hqWhen').textContent='live · updated just now';
+  $('hqWhen').textContent='live · data seconds old';
 }
 function loadLatestFull(){
   spaceScans().select('channel_id,report,created_at').order('created_at',{ascending:false}).limit(6).then(function(r){
@@ -1713,7 +1731,7 @@ function loadLatestFull(){
     var needScan=true;
     if(row){
       lastFullAt=new Date(row.created_at).getTime();
-      var stale=(Date.now()-lastFullAt)>864e5; /* 24h */
+      var stale=(Date.now()-lastFullAt)>216e5; /* 6h — the coach never coaches off old film */
       var mismatch=(IDENT.yt.id && row.channel_id && row.channel_id!==IDENT.yt.id);
       hydrateDeep(row.report.ai, row.report.radar_live, row.report.signals);
       needScan = stale || mismatch;
@@ -1730,7 +1748,7 @@ function backgroundScan(){
     $('ordCmd').innerHTML='the coach is reviewing your film…';
     $('ordReceipt').innerHTML='<b>first verdict lands in ~30 seconds.</b> every upload gets read, your niche gets swept live, and you get THE GOAL plus your first orders.';
   }
-  showScanning('refreshing your intel + niche radar…');
+  showScanning('the coach is reviewing the latest film…');
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:q,email:USER.email,user_id:USER.id,workspace_id:(SPACE&&SPACE.workspace)?SPACE.workspace.id:null,website:''})})
     .then(function(r){return r.json();})
     .then(function(d){
@@ -1765,8 +1783,7 @@ function saveConnect(){
 /* ---------- deep intel tiles (from full scan) ---------- */
 function hydrateDeep(ai, radarLive, signals){
   ai = ai || {}; LASTAI = ai;
-  window._lastSignals = signals||{};
-  renderSignals(signals||null);
+  if(!LIVE_SIG){ window._lastSignals = signals||{}; renderSignals(signals||null); }
   loadTrends((ai&&ai.niche)||'');
   /* THE ORDER: the coach speaks first, in the open */
   (function(){
@@ -2114,7 +2131,7 @@ function loadHistory(){
   spaceScans().select('channel_name,score,created_at').order('created_at',{ascending:false}).limit(60).then(function(r){
     var rows = (r.data||[]).filter(function(x){ return x.score!=null; });
     /* signal tile */
-    $('sigCount').textContent = rows.length ? rows.length+' scans' : '';
+    $('sigCount').textContent = rows.length ? rows.length+' reviews' : '';
     if(rows.length>=2){
       $('sigEmpty').style.display='none'; $('sigNow').style.display='flex';
       $('sigNowV').textContent=rows[0].score;
@@ -2127,7 +2144,7 @@ function loadHistory(){
       cd.textContent=(delta>0?'▲ +'+delta+(followed?' — told you':' since last'):delta<0?'▼ '+delta+' since last':'no change');
     } else {
       $('sigEmpty').style.display='block'; $('sigNow').style.display='none'; $('spark').style.display='none';
-      $('hqDelta').className='delta flat'; $('hqDelta').textContent = rows.length? 'first scan logged' : 'no scans yet';
+      $('hqDelta').className='delta flat'; $('hqDelta').textContent = rows.length? 'first review logged' : 'no reviews yet';
     }
     /* milestones */
     $('msScans').textContent=rows.length;
