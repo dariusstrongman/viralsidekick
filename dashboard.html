@@ -616,7 +616,7 @@ function runAnalysis(payload){
 
 /* ---------- render ---------- */
 function fmt(n){
-  if (n == null) return ', ';
+  if (n == null) return '-';
   if (n >= 1e6) return (n/1e6).toFixed(1).replace('.0','') + 'M';
   if (n >= 1e3) return (n/1e3).toFixed(1).replace('.0','') + 'K';
   return String(Math.round(n));
@@ -665,7 +665,7 @@ function renderReport(d){
   $('rStats').innerHTML =
     stat(fmt(s.median), 'median views') +
     stat(fmt(s.mean), 'avg views') +
-    stat(s.cadence_days != null ? s.cadence_days + 'd' : ', ', 'upload cadence') +
+    stat(s.cadence_days != null ? s.cadence_days + 'd' : '-', 'upload cadence') +
     stat(out, 'outliers', out ? 'hot' : '') +
     stat(flop, 'dead zones', flop ? 'bad' : '');
   drawBars(ups, s.median || 1);

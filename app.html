@@ -1737,11 +1737,11 @@ function applyLive(c){
   var C=226, ring=$('hqRing'); ring.style.stroke=col; ring.setAttribute('stroke-dashoffset', Math.round(C - C*Math.max(0,Math.min(100,sc))/100));
   var v=c.vitals||{};
   $('vMed').textContent=nfmt(v.median);
-  $('vMom').textContent=(v.momentum!=null?v.momentum+'x':', '); $('vMom').style.color=v.momentum>=1?'var(--success)':(v.momentum>0?'var(--warning)':'');
-  $('vOut').textContent=(v.outliers!=null?v.outliers:', '); $('vOut').style.color=v.outliers>0?'var(--success)':'';
-  $('vCad').textContent=(v.cadence_days!=null?v.cadence_days+'d':', ');
-  $('vEng').textContent=(v.engagement_pct!=null?v.engagement_pct+'%':', '); $('vEng').style.color=v.engagement_pct>=3.5?'var(--success)':'';
-  $('vCons').textContent=(v.consistency!=null?v.consistency:', '); $('vCons').style.color=v.consistency>=70?'var(--success)':(v.consistency!=null&&v.consistency<40?'var(--warning)':'');
+  $('vMom').textContent=(v.momentum!=null?v.momentum+'x':'-'); $('vMom').style.color=v.momentum>=1?'var(--success)':(v.momentum>0?'var(--warning)':'');
+  $('vOut').textContent=(v.outliers!=null?v.outliers:'-'); $('vOut').style.color=v.outliers>0?'var(--success)':'';
+  $('vCad').textContent=(v.cadence_days!=null?v.cadence_days+'d':'-');
+  $('vEng').textContent=(v.engagement_pct!=null?v.engagement_pct+'%':'-'); $('vEng').style.color=v.engagement_pct>=3.5?'var(--success)':'';
+  $('vCons').textContent=(v.consistency!=null?v.consistency:'-'); $('vCons').style.color=v.consistency>=70?'var(--success)':(v.consistency!=null&&v.consistency<40?'var(--warning)':'');
   $('liveFlag').className='liveflag';
   $('hqWhen').textContent='live · data seconds old';
 }
@@ -1856,7 +1856,7 @@ function hydrateDeep(ai, radarLive, signals){
     var days=['mon','tue','wed','thu','fri','sat','sun'];
     var best=(sch.best_days||[]).map(function(d){return String(d).slice(0,3).toLowerCase();});
     $('winBody').innerHTML='<div class="win-days">'+days.map(function(d){return '<span class="win-day'+(best.indexOf(d)>=0?' on':'')+'">'+d+'</span>';}).join('')+'</div>'
-      +'<div class="win-time">'+esc((sch.best_times||[]).join(' · ')||', ')+'</div>'
+      +'<div class="win-time">'+esc((sch.best_times||[]).join(' · ')||'-')+'</div>'
       +(sch.reason?'<div class="tsub" style="margin-top:8px">'+esc(sch.reason)+'</div>':'');
   } else $('winBody').innerHTML='<div class="tsub">Your best posting window appears after a refresh.</div>';
 
@@ -1984,8 +1984,8 @@ function renderCompare(res, me){
       +'<td><b style="color:'+gcolor(x.grade)+'">'+esc(x.grade)+'</b> <span class="dim">'+x.score+'</span></td>'
       +'<td>'+nfmt(x.median)+'</td>'
       +'<td style="color:'+(x.momentum>=1?'var(--success)':'var(--warning)')+'">'+x.momentum+'x</td>'
-      +'<td>'+(x.engagement_pct!=null?x.engagement_pct+'%':', ')+'</td>'
-      +'<td>'+(x.consistency!=null?x.consistency:', ')+'</td>'
+      +'<td>'+(x.engagement_pct!=null?x.engagement_pct+'%':'-')+'</td>'
+      +'<td>'+(x.consistency!=null?x.consistency:'-')+'</td>'
       +'<td>'+(x.stale?'<span class="dim" title="live read failed, showing the last stored numbers">stale</span> ':'')+(riv&&!isMe?'<button class="bbtn" onclick="delRival(\''+riv.id+'\')" aria-label="untrack">✕</button>':'')+'</td>'
       +'</tr>';
   });
@@ -2195,7 +2195,7 @@ function titleTest(inId, outId){
     .then(function(r){return r.json();})
     .then(function(d){
       if(!d.ok||!d.result){ $('labScore'+suf).textContent='!'; $('labVerdict'+suf).textContent='could not score that one, try again'; return; }
-      var o=d.result; $('labScore'+suf).textContent=o.score!=null?o.score:', '; $('labScore'+suf).style.color=scoreColor(o.score);
+      var o=d.result; $('labScore'+suf).textContent=o.score!=null?o.score:'-'; $('labScore'+suf).style.color=scoreColor(o.score);
       $('labVerdict'+suf).textContent=o.verdict||'';
       $('labRewrites'+suf).innerHTML=(o.rewrites||[]).map(function(r){return '<div class="lab-rw" data-copy="'+esc(r)+'">'+esc(r)+'</div>';}).join('');
       $('labHook'+suf).textContent=o.hook||'';
@@ -2225,7 +2225,7 @@ function renderHistory(rows){
       $('sigEmpty').style.display='none'; $('sigNow').style.display='flex';
       $('sigNowV').textContent=rows[0].score;
       var delta=rows[0].score-rows[1].score;
-      var dEl=$('sigDelta'); dEl.className='delta '+(delta>0?'up':delta<0?'down':'flat'); dEl.textContent=(delta>0?'▲ +':delta<0?'▼ ':', ')+(delta===0?'flat':Math.abs(delta));
+      var dEl=$('sigDelta'); dEl.className='delta '+(delta>0?'up':delta<0?'down':'flat'); dEl.textContent=(delta>0?'▲ +':delta<0?'▼ ':'')+(delta===0?'flat':Math.abs(delta));
       drawSpark(rows.slice().reverse());
       /* command-bar delta */
       var cd=$('hqDelta'); cd.className='delta '+(delta>0?'up':delta<0?'down':'flat');
@@ -2238,9 +2238,9 @@ function renderHistory(rows){
     /* milestones */
     $('msScans').textContent=rows.length;
     var best = rows.reduce(function(m,x){return Math.max(m,x.score);}, 0);
-    $('msBest').textContent = rows.length? best : ', ';
+    $('msBest').textContent = rows.length? best : '-';
     $('msBest').style.color = rows.length? scoreColor(best):'';
-    var tg = rows.length? gradeOf(best):', '; $('msGrade').textContent=tg; $('msGrade').style.color=rows.length?gcolor(tg):'';
+    var tg = rows.length? gradeOf(best):'-'; $('msGrade').textContent=tg; $('msGrade').style.color=rows.length?gcolor(tg):'';
     $('msStreak').textContent = weekStreak(rows);
   }
 }

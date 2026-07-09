@@ -397,11 +397,11 @@ function render(d){
   var v=d.vitals||{};
   var cells=[
     {n:nfmt(v.median), l:'median views'},
-    {n:(v.cadence_days!=null? v.cadence_days+'d':', '), l:'upload cadence'},
-    {n:v.uploads||', ', l:'recent uploads'},
+    {n:(v.cadence_days!=null? v.cadence_days+'d':'-'), l:'upload cadence'},
+    {n:v.uploads||'-', l:'recent uploads'},
     {n:v.outliers||0, l:'breakout hits', cls:(v.outliers>0?'pos':'')},
     {n:v.flops||0, l:'dead zones', cls:(v.flops>0?'neg':'')},
-    {n:(v.momentum!=null? v.momentum+'x':', '), l:'recent momentum', cls:(v.momentum>=1?'pos':(v.momentum>0?'neg':''))}
+    {n:(v.momentum!=null? v.momentum+'x':'-'), l:'recent momentum', cls:(v.momentum>=1?'pos':(v.momentum>0?'neg':''))}
   ];
   if(v.engagement_pct!=null) cells.push({n:v.engagement_pct+'%', l:'like rate', cls:(v.engagement_pct>=3.5?'pos':'')});
   if(v.consistency!=null) cells.push({n:v.consistency, l:'rhythm score', cls:(v.consistency>=70?'pos':(v.consistency<40?'neg':''))});
@@ -414,7 +414,7 @@ function render(d){
   var shareUrl='https://viralsidekick.com/c.html?ch='+encodeURIComponent(currentHandle||chParam);
   var tw=$('tweetBtn');
   tw.href='https://twitter.com/intent/tweet?text='+encodeURIComponent((d.channel.name||'This channel')+' scored '+d.score+'/100 ('+g+') on ViralSidekick. grade any channel free:')+'&url='+encodeURIComponent(shareUrl);
-  document.title=(d.channel.name||'Channel')+', '+g+' ('+d.score+'/100), ViralSidekick';
+  document.title=(d.channel.name||'Channel')+' | '+g+' ('+d.score+'/100) | ViralSidekick';
   show('report');
 }
 
