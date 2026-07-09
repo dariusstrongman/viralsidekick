@@ -15,6 +15,7 @@
 ## Key facts
 - Free scan: https://viralsidekick.com/dashboard.html (about 30 seconds, no signup)
 - Public channel grade (shareable): https://viralsidekick.com/c.html
+- Every paid plan starts with a 7-day free trial, cancel anytime
 - Pro plan: 19 USD per month, or 190 USD per year (2 months free). Includes full shooting scripts, deeper intel, live pulse, weekly auto-pulse, unlimited title lab
 - Team plan: 39.99 USD per month for up to 5 seats (shared space, roles, shared board, everything in Pro for the team)
 - Method: real public YouTube data, outlier ratio measured against the channel's own format median (not against other channels)

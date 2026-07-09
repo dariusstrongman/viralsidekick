@@ -975,8 +975,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="tile s4 sell" id="tTeamUp" style="border-color:hsl(45 90% 60% / .35);--tc:hsl(45 95% 62%)">
           <h3><span class="acc" aria-hidden="true">⬡</span> team plan</h3>
           <div class="tbig" style="color:hsl(45 95% 62%)">$39.99<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
-          <div class="tsub" style="margin:8px 0 12px">One shared space, up to 5 seats, that is under $8 a seat. Everything in Pro for the whole team, live data, radar, grades, the plan, roles and a shared board.</div>
-          <a id="teamBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/7sY14pgkM4yt1L2fY05wI0q" target="_blank" rel="noopener">Upgrade to Team</a>
+          <div class="tsub" style="margin:8px 0 12px">One shared space, up to 5 seats, that is under $8 a seat. Everything in Pro for the whole team, live data, radar, grades, the plan, roles and a shared board. 7 days free, cancel anytime.</div>
+          <a id="teamBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/cNi8wRgkM1mh4Xe7ru5wI0u" target="_blank" rel="noopener">Start 7-day free trial</a>
         </div>
 
 <div class="tile s2 quiet" id="tReport">
@@ -998,7 +998,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
                 <span class="tsub">✓ Live pulse counters</span>
                 <span class="tsub">✓ Unlimited title-lab tests</span>
               </div>
-              <div class="tsub" style="margin-top:10px;color:var(--muted)">one video that hits pays for this for years. $19 a month is a rounding error against a breakout.</div>
+              <div class="tsub" style="margin-top:10px;color:var(--muted)">7 days free, then $19/mo, cancel anytime. one video that hits pays for this for years.</div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
               <div style="display:inline-flex;border:1px solid var(--line);border-radius:99px;overflow:hidden;font-size:.72rem">
@@ -1006,7 +1006,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
                 <button type="button" id="billYr" onclick="setBilling('annual')" style="border:0;background:transparent;color:var(--muted);padding:4px 12px;cursor:pointer;font-weight:600">annual, save $38</button>
               </div>
               <div><span id="proPrice" style="font-size:1.6rem;font-weight:800;color:var(--accent)">$19</span><span id="proPer" style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</span></div>
-              <a id="proBtn" class="btn btn-primary" href="https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n" target="_blank" rel="noopener">Upgrade to Pro</a>
+              <a id="proBtn" class="btn btn-primary" href="https://buy.stripe.com/bJe7sN6Kcd4Z89qbHK5wI0s" target="_blank" rel="noopener">Start 7-day free trial</a>
             </div>
           </div>
         </div>
@@ -1205,9 +1205,9 @@ function logout(){ sb.auth.signOut(); }
 /* ================= VIRAL HQ: identity + platforms + live ================= */
 var IDENT = { yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'' };
 var PLATFORM='youtube', LASTAI=null, LIVE=null, lastFullAt=0, IS_PRO=false;
-var PRO_MONTHLY='https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n';
-var PRO_ANNUAL='https://buy.stripe.com/6oUfZj8SkaWR9du7ru5wI0r';
-var TEAM_LINK='https://buy.stripe.com/7sY14pgkM4yt1L2fY05wI0q';
+var PRO_MONTHLY='https://buy.stripe.com/bJe7sN6Kcd4Z89qbHK5wI0s';
+var PRO_ANNUAL='https://buy.stripe.com/8x26oJgkM7KF75m4fi5wI0t';
+var TEAM_LINK='https://buy.stripe.com/cNi8wRgkM1mh4Xe7ru5wI0u';
 var BILLING='monthly';
 var PRO_URL=PRO_MONTHLY;
 function _withRef(u){ if(!(typeof USER!=='undefined'&&USER&&USER.id)) return u; return u+'?client_reference_id='+USER.id+'&prefilled_email='+encodeURIComponent(USER.email||''); }
@@ -2159,8 +2159,8 @@ function buildIt(idea){
   $('bpIdea').textContent=idea;
   if(!IS_PRO){
     $('bpBody').innerHTML='<div class="tsub" style="margin-bottom:14px">Scripts are the Pro weapon: a 50-year script writer turns any assignment into a shoot-ready screenplay, every line verbatim, every shot called, nothing left to decide.</div>'
-      +'<div class="tsub" style="margin-bottom:12px;color:var(--muted)">one video that hits pays for this for years. $19 a month is a rounding error against a breakout.</div>'
-      +'<a class="btn btn-primary" href="'+(($('proBtn')&&$('proBtn').href)||PRO_URL)+'" target="_blank" rel="noopener">Get the full script with Pro, $19/mo</a>';
+      +'<div class="tsub" style="margin-bottom:12px;color:var(--muted)">7 days free, then $19/mo, cancel anytime. one video that hits pays for this for years.</div>'
+      +'<a class="btn btn-primary" href="'+(($('proBtn')&&$('proBtn').href)||PRO_URL)+'" target="_blank" rel="noopener">Start your 7-day free trial</a>';
     return;
   }
   var hint=fmtHint();
