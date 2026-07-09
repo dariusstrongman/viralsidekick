@@ -401,6 +401,12 @@ footer a:hover{color:var(--fg)}
 .chiprow{display:flex;flex-wrap:wrap;gap:7px;margin-top:auto;padding-top:12px}
 .copychip{font-family:var(--mono);font-size:.76rem;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;cursor:pointer;transition:.15s;color:var(--fg);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .copychip:hover{border-color:var(--primary);color:#fff}
+/* next-video titles: full-width truncating title (hover = full name) + actions on their own row */
+.nv-item{margin-bottom:9px}
+.nv-item:last-child{margin-bottom:0}
+.nv-title{display:block;width:100%;min-width:0;box-sizing:border-box}
+.nv-acts{margin-top:5px;display:flex;gap:6px;flex-wrap:wrap}
+.nv-acts .mini-act{margin-left:0}
 
 /* ===== POSTING WINDOW ===== */
 .win-days{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
@@ -1860,7 +1866,7 @@ function hydrateDeep(ai, radarLive, signals){
   if(nv && (nv.title_options||[]).length){
     $('nextBody').innerHTML = '<div class="tsub" style="margin-bottom:8px">'+(nv.format?esc(nv.format):'tap a title to copy')+'</div>'
       + '<div class="chiprow" style="flex-direction:column;align-items:stretch;padding-top:0">'
-      + nv.title_options.slice(0,3).map(function(t){ return '<div style="display:flex;align-items:center;gap:4px"><div class="copychip" data-copy="'+esc(t)+'" style="flex:1">'+esc(t)+'</div>'+miniActs(t)+'</div>'; }).join('')
+      + nv.title_options.slice(0,3).map(function(t){ return '<div class="nv-item"><div class="copychip nv-title" title="'+esc(t)+'" data-copy="'+esc(t)+'">'+esc(t)+'</div><div class="nv-acts">'+miniActs(t)+'</div></div>'; }).join('')
       + '</div>' + (nv.hook?'<div class="tsub" style="margin-top:9px"><b style="color:var(--accent)">hook:</b> '+esc(nv.hook)+'</div>':'');
     bindCopies($('nextBody'));
   } else $('nextBody').innerHTML='<div class="tsub">Refresh to generate your next title options.</div>';
