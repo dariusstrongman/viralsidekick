@@ -1624,7 +1624,7 @@ function renderAlt(p){
 }
 
 /* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
-function goLive(){ liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals(); }
+function goLive(){ window._liveTitles=[]; liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals(); }
 
 /* ============ LIVE PULSE: flip odometers polling real counts ============ */
 var PULSE={ poll:null, anim:null, c:{} }; /* c[key]={val,rate,lastVal,lastTs,el} */
@@ -1923,13 +1923,14 @@ function renderWire(d){
     }).join('')+'</div>';
   }
   var lane=(d.lane||[]).slice(0,6);
-  if(lane.length){
-    html+='<div class="wire-lane"><div class="wl-k">🔥 hot in your lane, real videos erupting this week</div>'
-      +lane.map(function(v){
-        return '<a class="wl-item" href="https://www.youtube.com/watch?v='+esc(v.id)+'" target="_blank" rel="noopener">'
-          +'<span class="wl-t">'+esc(v.title)+'</span>'
-          +'<span class="wl-m">'+esc(v.channel||'')+' · <b>'+esc(v.views)+'</b> views · '+esc(v.age||'')+'</span></a>';
-      }).join('')+'</div>';
+  var laneHtml=lane.map(function(v){
+    if(!v||!v.id) return '';
+    return '<a class="wl-item" href="https://www.youtube.com/watch?v='+esc(v.id)+'" target="_blank" rel="noopener">'
+      +'<span class="wl-t">'+esc(v.title)+'</span>'
+      +'<span class="wl-m">'+esc(v.channel||'')+' · <b>'+esc(v.views)+'</b> views · '+esc(v.age||'')+'</span></a>';
+  }).join('');
+  if(laneHtml){
+    html+='<div class="wire-lane"><div class="wl-k">🔥 hot in your lane, real videos erupting this week</div>'+laneHtml+'</div>';
   }
   var srch=(d.searches||[]).slice(0,8);
   if(srch.length){

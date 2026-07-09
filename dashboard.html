@@ -739,7 +739,7 @@ function preflight(){
     out.innerHTML = '<div class="pfscore"><span class="num" style="color:'+(r.score>=70?'var(--success)':r.score>=45?'var(--warning)':'var(--danger)')+'">'+r.score+'</span>'
       + '<div class="pfbar"><div style="width:'+r.score+'%"></div></div></div>'
       + '<div class="pfverdict">'+esc(r.verdict)+'</div>'
-      + (r.rewrites||[]).map(function(rw){ return '<div class="rewrite" onclick="copyRw(this)" title="click to copy">'+esc(rw)+'<small>click to copy</small></div>'; }).join('')
+      + (r.rewrites||[]).map(function(rw){ return '<div class="rewrite" role="button" tabindex="0" onclick="copyRw(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();copyRw(this);}" title="click to copy">'+esc(rw)+'<small>click to copy</small></div>'; }).join('')
       + (r.hook ? '<p style="font-size:.86rem;color:var(--muted);margin-top:10px"><b style="color:var(--accent)">open with:</b> '+esc(r.hook)+'</p>' : '');
   })
   .catch(function(){ out.style.display='block'; out.innerHTML = '<p style="color:var(--danger)">pre-flight failed, try again.</p>'; })
