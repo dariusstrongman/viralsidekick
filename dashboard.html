@@ -616,7 +616,7 @@ function fmt(n){
   return String(Math.round(n));
 }
 function esc(t){ var d = document.createElement('div'); d.textContent = t==null?'':t; return d.innerHTML; }
-function gradeOf(s){ var t=[[90,'A+'],[85,'A'],[80,'A-'],[75,'B+'],[70,'B'],[65,'B-'],[60,'C+'],[55,'C'],[50,'C-'],[45,'D+'],[40,'D'],[33,'D-']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
+function gradeOf(s){ var t=[[97,'A+'],[93,'A'],[90,'A-'],[87,'B+'],[83,'B'],[80,'B-'],[77,'C+'],[73,'C'],[70,'C-'],[67,'D+'],[63,'D'],[60,'D-']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
 function gradeColor(g){ var c=(g||'')[0]; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
 
 function renderSigStrip(S){
