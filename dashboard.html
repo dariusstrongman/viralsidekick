@@ -198,7 +198,7 @@ canvas.med{width:100%;height:160px;display:block}
   align-items:center;padding:10px 2px;border-bottom:1px solid var(--border);font-size:.86rem;
 }
 .vid:last-child{border-bottom:0}
-.vid .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg)}
+.vid .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg);min-width:0}
 .vid .v{font-family:var(--mono);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .pill{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;border-radius:99px;padding:3px 10px;white-space:nowrap}
 .pill.hot{color:var(--accent);border:1px solid hsl(190 92% 56% / .45);background:hsl(190 92% 56% / .08)}
@@ -236,6 +236,21 @@ canvas.med{width:100%;height:160px;display:block}
 @media(max-width:560px){
   .heatgrid{grid-template-columns:26px repeat(24,minmax(13px,1fr))}
   .heatgrid .hourlab{grid-template-columns:repeat(24,minmax(13px,1fr))}
+  /* channel vitals: grid instead of a flex row so dividers dont dangle on wrap */
+  .statrow{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 4px}
+  .stat{border-right:0;margin-right:0;padding:4px 8px 4px 0}
+  /* report header stacks cleanly instead of margin-auto pushing a ragged 3-line block */
+  .rhead{flex-direction:column;align-items:flex-start;gap:16px}
+  .scorewrap{margin-left:0;width:100%}
+  /* DNA table -> stacked rows (the 3-prose-column squeeze is unreadable at 375px) */
+  .dna,.dna thead,.dna tbody,.dna tr,.dna td{display:block;width:100%}
+  .dna thead{position:absolute;left:-9999px}
+  .dna td{border-bottom:0;padding:2px 0}
+  .dna td.area{white-space:normal;margin-bottom:5px;font-size:.94rem}
+  .dna tr{border-bottom:1px solid var(--border);padding:12px 0}
+  .dna tr:last-child{border-bottom:0}
+  /* retention lock: let the CTA flow under the blurred chart instead of overflowing a fixed 160px box */
+  .retn .overlay{position:static;padding:16px 2px 2px}
 }
 
 /* ===== ROADMAP ===== */
@@ -317,6 +332,7 @@ canvas.med{width:100%;height:160px;display:block}
 .erupt .urg{
   position:absolute;top:14px;right:14px;font-family:var(--mono);font-size:.56rem;
   letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:6px;
+  max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .erupt .urg.now{color:var(--danger);background:hsl(0 84% 60% / .12);border:1px solid hsl(0 84% 60% / .3)}
 .erupt .urg.soon{color:var(--warning);background:hsl(38 96% 60% / .1);border:1px solid hsl(38 96% 60% / .3)}
