@@ -1414,6 +1414,7 @@ function loadBoard(){
         +'<span class="bk '+esc(p.kind||'note')+'">'+esc(p.kind||'note')+'</span>'
         +'<div class="bb"><div class="bt">'+esc(p.body||'')+'</div>'
         +'<div class="bm">'+esc(p.author_name||(p.author_email||'').split('@')[0])+' · '+relTime(p.created_at)+'</div></div>'
+        +(p.kind==='idea'&&p.status!=='done'?'<div style="margin-top:5px">'+miniActs(p.body||'')+'</div>':'')
         +(can?'<div class="bx">'
           +'<button class="bbtn" data-act="toggle" data-id="'+esc(p.id)+'" data-next="'+(p.status==='done'?'open':'done')+'">'+(p.status==='done'?'reopen':'done ✓')+'</button>'
           +'<button class="bbtn" data-act="del" data-id="'+esc(p.id)+'" aria-label="delete post">✕</button>'
@@ -1988,6 +1989,26 @@ function renderCompare(res, me){
       +'<td>'+(riv?'<button class="bbtn" onclick="delRival(\''+riv.id+'\')" aria-label="untrack">✕</button>':'')+'</td></tr>';
   });
   html+='</tbody></table></div>';
+  /* the coach reads the table: where is the opening? (computed, no AI) */
+  try {
+    var me=rows.filter(function(x){return x.id===meid;})[0]||rows[0];
+    var rivalsOnly=rows.filter(function(x){return x!==me;});
+    if(me && rivalsOnly.length){
+      var bestR=rivalsOnly.slice().sort(function(a,b){return (b.score||0)-(a.score||0);})[0];
+      var line;
+      if((me.score||0)>=(bestR.score||0)+8) line='you outscore '+esc(bestR.name)+' by '+((me.score||0)-(bestR.score||0))+'. their recent form is soft — out-ship them while it lasts.';
+      else if((bestR.score||0)>=(me.score||0)+8) line=esc(bestR.name)+' is running hotter ('+bestR.score+' vs your '+me.score+'). study their last two weeks — then take the format back.';
+      else line='dead even with '+esc(bestR.name)+'. consistency decides this one — win the rhythm score.';
+      var mo=rivalsOnly.filter(function(x){return (x.momentum||0)<0.8;});
+      if(mo.length) line+=' '+mo.map(function(x){return esc(x.name);}).join(', ')+' '+(mo.length>1?'are':'is')+' in a momentum dip — strike windows are open.';
+      $('rivalBody').innerHTML=html; /* render the table first */
+      var vb=document.createElement('div');
+      vb.style.cssText='margin-top:11px;padding:11px 14px;border-left:3px solid var(--danger);background:hsl(0 84% 60% / .06);border-radius:0 10px 10px 0;font-size:.87rem';
+      vb.innerHTML='<span style="font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--danger);display:block;margin-bottom:3px">the coach reads it</span>'+line;
+      $('rivalBody').appendChild(vb);
+      return;
+    }
+  } catch(e) {}
   $('rivalBody').innerHTML=html;
 }
 
@@ -2160,7 +2181,11 @@ function titleTest(inId, outId){
   var niche=(LASTAI&&LASTAI.niche)||'creator content';
   $(outId).style.display='block';
   $('labScore'+suf).textContent='…'; $('labVerdict'+suf).textContent='scoring against your niche'; $('labRewrites'+suf).innerHTML=''; $('labHook'+suf).textContent='';
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'title',title:t,niche:niche,website:''})})
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'title',title:t,niche:niche,
+      dna:(window._lastSignals&&window._lastSignals.title_dna)||null,
+      power_words:(window._lastSignals&&window._lastSignals.power_words)||null,
+      context:((LASTAI&&LASTAI.next_video&&LASTAI.next_video.title_options)||[]).join(' | '),
+      website:''})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(!d.ok||!d.result){ $('labScore'+suf).textContent='!'; $('labVerdict'+suf).textContent='could not score that one, try again'; return; }
