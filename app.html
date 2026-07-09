@@ -1059,6 +1059,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
    strip the query string, localStorage carries it through */
 try{
   var _q=new URLSearchParams(location.search), _inv=_q.get('invite');
+  if(_q.get('upgraded')){ localStorage.setItem('vs_upgraded','1'); }
   if(_inv){ localStorage.setItem('vs_pending_invite',_inv); history.replaceState(null,'',location.pathname); }
 }catch(e){}
 var SB_URL = 'https://fzlwnsoknngbdkizxpnl.supabase.co';
@@ -1220,6 +1221,8 @@ function enterHQ(){
   $('onboard').classList.add('hide'); $('hqWrap').classList.remove('hide');
   renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube');
   renderPro(); goLive(); initSpace();
+  celebrateUpgrade();
+  if(PROFILE && PROFILE.onboarded===false){ teamsApi('welcome').catch(function(){}); }
   /* let the entrance play once, then freeze tile animations so tab switches don't replay them */
   setTimeout(function(){ $('ytDeck').classList.add('no-anim'); $('altPanel').classList.add('no-anim'); }, 900);
 }
@@ -1407,6 +1410,29 @@ function chRole(uid2, role){
   teamsApi('change_role',{workspace_id:SPACE.workspace.id,member_user_id:uid2,role:role}).then(applySpace);
 }
 
+function celebrateUpgrade(){
+  var flag=null; try{ flag=localStorage.getItem('vs_upgraded'); }catch(e){}
+  if(!flag) return;
+  try{ localStorage.removeItem('vs_upgraded'); }catch(e){}
+  var el=document.createElement('div');
+  el.id='upgToast';
+  el.style.cssText='position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:95;background:linear-gradient(120deg,hsl(45 95% 62%),hsl(38 96% 55%));color:#1a1305;font-weight:800;padding:13px 26px;border-radius:99px;box-shadow:0 12px 44px hsl(45 95% 60% / .5);font-size:.95rem';
+  el.textContent='payment received — unlocking your plan…';
+  document.body.appendChild(el);
+  var tries=0;
+  (function poll(){
+    tries++;
+    sb.from('viralsidekick_profiles').select('plan').eq('id',USER.id).maybeSingle().then(function(r){
+      var plan=r.data&&r.data.plan;
+      if(plan==='pro'||plan==='team'){
+        PROFILE.plan=plan; IS_PRO=true; renderPro();
+        el.textContent=(plan==='team'?'TEAM':'PRO')+' unlocked. the coach expects more now.';
+        setTimeout(function(){ el.remove(); },5000);
+      } else if(tries<20){ setTimeout(poll,3000); }
+      else { el.textContent='payment received — unlock lands within a minute. refresh if it does not.'; setTimeout(function(){ el.remove(); },8000); }
+    });
+  })();
+}
 function renderPro(){
   var badge=$('proBadge'), tile=$('proCard'), head=$('idhead');
   var isTeamPlan = PROFILE && PROFILE.plan==='team';

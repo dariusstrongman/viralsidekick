@@ -173,6 +173,15 @@ a{color:inherit;text-decoration:none}
 #outro .xtitle em{font-style:italic;color:var(--cyan)}
 #outro .xframe{border:1px solid rgba(238,240,247,.1);border-radius:18px;overflow:hidden;background:#000;box-shadow:0 30px 80px rgba(5,6,10,.6)}
 #outro .xframe video{display:block;width:100%;height:auto}
+#outro .oprice{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;max-width:880px;margin:90px auto 0;text-align:left}
+.pcardx{background:rgba(238,240,247,.03);border:1px solid rgba(238,240,247,.08);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:8px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.pcardx.hot{border-color:rgba(139,92,246,.5);box-shadow:0 20px 60px rgba(139,92,246,.12)}
+.pcardx .pk2{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--muted)}
+.pcardx.hot .pk2{color:var(--violet)}
+.pcardx .pv2{font-family:var(--heading);font-size:38px;font-weight:400}
+.pcardx .pv2 span{font-size:14px;color:var(--muted);font-family:var(--body)}
+.pcardx .pd2{font-size:13px;color:var(--muted);line-height:1.6;flex:1}
+.pcardx .btn{justify-content:center;padding:12px 18px;font-size:13px}
 #outro .cred{margin-top:96px;font-family:var(--mono);font-size:9px;letter-spacing:.32em;text-transform:uppercase;color:var(--faint);line-height:3.2}
 #outro .cred b{color:var(--muted);font-weight:500}
 footer{background:#0d0e17;border-top:1px solid rgba(238,240,247,.06);padding:52px 6%;display:flex;flex-direction:column;align-items:center;gap:13px;position:relative;z-index:20}
@@ -328,8 +337,29 @@ footer .fline a{color:var(--muted)}
     </div>
   </div>
 
+  <div class="oprice" id="pricing">
+    <div class="pcardx">
+      <div class="pk2">FREE</div>
+      <div class="pv2">$0</div>
+      <div class="pd2">the full autopsy · report cards · 5 deep scans a day</div>
+      <a class="btn btn-line" href="app.html">Start free</a>
+    </div>
+    <div class="pcardx hot">
+      <div class="pk2">PRO</div>
+      <div class="pv2">$19<span>/mo</span></div>
+      <div class="pd2">weekly auto-pulse · unlimited title lab · priority retention autopsy</div>
+      <a class="btn btn-fill" href="app.html">Go Pro</a>
+    </div>
+    <div class="pcardx">
+      <div class="pk2">TEAM</div>
+      <div class="pv2">$29.99<span>/mo</span></div>
+      <div class="pd2">one shared space · 5 members · everything in pro for the whole team</div>
+      <a class="btn btn-line" href="app.html">Start a team</a>
+    </div>
+  </div>
+
   <div class="cred">
-    written, designed &amp; rendered <b>in code</b> · voiced by the machine<br>
+    written, designed &amp; rendered <b>in code</b> · one video file was harmed (the explainer)<br>
     engine <b>viralsidekick analyze</b> · data <b>public youtube signals</b> · studio <b>stromation</b>
   </div>
 </section>
