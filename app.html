@@ -1893,14 +1893,14 @@ function loadTrends(niche){
   var seed=[]; try{ if(Array.isArray(window._liveTitles)) seed=window._liveTitles.slice(0,10); }catch(e){}
   var ckey=chId+'|'+(niche||'');
   try{
-    var cch=JSON.parse(localStorage.getItem('vs_wire')||'null');
+    var cch=JSON.parse(localStorage.getItem('vs_wire2')||'null');
     if(cch && cch.key===ckey && (Date.now()-cch.at)<30*60000){ renderWire(cch.d); return; }
   }catch(e){}
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'trends',niche:niche||'',channel:chId,channel_name:chName,seed:seed})})
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'trends',niche:niche||'',channel:chId,channel_name:chName,channel_subs:_c.subs||'',seed:seed})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(!d||!d.ok){ $('wireBody').innerHTML='<div class="tsub">wire is quiet, check back shortly.</div>'; return; }
-      try{ localStorage.setItem('vs_wire',JSON.stringify({at:Date.now(),key:ckey,d:d})); }catch(e){}
+      try{ localStorage.setItem('vs_wire2',JSON.stringify({at:Date.now(),key:ckey,d:d})); }catch(e){}
       renderWire(d);
     })
     .catch(function(){ $('wireBody').innerHTML='<div class="tsub">wire is quiet, check back shortly.</div>'; });
