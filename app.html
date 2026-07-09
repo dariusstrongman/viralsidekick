@@ -1189,6 +1189,7 @@ function logout(){ sb.auth.signOut(); }
 /* ================= VIRAL HQ: identity + platforms + live ================= */
 var IDENT = { yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'' };
 var PLATFORM='youtube', LASTAI=null, LIVE=null, lastFullAt=0, IS_PRO=false;
+var PRO_URL='https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n';
 var IC_YT='<svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>';
 var IC_TT='<svg class="pi pi-tt" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.2 1.8 3.9 4 4.1v2.7c-1.4.1-2.7-.3-4-1v6.3a6 6 0 1 1-6-6c.3 0 .5 0 .8.1v2.9a3.1 3.1 0 1 0 2.2 3V3h3z"/></svg>';
 var IC_IG='<svg class="pi pi-ig" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3 0 4.1.1 1 0 1.6.2 2 .4.5.2.9.5 1.3.9.4.4.7.8.9 1.3.2.4.3 1 .4 2C20.9 8 21 8.3 21 11s0 3-.1 4.1c0 1-.2 1.6-.4 2a3.5 3.5 0 0 1-.9 1.3c-.4.4-.8.7-1.3.9-.4.2-1 .3-2 .4-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-1 0-1.6-.2-2-.4a3.5 3.5 0 0 1-1.3-.9 3.5 3.5 0 0 1-.9-1.3c-.2-.4-.3-1-.4-2C3 15 3 14.7 3 12s0-3 .1-4.1c0-1 .2-1.6.4-2 .2-.5.5-.9.9-1.3.4-.4.8-.7 1.3-.9.4-.2 1-.3 2-.4C8.8 3 9.1 3 12 3zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8zM17.8 6a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1z"/></svg>';
@@ -1199,8 +1200,9 @@ function gcolor(g){ var c=(g||'')[0]; if(c==='A')return 'var(--success)'; if(c==
 
 function showApp(){
   $('navRight').innerHTML = '<span>'+esc((PROFILE&&PROFILE.display_name)||USER.email||'')+'</span><button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>';
+  PRO_URL = 'https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n?client_reference_id=' + USER.id + '&prefilled_email=' + encodeURIComponent(USER.email || '');
   var pb = $('proBtn');
-  if (pb) pb.href = 'https://buy.stripe.com/aFa4gB6Kcghb75m6nq5wI0n?client_reference_id=' + USER.id + '&prefilled_email=' + encodeURIComponent(USER.email || '');
+  if (pb) pb.href = PRO_URL;
   var tb = $('teamBtn');
   if (tb) tb.href = 'https://buy.stripe.com/7sY28t1pSe932P69zC5wI0p?client_reference_id=' + USER.id + '&prefilled_email=' + encodeURIComponent(USER.email || '');
   bootType();
@@ -1231,7 +1233,7 @@ function loadProfile(){
        + email confirms via localStorage) */
     var pend=null; try{ pend=localStorage.getItem('vs_pending_invite'); }catch(e){}
     function adoptAndEnter(d){
-      SPACE=d;
+      SPACE=d; syncTeamPro();
       if(!(IDENT.yt.id||IDENT.yt.name) && d.channel && (d.channel.id||d.channel.name)){
         IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
         IDENT._adopted=true;
@@ -1327,6 +1329,9 @@ function openBilling(btn){
   }).catch(function(){ btn.textContent='try again'; btn.disabled=false; setTimeout(function(){btn.textContent=orig;},2500); });
 }
 function spaceFallback(){ $('spaceBody').innerHTML='<div class="tsub">Spaces are warming up — check back shortly.</div>'; }
+/* team plan lives on the WORKSPACE — a member's own profile stays free. reflect the
+   team's paid plan so invited members get the Pro tools their team paid for. */
+function syncTeamPro(){ if(SPACE && SPACE.workspace && SPACE.workspace.plan==='team' && !IS_PRO){ IS_PRO=true; try{ renderPro(); }catch(e){} } }
 function spaceNote(t){ var e=$('spaceEnd'); if(e){ e.textContent=t; setTimeout(function(){e.textContent= SPACE?'':'';},4000); } }
 function applySpace(d){
   if(!d || d.error){
@@ -1335,7 +1340,7 @@ function applySpace(d){
     return;
   }
   if(!d.workspace){ renderNoSpace(); return; }
-  SPACE=d;
+  SPACE=d; syncTeamPro();
   try{ var pv=localStorage.getItem('vs_view'); if(pv==='space'||(IDENT._adopted)) VIEW='space'; else if(pv==='mine') VIEW='mine'; }catch(e){}
   if(IDENT._adopted) VIEW='space';
   renderViewSwitch();
@@ -1948,7 +1953,8 @@ function delRival(id){
   sb.from('viralsidekick_channels').delete().eq('id',id).then(function(){ try{ localStorage.removeItem('vs_cmp'); }catch(e){} loadRivals(); });
 }
 function runCompare(){
-  var me=curCh();
+  var me=curCh()||{};
+  if(!(me.id||me.name)){ $('rivalBody').innerHTML='<div class="tsub">connect your channel first — then the coach can measure you against your rivals.</div>'; return; }
   var chans=[me.id||me.name].concat(RIVALS.map(function(r){return r.channel_id;})).filter(Boolean);
   var ck='vs_cmp';
   try{
@@ -2032,7 +2038,7 @@ function buildIt(idea){
   $('bpIdea').textContent=idea;
   if(!IS_PRO){
     $('bpBody').innerHTML='<div class="tsub" style="margin-bottom:14px">Scripts are the Pro weapon: a 50-year script writer turns any assignment into a shoot-ready screenplay — every line verbatim, every shot called, nothing left to decide.</div>'
-      +'<a class="btn btn-primary" href="'+($('proBtn')?$('proBtn').href:'#')+'" target="_blank" rel="noopener">Unlock with Pro — $19/mo</a>';
+      +'<a class="btn btn-primary" href="'+(($('proBtn')&&$('proBtn').href)||PRO_URL)+'" target="_blank" rel="noopener">Unlock with Pro — $19/mo</a>';
     return;
   }
   var hint=fmtHint();
@@ -2200,8 +2206,19 @@ function titleTest(inId, outId){
 
 /* ---------- history: signal tile + milestones ---------- */
 function loadHistory(){
-  spaceScans().select('channel_name,score,created_at').order('created_at',{ascending:false}).limit(60).then(function(r){
-    var rows = (r.data||[]).filter(function(x){ return x.score!=null; });
+  /* one consistent series: the daily card snapshots (same method every day) so the
+     trend + delta never jump between the heuristic card score and the GPT deep-scan
+     score. fall back to all scored rows for brand-new accounts with no snapshots yet. */
+  spaceScans().select('channel_name,score,created_at').not('report->card','is',null).order('created_at',{ascending:false}).limit(90).then(function(r){
+    var snap=(r&&r.data||[]).filter(function(x){ return x.score!=null; });
+    if(snap.length>=2){ renderHistory(snap); return; }
+    spaceScans().select('channel_name,score,created_at').order('created_at',{ascending:false}).limit(60).then(function(r2){
+      renderHistory((r2&&r2.data||[]).filter(function(x){ return x.score!=null; }));
+    });
+  });
+}
+function renderHistory(rows){
+  {
     /* signal tile */
     $('sigCount').textContent = rows.length ? rows.length+' reviews' : '';
     if(rows.length>=2){
@@ -2225,7 +2242,7 @@ function loadHistory(){
     $('msBest').style.color = rows.length? scoreColor(best):'';
     var tg = rows.length? gradeOf(best):'–'; $('msGrade').textContent=tg; $('msGrade').style.color=rows.length?gcolor(tg):'';
     $('msStreak').textContent = weekStreak(rows);
-  });
+  }
 }
 function weekStreak(rows){
   if(!rows.length) return 0;
@@ -2258,7 +2275,7 @@ function drawSpark(rows){
   var fill=x.createLinearGradient(0,0,0,H); fill.addColorStop(0,'hsl(260 90% 66% / .22)'); fill.addColorStop(1,'transparent'); x.fillStyle=fill; x.fill();
   vals.forEach(function(v,i){ var px=pad+i*dx,y=py(v); x.beginPath(); x.arc(px,y,3,0,7); x.fillStyle=scoreColor(v); x.fill(); });
 }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 </script>
 </body>
 </html>

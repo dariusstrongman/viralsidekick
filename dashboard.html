@@ -233,6 +233,11 @@ canvas.med{width:100%;height:160px;display:block}
 .heatgrid .cell{aspect-ratio:1.2/1;border-radius:3px;background:var(--card2);min-width:0}
 .heatgrid .hourlab{grid-column:2/-1;display:grid;grid-template-columns:repeat(24,1fr);gap:3px;margin-top:4px}
 .heatgrid .hourlab span{text-align:center;overflow:hidden}
+/* on phones keep the 24-hour cells legible and let the grid scroll instead of crushing */
+@media(max-width:560px){
+  .heatgrid{grid-template-columns:26px repeat(24,minmax(13px,1fr))}
+  .heatgrid .hourlab{grid-template-columns:repeat(24,minmax(13px,1fr))}
+}
 
 /* ===== ROADMAP ===== */
 .roadmap{display:flex;flex-direction:column;gap:0;position:relative;padding-left:22px}
@@ -598,8 +603,9 @@ function runAnalysis(payload){
       if (d.error){ throw new Error(d.error === 'channel_not_found'
         ? 'couldn\'t find that channel. try the full URL (youtube.com/@handle) or the channel ID (starts with UC).'
         : d.error); }
+      if (!d.ok || !d.ai){ throw new Error('that scan came back incomplete. try again in a minute.'); }
       var wait = Math.max(0, (payload.demo ? 3500 : 9000) - (Date.now() - t0));
-      setTimeout(function(){ clearTimeout(scanTimer); renderReport(d); }, reduce ? 0 : wait);
+      setTimeout(function(){ clearTimeout(scanTimer); try{ renderReport(d); }catch(e){ fail('that scan came back malformed. try again in a minute.'); } }, reduce ? 0 : wait);
     })
     .catch(function(err){
       clearTimeout(scanTimer);
@@ -941,7 +947,7 @@ var DEMO = {
     var sbc=window.supabase.createClient('https://fzlwnsoknngbdkizxpnl.supabase.co','sb_publishable_K81b73rtZnF0fR6B5mnDWQ_I2CO_OK6');
     sbc.auth.getSession().then(function(r){
       if(!(r&&r.data&&r.data.session)) return;
-      document.querySelectorAll('a[href="app.html"]').forEach(function(a){ if(/log ?in/i.test(a.textContent)) a.textContent='My HQ'; });
+      document.querySelectorAll('a[href="app.html"]').forEach(function(a){ if(/log ?in|sign ?in/i.test(a.textContent)) a.textContent='My HQ'; });
       var s=document.getElementById('sessCta'); if(s){ s.textContent='Open my HQ'; s.href='app.html'; }
     });
   }catch(e){}

@@ -188,6 +188,7 @@ var APP = 'app.html';
 /* ---------- living hero: seamless loop video over the still ---------- */
 (function(){
   var v=document.getElementById('godvid');
+  if(!v) return;
   if(REDUCE){ v.remove(); return; }           /* reduced-motion: calm still only */
   v.addEventListener('canplay',function(){ v.classList.add('ready'); });
   v.addEventListener('error',function(){ v.remove(); });  /* video missing -> still holds the frame */
@@ -213,7 +214,7 @@ var APP = 'app.html';
 /* ---------- drifting sparks rising from the forge ---------- */
 (function(){
   if (REDUCE) return;
-  var c=document.getElementById('sparks'),x=c.getContext('2d'),P=[];
+  var c=document.getElementById('sparks'); if(!c) return; var x=c.getContext('2d'),P=[];
   function size(){ c.width=innerWidth; c.height=innerHeight; }
   size(); addEventListener('resize',size);
   function rnd(i){ var v=Math.sin(i*127.1+311.7)*43758.5453; return v-Math.floor(v); }

@@ -378,10 +378,10 @@ function grade(channel){
     .then(function(r){return r.json();})
     .then(function(d){
       clearInterval(loadTimer);
-      if(!d || d.error || !d.ok){ $('errMsg').innerHTML='We could not read that channel. Try a handle like <b style="color:var(--accent)">@mkbhd</b>, the full URL, or the exact name.'; show('error'); return; }
+      if(!d || d.error || !d.ok){ CARD=null; $('errMsg').innerHTML='We could not read that channel. Try a handle like <b style="color:var(--accent)">@mkbhd</b>, the full URL, or the exact name.'; show('error'); return; }
       CARD=d; render(d);
     })
-    .catch(function(){ clearInterval(loadTimer); $('errMsg').textContent='Something went wrong reading that channel. Try again in a moment.'; show('error'); });
+    .catch(function(){ CARD=null; clearInterval(loadTimer); $('errMsg').textContent='Something went wrong reading that channel. Try again in a moment.'; show('error'); });
 }
 
 function render(d){

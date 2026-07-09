@@ -705,7 +705,7 @@ function animate(t){
     var sbc=window.supabase.createClient('https://fzlwnsoknngbdkizxpnl.supabase.co','sb_publishable_K81b73rtZnF0fR6B5mnDWQ_I2CO_OK6');
     sbc.auth.getSession().then(function(r){
       if(!(r&&r.data&&r.data.session)) return;
-      document.querySelectorAll('a[href="app.html"]').forEach(function(a){ if(/log ?in/i.test(a.textContent)) a.textContent='My HQ'; });
+      document.querySelectorAll('a[href="app.html"]').forEach(function(a){ if(/log ?in|sign ?in/i.test(a.textContent)) a.textContent='My HQ'; });
       var s=document.getElementById('sessCta'); if(s){ s.textContent='Open my HQ'; s.href='app.html'; }
     });
   }catch(e){}
