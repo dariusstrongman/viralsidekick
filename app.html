@@ -505,6 +505,14 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .bp-beat:first-child{border-top:none}
 .bp-beat .n{font-family:var(--mono);font-size:.66rem;color:var(--primary);flex:0 0 auto;padding-top:2px}
 .bp-beat .w{color:var(--fg)} .bp-beat .y{color:var(--faint);font-size:.78rem}
+.script{max-height:46vh;overflow-y:auto;border:1px solid var(--border);border-radius:11px;padding:4px 0;background:hsl(230 24% 4%)}
+.sc-row{display:flex;gap:11px;padding:9px 13px;border-top:1px solid var(--border)}
+.sc-row:first-child{border-top:none}
+.sc-t{font-family:var(--mono);font-size:.68rem;color:var(--primary);flex:0 0 44px;padding-top:3px}
+.sc-b{flex:1;min-width:0}
+.sc-line{font-size:.92rem;color:var(--fg);line-height:1.55}
+.sc-shot{font-family:var(--mono);font-size:.7rem;color:var(--accent);margin-top:3px;letter-spacing:.02em}
+.sc-note{font-size:.74rem;color:var(--faint);margin-top:2px;font-style:italic}
 .bp-rule{background:hsl(38 96% 60% / .08);border:1px solid hsl(38 96% 60% / .3);border-radius:10px;padding:10px 13px;font-size:.88rem;font-weight:600;margin-top:13px}
 .mini-act{display:inline-flex;align-items:center;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;border:1px solid var(--border2);border-radius:7px;padding:2px 8px;color:var(--muted);cursor:pointer;transition:.15s;margin-left:6px;vertical-align:middle}
 .mini-act:hover{color:#fff;border-color:var(--primary)}
@@ -1022,7 +1030,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
   <div class="modal" id="bpModal">
     <div class="mc" style="max-width:640px">
       <span class="x" onclick="document.getElementById('bpModal').classList.remove('on')">✕</span>
-      <h2>🎬 production blueprint</h2>
+      <h2>🎬 the script</h2>
       <p class="sm mut" id="bpIdea" style="margin-bottom:14px"></p>
       <div id="bpBody"><div class="tsub">the coach is building it…</div></div>
     </div>
@@ -1994,53 +2002,71 @@ function addToQueue(text){
 }
 function buildIt(idea){
   var modal=$('bpModal');
+  modal.classList.add('on');
+  $('bpIdea').textContent=idea;
   if(!IS_PRO){
-    modal.classList.add('on');
-    $('bpIdea').textContent=idea;
-    $('bpBody').innerHTML='<div class="tsub" style="margin-bottom:14px">Blueprints are the Pro weapon: the coach turns any assignment into a shoot-ready plan — verbatim hook script, beat-by-beat structure, thumbnail concept, the one rule that makes or breaks it.</div>'
+    $('bpBody').innerHTML='<div class="tsub" style="margin-bottom:14px">Scripts are the Pro weapon: a 50-year script writer turns any assignment into a shoot-ready screenplay — every line verbatim, every shot called, nothing left to decide.</div>'
       +'<a class="btn btn-primary" href="'+($('proBtn')?$('proBtn').href:'#')+'" target="_blank" rel="noopener">Unlock with Pro — $19/mo</a>';
     return;
   }
-  modal.classList.add('on');
-  $('bpIdea').textContent=idea;
-  $('bpBody').innerHTML='<div class="tsub"><span class="spin" style="display:inline-block;vertical-align:middle;margin-right:8px"></span>the coach is building it…</div>';
+  var hint=fmtHint();
+  $('bpBody').innerHTML='<div class="tsub" style="margin-bottom:12px">What are we writing?</div>'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap">'
+    +'<button class="btn '+(hint==='short'?'btn-primary':'btn-ghost')+'" data-bpfmt="short">⚡ Short — 30-60s vertical</button>'
+    +'<button class="btn '+(hint==='longform'?'btn-primary':'btn-ghost')+'" data-bpfmt="longform">▶ Long-form — 8-12 min</button>'
+    +'</div>'
+    +(hint?'<div class="tsub" style="margin-top:10px;font-size:.76rem;color:var(--faint)">the coach recommends '+(hint==='short'?'a short':'long-form')+' — it is what carries this channel</div>':'');
+  window._bpIdea=idea;
+}
+function buildFmt(idea, fmt){
+  $('bpBody').innerHTML='<div class="tsub"><span class="spin" style="display:inline-block;vertical-align:middle;margin-right:8px"></span>the script writer is on it… ('+(fmt==='short'?'~10s':'~20s')+')</div>';
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mode:'blueprint',idea:idea,niche:(LASTAI&&LASTAI.niche)||'',format:fmtHint(),token:ACCESS,website:''})})
+    body:JSON.stringify({mode:'blueprint',idea:idea,niche:(LASTAI&&LASTAI.niche)||'',format:fmt,token:ACCESS,website:''})})
     .then(function(r){return r.json();})
     .then(function(d){
-      if(!d||!d.ok||!d.blueprint){ $('bpBody').innerHTML='<div class="tsub">'+esc((d&&d.detail)||'could not build that one — try again.')+'</div>'; return; }
+      if(!d||!d.ok||!d.blueprint){ $('bpBody').innerHTML='<div class="tsub">'+esc((d&&d.detail)||'could not write that one — try again.')+'</div>'; return; }
       var bp=d.blueprint, html='';
       html+='<div class="bp-sec"><div class="bp-k">title</div><div class="tlead">'+esc(bp.title||'')+'</div>'
-        +(bp.alt_title?'<div class="tsub">alt: '+esc(bp.alt_title)+'</div>':'')+'</div>';
-      if(bp.hook_script) html+='<div class="bp-sec"><div class="bp-k">the hook — say this, shoot this</div><div class="bp-hook">'+esc(bp.hook_script)+'</div></div>';
-      if(bp.beats&&bp.beats.length){
-        html+='<div class="bp-sec"><div class="bp-k">structure</div>'+bp.beats.map(function(x,i){
-          return '<div class="bp-beat"><span class="n">'+(i+1)+'</span><div><div class="w">'+esc(x.beat||'')+' — '+esc(x.what||'')+'</div><div class="y">'+esc(x.why||'')+'</div></div></div>';
-        }).join('')+'</div>';
+        +(bp.alt_title?'<div class="tsub">alt: '+esc(bp.alt_title)+'</div>':'')
+        +(bp.logline?'<div class="tsub" style="color:var(--fg);margin-top:4px;font-style:italic">'+esc(bp.logline)+'</div>':'')+'</div>';
+      var sc=bp.script||[];
+      if(sc.length){
+        html+='<div class="bp-sec"><div class="bp-k">the script — every line, every shot</div><div class="script">'
+          +sc.map(function(row){
+            return '<div class="sc-row"><span class="sc-t">'+esc(row.t||'')+'</span><div class="sc-b">'
+              +(row.line?'<div class="sc-line">'+esc(row.line)+'</div>':'')
+              +(row.shot?'<div class="sc-shot">SHOT: '+esc(row.shot)+'</div>':'')
+              +(row.note?'<div class="sc-note">'+esc(row.note)+'</div>':'')
+              +'</div></div>';
+          }).join('')+'</div></div>';
       }
       if(bp.thumbnail) html+='<div class="bp-sec"><div class="bp-k">thumbnail</div><div class="tsub" style="color:var(--fg)">'+esc(bp.thumbnail.concept||'')
         +(bp.thumbnail.text_overlay?' · text: <b>'+esc(bp.thumbnail.text_overlay)+'</b>':'')
         +(bp.thumbnail.emotion?' · '+esc(bp.thumbnail.emotion):'')+'</div></div>';
       if(bp.description) html+='<div class="bp-sec"><div class="bp-k">description</div><div class="tsub">'+esc(bp.description)+'</div></div>';
       if(bp.hashtags&&bp.hashtags.length) html+='<div class="bp-sec"><div class="bp-k">tags</div><div class="tsub">'+bp.hashtags.map(function(t){return esc(String(t).indexOf('#')===0?t:'#'+t);}).join(' ')+'</div></div>';
-      if(bp.length) html+='<div class="bp-sec"><div class="bp-k">target length</div><div class="tsub">'+esc(String(bp.length))+' · format: '+esc(d.format)+'</div></div>';
+      if(bp.length) html+='<div class="bp-sec"><div class="bp-k">target length</div><div class="tsub">'+esc(String(bp.length))+' · '+esc(d.format)+'</div></div>';
       if(bp.one_rule) html+='<div class="bp-rule">⚠ the one rule: '+esc(bp.one_rule)+'</div>';
       html+='<div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">'
         +'<button class="btn btn-ghost btn-sm" data-qadd="'+encodeURIComponent(bp.title||idea)+'">+ queue this</button>'
-        +'<button class="btn btn-ghost btn-sm" id="bpCopyAll">copy everything</button></div>';
+        +'<button class="btn btn-ghost btn-sm" id="bpCopyAll">copy the script</button>'
+        +'<button class="btn btn-ghost btn-sm" data-bpfmt="'+(d.format==='short'?'longform':'short')+'">rewrite as '+(d.format==='short'?'long-form':'a short')+'</button></div>';
       $('bpBody').innerHTML=html;
       var ca=$('bpCopyAll');
       if(ca) ca.onclick=function(){
-        var txt='TITLE: '+(bp.title||'')+'\nHOOK:\n'+(bp.hook_script||'')+'\n\nBEATS:\n'+(bp.beats||[]).map(function(x,i){return (i+1)+'. '+(x.beat||'')+' — '+(x.what||'');}).join('\n')
-          +'\n\nTHUMBNAIL: '+((bp.thumbnail||{}).concept||'')+'\nDESCRIPTION: '+(bp.description||'')+'\nTAGS: '+((bp.hashtags||[]).join(' '))+'\nONE RULE: '+(bp.one_rule||'');
-        navigator.clipboard.writeText(txt); ca.textContent='copied ✓'; setTimeout(function(){ca.textContent='copy everything';},1500);
+        var txt='TITLE: '+(bp.title||'')+'\n'+(bp.logline?'LOGLINE: '+bp.logline+'\n':'')+'\nSCRIPT ('+d.format+'):\n'
+          +sc.map(function(r){return '['+(r.t||'')+']'+(r.shot?'\nSHOT: '+r.shot:'')+(r.line?'\nLINE: '+r.line:'')+(r.note?'\nNOTE: '+r.note:'')+'\n';}).join('\n')
+          +'\nTHUMBNAIL: '+((bp.thumbnail||{}).concept||'')+'\nDESCRIPTION: '+(bp.description||'')+'\nTAGS: '+((bp.hashtags||[]).join(' '))+'\nONE RULE: '+(bp.one_rule||'');
+        navigator.clipboard.writeText(txt); ca.textContent='copied ✓'; setTimeout(function(){ca.textContent='copy the script';},1500);
       };
     })
     .catch(function(){ $('bpBody').innerHTML='<div class="tsub">network hiccup — try again.</div>'; });
 }
 document.addEventListener('click',function(e){
+  var fmtb=e.target.closest('[data-bpfmt]');
+  if(fmtb){ buildFmt(window._bpIdea||$('bpIdea').textContent, fmtb.getAttribute('data-bpfmt')); return; }
   var bpb=e.target.closest('[data-bp]');
-  if(bpb){ buildIt(decodeURIComponent(bpb.getAttribute('data-bp'))); return; }
+  if(bpb){ window._bpIdea=decodeURIComponent(bpb.getAttribute('data-bp')); buildIt(window._bpIdea); return; }
   var qb=e.target.closest('[data-qadd]');
   if(qb){ addToQueue(decodeURIComponent(qb.getAttribute('data-qadd'))); qb.textContent='queued ✓'; }
 });
