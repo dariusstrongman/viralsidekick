@@ -602,6 +602,7 @@ function show(state){
 }
 function resetScan(){ show('input'); }
 function fail(msg){
+  window._scanningNow=false; var rb=$('runBtn'); if(rb) rb.disabled=false;
   show('input');
   var e = $('errBox'); e.textContent = msg; e.style.display = 'block';
 }
@@ -650,6 +651,8 @@ function runDemo(){
   return false;
 }
 function runAnalysis(payload){
+  if(window._scanningNow) return; window._scanningNow=true; /* no double GPT bill on Enter+click */
+  var rb=$('runBtn'); if(rb) rb.disabled=true;
   show('scan');
   $('scanTitle').textContent = payload.demo ? 'Analyzing demo channel…' : 'Scanning ' + payload.channel + '…';
   playScanLog();
@@ -668,11 +671,11 @@ function runAnalysis(payload){
       /* the AI read can fail while stats + radar are fine - render the data (charts, outliers, radar) with a note instead of hard-failing and double-billing a retry */
       if (!d.ok){ throw new Error('that scan came back incomplete. try again in a minute.'); }
       var wait = Math.max(0, (payload.demo ? 3500 : 9000) - (Date.now() - t0));
-      setTimeout(function(){ clearTimeout(scanTimer); try{ renderReport(d); }catch(e){ fail('that scan came back malformed. try again in a minute.'); } }, reduce ? 0 : wait);
+      setTimeout(function(){ clearTimeout(scanTimer); try{ renderReport(d); window._scanningNow=false; }catch(e){ fail('that scan came back malformed. try again in a minute.'); } }, reduce ? 0 : wait);
     })
     .catch(function(err){
       clearTimeout(scanTimer); clearTimeout(_to);
-      if (payload.demo){ renderReport(DEMO); return; }
+      if (payload.demo){ window._scanningNow=false; renderReport(DEMO); return; }
       fail((err&&err.name==='AbortError') ? 'that scan timed out. try again in a minute.' : (err.message || 'scan failed. try again in a minute.'));
     });
 }

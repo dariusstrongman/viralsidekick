@@ -1151,7 +1151,7 @@ function route(session){
   USER = session ? session.user : null;
   ACCESS = session ? session.access_token : null;
   if (USER){ $('authGate').classList.add('hide'); $('appHome').classList.remove('hide'); showApp(); }
-  else { $('appHome').classList.add('hide'); $('authGate').classList.remove('hide'); $('navRight').innerHTML='<a class="nav-scan" href="dashboard.html">Free scan</a>'; }
+  else { $('appHome').classList.add('hide'); $('authGate').classList.remove('hide'); $('navRight').innerHTML='<a class="nav-scan" href="dashboard.html">Free scan</a>'; window._appUser=null; try{ stopPulse(); }catch(e){} }
 }
 try{
   if(localStorage.getItem('vs_pending_invite')){
@@ -1253,6 +1253,10 @@ function showApp(){
   setBilling(BILLING);
   var tb = $('teamBtn');
   if (tb) tb.href = _withRef(TEAM_LINK);
+  /* a token refresh (~hourly) re-fires onAuthStateChange -> route -> showApp. only run the heavy
+     init (profile load, scans, pulse timers) once per user, or every refresh re-bills a scan. */
+  if(window._appUser===USER.id) return;
+  window._appUser=USER.id;
   try { loadIdeas(); } catch(e){}
   bootType();
   loadProfile();
@@ -1275,7 +1279,7 @@ function loadProfile(){
     PROFILE = r.data || {};
     IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
     IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||'';
-    IS_PRO = (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROFILE.plan_status==null || PROFILE.plan_status==='active' || PROFILE.plan_status==='trialing');
+    IS_PRO = ownPro();
 
     /* INVITED? accept BEFORE any onboarding, team members walk straight into
        the space, no channel setup, no forms. (token survives oauth redirects
@@ -1380,7 +1384,11 @@ function openBilling(btn){
 function spaceFallback(){ $('spaceBody').innerHTML='<div class="tsub">Spaces are warming up, check back shortly.</div>'; }
 /* team plan lives on the WORKSPACE, a member's own profile stays free. reflect the
    team's paid plan so invited members get the Pro tools their team paid for. */
-function syncTeamPro(){ if(SPACE && SPACE.workspace && SPACE.workspace.plan==='team' && !IS_PRO){ IS_PRO=true; try{ renderPro(); }catch(e){} } }
+/* single source of truth for entitlement. own paid plan (with a live status) OR a team-plan workspace.
+   recomputed on every profile/space change so leaving a team actually drops Pro instead of staying stuck true. */
+function ownPro(){ return (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROFILE.plan_status==null || PROFILE.plan_status==='active' || PROFILE.plan_status==='trialing'); }
+function recomputePro(){ var was=IS_PRO; IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); if(IS_PRO!==was){ try{ renderPro(); }catch(e){} } }
+function syncTeamPro(){ recomputePro(); }
 function spaceNote(t){ var e=$('spaceEnd'); if(e){ e.textContent=t; setTimeout(function(){e.textContent= SPACE?'':'';},4000); } }
 function applySpace(d){
   if(!d || d.error){
@@ -1398,7 +1406,7 @@ function applySpace(d){
   goLive(); /* re-pull history with the shared lens */
 }
 function renderNoSpace(){
-  SPACE=null;
+  SPACE=null; recomputePro(); /* dropped from the team -> lose team-granted Pro unless own plan covers it */
   var tb=$('tBoard'); if(tb) tb.style.display='none';
   $('spaceEnd').textContent='';
   $('spaceBody').innerHTML=
@@ -1519,10 +1527,11 @@ function celebrateUpgrade(){
   var tries=0;
   (function poll(){
     tries++;
-    sb.from('viralsidekick_profiles').select('plan').eq('id',USER.id).maybeSingle().then(function(r){
-      var plan=r.data&&r.data.plan;
-      if(plan==='pro'||plan==='team'){
-        PROFILE.plan=plan; IS_PRO=true; renderPro();
+    sb.from('viralsidekick_profiles').select('plan,plan_status').eq('id',USER.id).maybeSingle().then(function(r){
+      var plan=r.data&&r.data.plan, st=r.data&&r.data.plan_status;
+      var live=(plan==='pro'||plan==='team') && (st==null||st==='active'||st==='trialing');
+      if(live){
+        PROFILE.plan=plan; PROFILE.plan_status=st; recomputePro();
         el.textContent=(plan==='team'?'TEAM':'PRO')+' is live. the coach expects more now.';
         setTimeout(function(){ el.remove(); },5000);
       } else if(tries<20){ setTimeout(poll,3000); }
@@ -1745,7 +1754,7 @@ function pollPulse(){
         pulseSet('lv', lv.views, esc(lv.title||''));
         /* NEW UPLOAD = the coach reviews immediately. no stale timers. */
         if(lv.id){
-          var key='vs_reviewed_'+((curCh().id)||'x');
+          var key='vs_reviewed_'+((curCh().id)||(curCh().handle)||(curCh().name)||'x');
           var seen=null; try{ seen=localStorage.getItem(key); }catch(e){}
           if(seen && seen!==lv.id && window._autoRev!==lv.id){
             window._autoRev=lv.id;
@@ -1838,7 +1847,7 @@ function loadLatestFull(){
     if(row){
       lastFullAt=Date.parse(String(row.created_at||'').replace(' ','T')); if(isNaN(lastFullAt)) lastFullAt=Date.now();
       var stale=(Date.now()-lastFullAt)>216e5; /* 6h, the coach never coaches off old film */
-      var mismatch=(IDENT.yt.id && row.channel_id && row.channel_id!==IDENT.yt.id);
+      var _cid=(curCh()||{}).id; var mismatch=(_cid && row.channel_id && row.channel_id!==_cid); /* compare vs the channel we will actually scan, not always the personal one */
       hydrateDeep(row.report.ai, row.report.radar_live, row.report.signals, row.report.breakout);
       needScan = stale || mismatch;
     }
@@ -1872,7 +1881,12 @@ function backgroundScan(){
     .catch(function(){ clearTimeout(_to); hideScanning(); ordMsg('the read timed out', 'tap refresh to try again, the coach will pick up where it left off.'); })
     .finally(function(){ window._scanning=false; });
 }
-function refreshLive(){ liveVitals(); backgroundScan(); }
+function refreshLive(){
+  liveVitals();
+  if(window._scanning){ ordMsg('already refreshing…','the coach is still reading the last film, hang tight.'); return; }
+  if(lastFullAt && (Date.now()-lastFullAt)<45000){ ordMsg('just refreshed','the coach read your film seconds ago — it re-reads automatically on a new upload or a big change.'); return; }
+  backgroundScan();
+}
 function showScanning(t){ var e=$('scanRun'); if(e){ e.style.display='flex'; $('scanRunTxt').textContent=t||'refreshing…'; } var b=$('refreshBtn'); if(b) b.disabled=true; }
 function hideScanning(){ var e=$('scanRun'); if(e) e.style.display='none'; var b=$('refreshBtn'); if(b) b.disabled=false; }
 
@@ -2028,8 +2042,10 @@ function renderWire(d){
 /* ---------- competitor analysis ---------- */
 var RIVALS=[];
 function rivalScope(){
-  /* one list: everything you can see (yours + your space's), no hidden buckets */
-  return sb.from('viralsidekick_channels').select('id,channel_id,handle,title').eq('is_competitor',true);
+  /* one list: everything you can see (yours + your space's). explicit owner scope, never RLS alone */
+  var base=sb.from('viralsidekick_channels').select('id,channel_id,handle,title').eq('is_competitor',true);
+  if(VIEW==='space' && SPACE && SPACE.workspace) return base.or('user_id.eq.'+USER.id+',workspace_id.eq.'+SPACE.workspace.id);
+  return base.eq('user_id',USER.id);
 }
 function loadRivals(){
   rivalScope().then(function(r){
@@ -2057,7 +2073,9 @@ function addRival(){
     }).catch(function(){ $('rivalEnd').textContent='network hiccup'; });
 }
 function delRival(id){
-  sb.from('viralsidekick_channels').delete().eq('id',id).then(function(){ try{ localStorage.removeItem('vs_cmp'); }catch(e){} loadRivals(); });
+  var q=sb.from('viralsidekick_channels').delete().eq('id',id);
+  if(!(VIEW==='space' && SPACE && SPACE.workspace)) q=q.eq('user_id',USER.id); /* dont let a stray id delete someone elses row */
+  q.then(function(){ try{ localStorage.removeItem('vs_cmp'); }catch(e){} loadRivals(); });
 }
 function runCompare(){
   var me=curCh()||{};
@@ -2352,6 +2370,7 @@ function titleTest(inId, outId){
   inId=inId||'labIn'; outId=outId||'labOut';
   var suf = (outId==='labOut2') ? '2' : '';
   var t=$(inId).value.trim(); if(!t) return;
+  if(window['_titling'+suf]) return; window['_titling'+suf]=true; /* in-flight guard: no GPT spam on a button mash */
   var niche=(LASTAI&&LASTAI.niche)||'creator content';
   $(outId).style.display='block';
   $('labScore'+suf).textContent='…'; $('labVerdict'+suf).textContent='scoring against your niche'; $('labRewrites'+suf).innerHTML=''; $('labHook'+suf).textContent='';
@@ -2370,7 +2389,8 @@ function titleTest(inId, outId){
       $('labHook'+suf).textContent=o.hook||'';
       bindCopies($('labRewrites'+suf));
     })
-    .catch(function(){ $('labScore'+suf).textContent='!'; $('labVerdict'+suf).textContent='network hiccup, try again'; });
+    .catch(function(){ $('labScore'+suf).textContent='!'; $('labVerdict'+suf).textContent='network hiccup, try again'; })
+    .finally(function(){ window['_titling'+suf]=false; });
 }
 
 /* ---------- history: signal tile + milestones ---------- */
@@ -2415,11 +2435,12 @@ function renderHistory(rows){
 }
 function weekStreak(rows){
   if(!rows.length) return 0;
-  var weeks={}; rows.forEach(function(x){ var d=new Date(x.created_at); var wk=Math.floor((Date.now()-d.getTime())/6048e5); weeks[wk]=1; });
-  var s = weeks[0] ? 0 : 1; var n=0; while(weeks[s]){ n++; s++; } return n;
+  var weeks={}; rows.forEach(function(x){ var d=new Date(String(x.created_at||'').replace(' ','T')); if(isNaN(d.getTime())) return; var wk=Math.floor((Date.now()-d.getTime())/6048e5); weeks[wk]=1; });
+  if(!weeks[0]) return 0; /* no review this week = the streak is broken, dont inflate from last week */
+  var s=0, n=0; while(weeks[s]){ n++; s++; } return n;
 }
 function relTime(when){
-  var t=(typeof when==='number')?when:new Date(when).getTime(); var s=(Date.now()-t)/1000;
+  var t=(typeof when==='number')?when:new Date(String(when||'').replace(' ','T')).getTime(); if(isNaN(t)) return ''; var s=(Date.now()-t)/1000;
   if(s<90) return 'just now'; if(s<5400) return Math.round(s/60)+'m ago'; if(s<86400) return Math.round(s/3600)+'h ago';
   return Math.round(s/86400)+'d ago';
 }
@@ -2442,7 +2463,7 @@ function drawSpark(rows){
   x.strokeStyle=grad; x.lineWidth=2.5; x.lineJoin='round'; x.stroke();
   x.lineTo(pad+(n-1)*dx,H-pad); x.lineTo(pad,H-pad); x.closePath();
   var fill=x.createLinearGradient(0,0,0,H); fill.addColorStop(0,'hsl(260 90% 66% / .22)'); fill.addColorStop(1,'transparent'); x.fillStyle=fill; x.fill();
-  vals.forEach(function(v,i){ var px=pad+i*dx,y=py(v); x.beginPath(); x.arc(px,y,3,0,7); x.fillStyle=scoreColor(v); x.fill(); });
+  vals.forEach(function(v,i){ var px=pad+i*dx,y=py(v); x.beginPath(); x.arc(px,y,3,0,Math.PI*2); x.fillStyle=scoreColor(v); x.fill(); });
 }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 </script>

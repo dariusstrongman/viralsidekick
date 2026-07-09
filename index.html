@@ -278,7 +278,7 @@ function signin(e){
   portal.classList.add('go');
   document.getElementById('flash').classList.add('go');
   document.getElementById('page').classList.add('warp');
-  setTimeout(function(){ location.href=APP; }, 820);
+  setTimeout(function(){ location.href=APP; }, 860);
 }
 document.querySelectorAll('[data-signin]').forEach(function(b){ b.addEventListener('click',signin); });
 try{ var _raw=localStorage.getItem('sb-fzlwnsoknngbdkizxpnl-auth-token'); if(_raw){ var _s=JSON.parse(_raw); var _tok=_s&&(_s.access_token||(_s.currentSession&&_s.currentSession.access_token)); if(_tok){ document.querySelectorAll('[data-signin]').forEach(function(b){ if(b.firstChild&&b.firstChild.nodeType===3) b.firstChild.textContent='My HQ '; else b.textContent='My HQ'; }); } } }catch(e){}

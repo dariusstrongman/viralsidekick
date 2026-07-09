@@ -452,11 +452,13 @@ function render(d){
   if(v.consistency!=null) cells.push({n:v.consistency, l:'rhythm score', cls:(v.consistency>=70?'pos':(v.consistency<40?'neg':''))});
   var grid=$('vitals'); grid.style.setProperty('--vcols', (cells.length>4?3:cells.length));
   grid.innerHTML=cells.map(function(c){return '<div class="vital '+(c.cls||'')+'" role="listitem"><div class="n">'+esc(c.n)+'</div><div class="l">'+esc(c.l)+'</div></div>';}).join('');
-  if(d.best && d.best.title){ $('bestRow').style.display='flex'; $('bestT').textContent=d.best.title; $('bestR').textContent=(d.best.ratio||0)+'x median · '+nfmt(d.best.views)+' views'; }
+  if(d.best && d.best.title && d.best.ratio>0 && d.best.views>0){ $('bestRow').style.display='flex'; $('bestT').textContent=d.best.title; $('bestR').textContent=d.best.ratio+'x median · '+nfmt(d.best.views)+' views'; }
   else $('bestRow').style.display='none';
   var chParam=(d.channel&&d.channel.id)?d.channel.id:'';
-  $('fullBtn').href='dashboard.html?c='+encodeURIComponent(chParam||'');
-  var shareUrl='https://viralsidekick.com/c.html?ch='+encodeURIComponent(currentHandle||chParam);
+  $('fullBtn').href='dashboard.html?c='+encodeURIComponent(chParam||currentHandle||'');
+  /* the shareable link must carry the RESOLVED channel id, not the fuzzy typed handle, or a later visitor can resolve a different channel */
+  var shareUrl='https://viralsidekick.com/c.html?ch='+encodeURIComponent(chParam||currentHandle);
+  window._shareUrl=shareUrl;
   var tw=$('tweetBtn');
   tw.href='https://twitter.com/intent/tweet?text='+encodeURIComponent(chNm+' scored '+sc+'/100 ('+g+') on ViralSidekick. grade any channel free:')+'&url='+encodeURIComponent(shareUrl);
   document.title=chNm+' | '+g+' ('+sc+'/100) | ViralSidekick';
@@ -478,7 +480,8 @@ function drawShareCard(d){
   x.fillStyle='rgba(200,205,220,0.55)'; x.font='500 18px "JetBrains Mono", monospace'; x.fillText('youtube channel report card', 70, 112);
   var cx=280, cy=360, r=140;
   x.lineWidth=26; x.strokeStyle='rgba(255,255,255,0.08)'; x.beginPath(); x.arc(cx,cy,r,0,Math.PI*2); x.stroke();
-  var pct=Math.max(0,Math.min(100,d.score))/100;
+  var scoreN=Number(d.score); if(!isFinite(scoreN)) scoreN=0;
+  var pct=Math.max(0,Math.min(100,scoreN))/100;
   x.strokeStyle=col; x.lineCap='round'; x.beginPath(); x.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*pct); x.stroke();
   x.fillStyle=col; x.textAlign='center'; x.font='800 120px Inter, sans-serif'; x.fillText(g, cx, cy+38);
   x.textAlign='left';
@@ -486,8 +489,8 @@ function drawShareCard(d){
   x.fillStyle='#f4f6fb'; var nsz=58; x.font='800 '+nsz+'px Inter, sans-serif';
   while(x.measureText(name).width>700 && nsz>26){ nsz-=3; x.font='800 '+nsz+'px Inter, sans-serif'; }
   x.fillText(name, 480, 300);
-  x.fillStyle=col; x.font='700 40px "JetBrains Mono", monospace'; x.fillText(d.score+'/100', 480, 360);
-  x.fillStyle='rgba(200,205,220,0.6)'; x.font='500 26px "JetBrains Mono", monospace'; x.fillText('viral-readiness score', 480+x.measureText(d.score+'/100  ').width, 360);
+  x.fillStyle=col; x.font='700 40px "JetBrains Mono", monospace'; x.fillText(scoreN+'/100', 480, 360);
+  x.fillStyle='rgba(200,205,220,0.6)'; x.font='500 26px "JetBrains Mono", monospace'; x.fillText('viral-readiness score', 480+x.measureText(scoreN+'/100  ').width, 360);
   x.fillStyle='rgba(216,220,232,0.9)'; x.font='400 27px Inter, sans-serif';
   var words=(d.headline||'').split(' '), line='', yy=420, maxw=660;
   for(var w=0;w<words.length;w++){ var test=line+words[w]+' '; if(x.measureText(test).width>maxw && line){ x.fillText(line,480,yy); line=words[w]+' '; yy+=38; if(yy>520)break; } else line=test; }
@@ -499,8 +502,8 @@ function drawShareCard(d){
 var currentHandle='';
 $('entryForm') && $('entryForm').addEventListener('submit',function(e){ e.preventDefault(); var v=$('entryInput').value.trim(); if(v) location.search='?ch='+encodeURIComponent(v); });
 $('ownForm') && $('ownForm').addEventListener('submit',function(e){ e.preventDefault(); var v=$('ownInput').value.trim(); if(v) location.search='?ch='+encodeURIComponent(v); });
-$('copyLink').addEventListener('click',function(){ var u=location.href; navigator.clipboard.writeText(u).then(function(){ var b=$('copyLink'); var t=b.textContent; b.textContent='Copied ✓'; setTimeout(function(){b.textContent=t;},1400); }).catch(function(){}); });
-$('dlCard').addEventListener('click',function(){ if(!CARD)return; var go=function(){ var cv=drawShareCard(CARD); var a=document.createElement('a'); a.download='viralsidekick-'+((CARD.channel&&CARD.channel.name)||'card').replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'.png'; a.href=cv.toDataURL('image/png'); a.click(); }; if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(go).catch(go); } else go(); });
+$('copyLink').addEventListener('click',function(){ var u=window._shareUrl||location.href; navigator.clipboard.writeText(u).then(function(){ var b=$('copyLink'); var t=b.textContent; b.textContent='Copied ✓'; setTimeout(function(){b.textContent=t;},1400); }).catch(function(){}); });
+$('dlCard').addEventListener('click',function(){ if(!CARD)return; var go=function(){ var cv=drawShareCard(CARD); var a=document.createElement('a'); var slug=((CARD.channel&&CARD.channel.name)||'card').replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'').toLowerCase()||'card'; a.download='viralsidekick-'+slug+'.png'; a.href=cv.toDataURL('image/png'); a.click(); }; if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(go).catch(go); } else go(); });
 
 (function(){
   var p=new URLSearchParams(location.search);
