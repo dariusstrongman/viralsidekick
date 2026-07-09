@@ -7,7 +7,7 @@
 <meta name="description" content="A free letter grade for any YouTube channel. See the score, the vitals, and the breakout format, then get the full AI autopsy.">
 <link rel="canonical" href="https://viralsidekick.com/c.html">
 <meta property="og:title" content="Grade any YouTube channel, free, ViralSidekick">
-<meta property="og:description" content="Paste a channel, get an instant A+ to F report card. Score, vitals, breakout hits, and what to fix.">
+<meta property="og:description" content="Paste a channel, get an instant S to F report card. Score, vitals, breakout hits, and what to fix.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://viralsidekick.com/c.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -220,7 +220,7 @@ footer .fine a{color:var(--muted)}
    "url": "https://viralsidekick.com/c.html",
    "applicationCategory": "BusinessApplication",
    "operatingSystem": "Web",
-   "description": "Grade any YouTube channel A+ to F for free: score, vitals, breakout hits, and what to fix.",
+   "description": "Grade any YouTube channel S to F for free: score, vitals, breakout hits, and what to fix.",
    "offers": {
     "@type": "Offer",
     "price": "0",
@@ -279,7 +279,7 @@ footer .fine a{color:var(--muted)}
   <section id="entry" class="entry" style="display:none" aria-label="grade a channel">
     <span class="eyebrow"><span class="dot" aria-hidden="true"></span>free channel report card</span>
     <h1>Grade any <span class="grad">YouTube channel</span> in seconds</h1>
-    <p>Paste a channel. Get an instant A+ to F report card, score, vitals, and the breakout format. No signup.</p>
+    <p>Paste a channel. Get an instant S to F report card, score, vitals, and the breakout format. No signup.</p>
     <form class="entryform" id="entryForm">
       <label for="entryInput" class="sr-only">YouTube channel handle, URL, or name</label>
       <input id="entryInput" type="text" placeholder="@mkbhd  ·  channel URL  ·  or name" autocomplete="off" autofocus>
@@ -397,6 +397,7 @@ function nfmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+
 
 function gcolor(g){
   var c=(g||'')[0];
+  if(c==='S') return 'hsl(45 95% 62%)';
   if(c==='A') return 'var(--success)';
   if(c==='B') return 'var(--accent)';
   if(c==='C') return 'var(--warning)';

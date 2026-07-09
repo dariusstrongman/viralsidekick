@@ -1,6 +1,6 @@
 # ViralSidekick
 
-> ViralSidekick is an AI YouTube creator-intelligence tool that reads a channel the way an analyst would. Paste a channel and it pulls every recent upload, flags outliers and dead zones, computes data-driven posting windows, compares the channel to adjacent channels in the same niche, grades the channel from A+ to F, and writes the next video. A free scan runs in about 30 seconds with no signup. Built by Stromation LLC.
+> ViralSidekick is an AI YouTube creator-intelligence tool that reads a channel the way an analyst would. Paste a channel and it pulls every recent upload, flags outliers and dead zones, computes data-driven posting windows, compares the channel to adjacent channels in the same niche, grades the channel from S to F, and writes the next video. A free scan runs in about 30 seconds with no signup. Built by Stromation LLC.
 
 ## What it does
 - Autopsies a YouTube channel from real public upload data (no channel login required for the free scan)
@@ -9,7 +9,7 @@
 - Computes the best posting windows from the channel's own top performers, not a generic chart
 - Separates YouTube Shorts and long-form as different formats with their own medians
 - Compares the channel against adjacent creators erupting in the same niche this week
-- Grades the channel A+ to F (viral readiness) and explains the grade
+- Grades the channel S to F (viral readiness) and explains the grade
 - Writes the next video: title options, hook, format, and a 30-day roadmap
 
 ## Key facts
