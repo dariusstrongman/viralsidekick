@@ -145,7 +145,7 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
 <div id="page">
   <div id="god">
     <img src="god.webp" alt="" aria-hidden="true" id="godimg" fetchpriority="high">
-    <video id="godvid" src="god-loop.mp4" autoplay muted loop playsinline aria-hidden="true" preload="none"></video>
+    <video id="godvid" src="god-loop.mp4" autoplay muted playsinline aria-hidden="true" preload="none"></video>
     <div class="wash-left"></div>
     <div class="wash-bottom"></div>
     <div id="vignette"></div>
@@ -205,6 +205,21 @@ var APP = 'app.html';
   v.addEventListener('canplay',function(){ v.classList.add('ready'); });
   if(v.readyState>=3) v.classList.add('ready');   /* cached video already ready: fade it in */
   v.addEventListener('error',function(){ v.remove(); });  /* video missing -> still holds the frame */
+  /* seamless ping-pong: play forward, then drive it backward, so the loop never jump-cuts */
+  var raf=0, last=null, dir='fwd';
+  function reverse(ts){
+    if(document.hidden) return;
+    if(last==null){ last=ts; raf=requestAnimationFrame(reverse); return; }
+    var nt=v.currentTime-(ts-last)/1000; last=ts;
+    if(nt<=0){ v.currentTime=0; dir='fwd'; last=null; v.play().catch(function(){}); return; }
+    v.currentTime=nt; raf=requestAnimationFrame(reverse);
+  }
+  v.addEventListener('ended',function(){ dir='rev'; last=null; try{v.pause();}catch(e){} cancelAnimationFrame(raf); raf=requestAnimationFrame(reverse); });
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){ cancelAnimationFrame(raf); try{v.pause();}catch(e){} }
+    else if(dir==='rev'){ last=null; cancelAnimationFrame(raf); raf=requestAnimationFrame(reverse); }
+    else { v.play().catch(function(){}); }
+  });
   v.play&&v.play().catch(function(){});
 })();
 
