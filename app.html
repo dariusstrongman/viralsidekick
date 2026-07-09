@@ -1915,9 +1915,8 @@ function renderWire(d){
 /* ---------- competitor analysis ---------- */
 var RIVALS=[];
 function rivalScope(){
-  var q=sb.from('viralsidekick_channels').select('id,channel_id,handle,title').eq('is_competitor',true);
-  if(VIEW==='space' && SPACE && SPACE.workspace) return q.eq('workspace_id',SPACE.workspace.id);
-  return q.eq('user_id',USER.id).is('workspace_id',null);
+  /* one list: everything you can see (yours + your space's) — no hidden buckets */
+  return sb.from('viralsidekick_channels').select('id,channel_id,handle,title').eq('is_competitor',true);
 }
 function loadRivals(){
   rivalScope().then(function(r){
@@ -1966,7 +1965,8 @@ function runCompare(){
 }
 function renderCompare(res, me){
   var rows=(res||[]).filter(function(x){return !x.error;});
-  if(!rows.length){ $('rivalBody').innerHTML='<div class="tsub">could not read those channels.</div>'; return; }
+  var failed=(res||[]).filter(function(x){return x.error;});
+  if(!rows.length){ $('rivalBody').innerHTML='<div class="tsub">YouTube is rate-limiting reads right now — retry in a minute.</div>'; return; }
   var meid=(me&&me.id)||'';
   var html='<div style="overflow-x:auto"><table class="cmp"><thead><tr><th>channel</th><th>grade</th><th>median</th><th>momentum</th><th>like rate</th><th>rhythm</th><th></th></tr></thead><tbody>';
   rows.forEach(function(x){
