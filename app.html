@@ -1979,8 +1979,13 @@ function renderCompare(res, me){
       +'<td style="color:'+(x.momentum>=1?'var(--success)':'var(--warning)')+'">'+x.momentum+'x</td>'
       +'<td>'+(x.engagement_pct!=null?x.engagement_pct+'%':'–')+'</td>'
       +'<td>'+(x.consistency!=null?x.consistency:'–')+'</td>'
-      +'<td>'+(riv&&!isMe?'<button class="bbtn" onclick="delRival(\''+riv.id+'\')" aria-label="untrack">✕</button>':'')+'</td>'
+      +'<td>'+(x.stale?'<span class="dim" title="live read failed — showing the last stored numbers">stale</span> ':'')+(riv&&!isMe?'<button class="bbtn" onclick="delRival(\''+riv.id+'\')" aria-label="untrack">✕</button>':'')+'</td>'
       +'</tr>';
+  });
+  failed.forEach(function(x){
+    var riv=RIVALS.filter(function(r){return r.channel_id===x.input;})[0];
+    html+='<tr><td class="dim">'+esc((riv&&riv.title)||x.input)+'</td><td colspan="5" class="dim">couldn’t read right now — retries next refresh</td>'
+      +'<td>'+(riv?'<button class="bbtn" onclick="delRival(\''+riv.id+'\')" aria-label="untrack">✕</button>':'')+'</td></tr>';
   });
   html+='</tbody></table></div>';
   $('rivalBody').innerHTML=html;
