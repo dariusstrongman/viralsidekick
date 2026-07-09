@@ -494,12 +494,12 @@ footer .fine a{color:var(--muted)}
       </div>
 
       <div class="card c6 retn">
-        <div class="clabel">retention autopsy <span class="lock">🔒 connect to unlock</span></div>
+        <div class="clabel">retention autopsy <span class="lock">example curve</span></div>
         <div class="blurwrap"><canvas class="med" id="retCurve" aria-hidden="true"></canvas></div>
         <div class="overlay">
           <div class="lockic" aria-hidden="true">🔒</div>
-          <p><b>Real second-by-second retention</b> needs a one-click YouTube connect. Coming for Pro, this curve is a sample.</p>
-          <a class="btn btn-primary btn-sm" href="app.html">Get priority access</a>
+          <p><b>This is a sample, not your data.</b> Real second-by-second retention needs a one-click YouTube connect. It is coming for Pro and your handle is already saved.</p>
+          <a class="btn btn-primary btn-sm" href="app.html">Get early access</a>
         </div>
       </div>
 
@@ -544,8 +544,8 @@ footer .fine a{color:var(--muted)}
       </div>
 
       <div class="card c12 upsell">
-        <h3>This scan is the free tier.</h3>
-        <p>Pro re-scans you weekly, tracks whether the fixes are working, unlocks the deep retention autopsy first, and regenerates your roadmap as your channel moves.</p>
+        <h3>This scan is free and it is yours.</h3>
+        <p>Pro writes the full shooting script for every video, every line and every shot, re-scans you every week, and shows your score climbing as you ship. one video that hits pays for it for years.</p>
         <a class="btn btn-primary" href="app.html">Go Pro, $19/mo, cancel anytime</a>
       </div>
     </div>
@@ -644,6 +644,8 @@ function runAnalysis(payload){
     .then(function(d){
       if (d.error){ throw new Error(d.error === 'channel_not_found'
         ? 'couldnt find that channel. try the full URL (youtube.com/@handle) or the channel ID (starts with UC).'
+        : d.error === 'too_new'
+        ? (d.detail || 'we found you, but a real read needs at least 3 public uploads. come back after your next one.')
         : d.error); }
       if (!d.ok || !d.ai){ throw new Error('that scan came back incomplete. try again in a minute.'); }
       var wait = Math.max(0, (payload.demo ? 3500 : 9000) - (Date.now() - t0));
@@ -695,9 +697,13 @@ function renderReport(d){
   $('rScore').textContent = score;
   drawDial(score);
   var gl = gradeOf(score), gc = gradeColor(gl);
-  var gp = $('rGrade'); if (gp){ gp.textContent = gl; gp.style.color = gc; }
+  var gp = $('rGrade'); if (gp){ gp.textContent = gl; gp.style.color = gc; gp.title = 'viral-readiness grade. S 95+, A 80+, B 65+, C 50+, D 35+, F below. read from your outliers, dead zones and momentum, not your subscriber count.'; }
   var cl = $('rCardLink'); if (cl){ var _cid = ch.id || ch.handle || ($('fC')&&$('fC').value.trim()); if(_cid) cl.href = 'c.html?ch=' + encodeURIComponent(_cid); }
-  $('rVerdict').textContent = (d.ai && d.ai.verdict) || 'analysis unavailable, try re-running the scan.';
+  var bo = d.breakout, out0 = (d.outliers||[]).length, flop0 = (d.flops||[]).length;
+  var why = 'this grade reads your outliers, dead zones and momentum. ' + (flop0 ? ('held back by ' + flop0 + ' dead zone' + (flop0>1?'s':'')) : '') + (flop0&&out0 ? ', ' : '') + (out0 ? ('lifted by ' + out0 + ' breakout' + (out0>1?'s':'')) : '') + '.';
+  $('rVerdict').innerHTML = (bo ? '<div style="background:hsl(150 60% 45% / .12);border:1px solid hsl(150 60% 45% / .4);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-weight:600;color:var(--success)">🚀 breaking out now: "' + esc(bo.title) + '" is pacing ' + esc(bo.velocity_x) + '× your normal launch speed at ' + esc(bo.age_days) + 'd old. make the follow-up now.</div>' : '')
+    + '<div>' + esc((d.ai && d.ai.verdict) || 'analysis unavailable, try re-running the scan.') + '</div>'
+    + '<div style="font-size:.8rem;color:var(--faint);margin-top:8px">' + esc(why) + '</div>';
 
   var s = d.stats || {};
   var ups = s.uploads || [];
@@ -726,7 +732,8 @@ function renderReport(d){
   $('rSched').textContent = (d.ai && d.ai.schedule && d.ai.schedule.reason) || '';
 
   var fixes = (d.ai && d.ai.fixes) || [];
-  $('rFixes').innerHTML = fixes.map(function(f){
+  var oneMove = (fixes[0] && fixes[0]["do"]) ? '<div style="background:linear-gradient(135deg,hsl(190 92% 56% / .12),hsl(260 90% 66% / .1));border:1px solid hsl(190 92% 56% / .4);border-radius:12px;padding:16px 18px;margin-bottom:16px"><div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px">your one move</div><div style="font-size:1.02rem;font-weight:600;line-height:1.5">'+esc(fixes[0]["do"])+'</div></div>' : '';
+  $('rFixes').innerHTML = oneMove + fixes.map(function(f){
     return '<div class="fix"><div class="fh"><span class="sev '+esc(f.severity||'med')+'">'+esc(f.severity||'med')+'</span><h4>'+esc(f.title)+'</h4></div>'
       + '<div class="why">'+esc(f.why)+'</div>'
       + '<div class="do"><b>DO THIS → </b>'+esc(f["do"])+'</div></div>';
@@ -738,18 +745,28 @@ function renderReport(d){
   }).join('') || '<tr><td colspan="3" style="color:var(--faint)">-</td></tr>';
 
   var nv = (d.ai && d.ai.next_video) || {};
-  $('rNext').innerHTML = (nv.title_options||[]).map(function(t){ return '<div class="titleopt">'+esc(t)+'</div>'; }).join('')
-    + (nv.hook ? '<div class="hook"><b>open with:</b> '+esc(nv.hook)+'</div>' : '')
-    + (nv.format ? '<div class="hook"><b>format:</b> '+esc(nv.format)+'</div>' : '');
+  $('rNext').innerHTML = (nv.format ? '<div style="display:inline-block;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid hsl(190 92% 56% / .4);border-radius:5px;padding:2px 8px;margin-bottom:10px">'+esc(nv.format)+'</div>' : '')
+    + (nv.title_options||[]).map(function(t){ return '<div class="titleopt">'+esc(t)+'</div>'; }).join('')
+    + (nv.first_line ? '<div class="hook"><b>first line:</b> "'+esc(nv.first_line)+'"</div>' : (nv.hook ? '<div class="hook"><b>open with:</b> '+esc(nv.hook)+'</div>' : ''))
+    + (nv.thumbnail_concept ? '<div class="hook"><b>thumbnail:</b> '+esc(nv.thumbnail_concept)+((nv.text_overlay&&nv.text_overlay!=='none')?' · text: "'+esc(nv.text_overlay)+'"':'')+'</div>' : '')
+    + (nv.why_now ? '<div class="hook"><b>why now:</b> '+esc(nv.why_now)+'</div>' : '')
+    + ((nv.beats&&nv.beats.length) ? '<div class="hook"><b>the beats:</b></div><ul style="margin:4px 0 0 18px;color:var(--muted);font-size:.85rem;line-height:1.6">'+nv.beats.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ul>' : '')
+    + ((nv.title_options&&nv.title_options.length) ? '<div style="margin-top:14px;border-top:1px solid hsl(190 92% 56% / .2);padding-top:12px"><div style="font-size:.82rem;color:var(--muted);line-height:1.5">🔒 the full shooting script for this, every line spoken and every shot called, is a Pro feature. one video that hits pays for it for years.</div><a href="app.html" style="display:inline-block;margin-top:8px;color:var(--accent);font-weight:600;font-size:.86rem;text-decoration:none">Get the full script with Pro, $19/mo →</a></div>' : '');
 
   var radar = (d.ai && d.ai.radar) || [];
-  $('radarMode').textContent = d.radar_live ? 'LIVE, pulled from your niche minutes ago' : 'pattern inference';
+  $('radarMode').textContent = d.demo ? 'example, sample channel' : (d.radar_live ? 'LIVE, pulled from your niche minutes ago' : 'niche read');
   $('rRadar').innerHTML = radar.map(function(r){
-    var uc = (r.urgency||'').toLowerCase().indexOf('week')>=0 ? 'now' : 'soon';
-    return '<div class="erupt'+(d.radar_live?'':' inferred')+'"><div class="urg '+uc+'">'+esc(r.urgency||'soon')+'</div>'
+    var ang = r.your_angle || r.your_version || '';
+    var u = (r.urgency||'').toLowerCase();
+    var uc = (u.indexOf('48h')>=0 || u.indexOf('24h')>=0 || u.indexOf('week')>=0) ? 'now' : 'soon';
+    return '<div class="erupt'+(d.radar_live?'':' inferred')+'"><div class="urg '+uc+'">'+esc(r.urgency||'soon')+(r.format?' · '+esc(r.format):'')+'</div>'
       + '<div class="tr">'+esc(r.trend)+'</div>'
       + '<div class="ev">'+esc(r.evidence)+'</div>'
-      + '<div class="yv"><b>YOUR VERSION → </b>'+esc(r.your_version)+'</div></div>';
+      + (r.steal_this ? '<div class="ev" style="color:var(--accent)"><b>steal this:</b> '+esc(r.steal_this)+'</div>' : '')
+      + '<div class="yv"><b>YOUR ANGLE → </b>'+esc(ang)+'</div>'
+      + (r.your_twist ? '<div class="ev" style="margin-top:4px"><b>your twist:</b> '+esc(r.your_twist)+'</div>' : '')
+      + (r.thumbnail_move ? '<div class="ev"><b>thumbnail:</b> '+esc(r.thumbnail_move)+'</div>' : '')
+      + '</div>';
   }).join('') || '<p style="color:var(--faint)">radar quiet, re-run the scan</p>';
 
   var road = (d.ai && d.ai.roadmap) || [];
@@ -922,6 +939,7 @@ function drawHeat(heat){
 /* ---------- client-side demo fallback (if API unreachable) ---------- */
 var DEMO = {
   ok:true, demo:true, radar_live:true,
+  breakout:{ title:'AI just replaced my editor', views:22000, age_days:2, velocity_x:3.4 },
   channel:{ id:'demo', name:'SignalFrame (demo)', url:'' },
   stats:{ count:14, median:8200, mean:31400, cadence_days:4,
     uploads:[
@@ -958,15 +976,15 @@ var DEMO = {
       { area:'cadence', yours:'every 4 days, mixed formats', viral:'2×/week, ONE repeatable format' }
     ] },
     radar:[
-      { trend:'"AI agent does my job for a week" experiment wave', evidence:'TheoBuilds: I hired an AI employee for 7 days (11.2× their median, 5 days old)', your_version:'I let 3 AI agents fight over my job for a week, one gets hired', urgency:'make it this week' },
-      { trend:'cost-transparency builds ("$0 stack" content)', evidence:'LeanStack: My entire business runs on $0/month of AI (6.4× their median, 9 days old)', your_version:'My $0 AI stack that replaced $400/mo of tools, full walkthrough', urgency:'make it this week' },
-      { trend:'AI fails / honest limits content', evidence:'BuilderMike: I tried to replace myself with AI, it failed in 3 ways (4.1× median, 12 days old)', your_version:'3 things AI still can\'t do for my channel (and what I do instead)', urgency:'next 2 weeks' }
+      { trend:'"AI agent does my job for a week" experiment wave', evidence:'TheoBuilds: I hired an AI employee for 7 days (11.2× their median, 3 days old)', steal_this:'day-count chapters plus an on-screen task-completed counter that ticks up', your_angle:'I let 3 AI agents fight over my job for 7 days, one gets hired', your_twist:'make it a competition with a winner, not a solo diary', thumbnail_move:'3 robot avatars, one circled in red, big "FIRED" overlay', format:'longform', urgency:'next 48h' },
+      { trend:'cost-transparency builds ("$0 stack" content)', evidence:'LeanStack: My entire business runs on $0/month of AI (6.4× their median, 4 days old)', steal_this:'a running dollar counter comparing old cost vs new cost on screen', your_angle:'My $0 AI stack that replaced $400 a month of tools, full walkthrough', your_twist:'show the exact tools and the cancelled subscriptions, receipts on screen', thumbnail_move:'$400 crossed out, $0 in green, your face mid-reaction', format:'longform', urgency:'this week' },
+      { trend:'AI fails / honest limits content', evidence:'BuilderMike: I tried to replace myself with AI, it failed in 3 ways (4.1× their median, 12 days old)', steal_this:'the honest-failure structure, promise a win then show the breakage', your_angle:'3 things AI still cant do for my channel and what I do instead', your_twist:'end on the one thing it does better than you, so its not just doom', thumbnail_move:'a glitching robot, red X, text "IT BROKE"', format:'short', urgency:'this month' }
     ],
-    next_video:{ title_options:[
+    next_video:{ format:'longform', title_options:[
       'I let an AI agent run my YouTube channel for 7 days',
-      'I spent $0 building an app with AI, here\'s what broke',
-      '3 AI agents ran my life for a week. one fired itself.'
-    ], hook:'cold open on the end result, then "seven days ago, this didn\'t exist."', format:'first-person experiment, 8-12 min, day-count chapter markers' },
+      'I spent $0 building an app with AI, here is what broke',
+      '3 AI agents ran my life for a week, one fired itself'
+    ], hook:'cold open on the end result, then "seven days ago, this didnt exist."', first_line:'This channel was run entirely by an AI for a week, and it went off the rails on day 4.', thumbnail_concept:'you staring at a laptop that is on fire, a robot hand on the keyboard', text_overlay:'DAY 4', why_now:'the "AI does my job for a week" wave is erupting in your lane right now and your 26× outlier is already this exact format', beats:['cold open on the disaster moment','rewind: what you handed the AI','day-by-day escalation with a counter','the day it broke','what you would keep and what you would kill'] },
     roadmap:[
       { week:1, focus:'stop the bleeding', actions:['retire the roundup format','publish one experiment video (tue 4pm)','rewrite your 3 best old titles with numbers'] },
       { week:2, focus:'feed the winner', actions:['second experiment video','pin a comment linking your 26× video','test one thumbnail with a face + result'] },

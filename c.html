@@ -519,7 +519,7 @@ $('dlCard').addEventListener('click',function(){ if(!CARD)return; var go=functio
       document.body.classList.add('member');
       var na=document.getElementById('navAuth'); if(na){ na.textContent='My HQ'; na.href='app.html'; }
       var nc=document.getElementById('navCta'); if(nc){ nc.textContent='Open my HQ'; nc.href='app.html'; }
-      var lt=document.getElementById('lockTitle'); if(lt) lt.textContent='your full breakdown, unlocked in your HQ';
+      var lt=document.getElementById('lockTitle'); if(lt) lt.textContent='your full breakdown, open in your HQ';
       var lp=document.getElementById('lockPitch'); if(lp) lp.textContent='You are signed in. The autopsy, live radar, posting windows and roadmap are waiting in your HQ.';
       var fb=document.getElementById('fullBtn'); if(fb){ fb.textContent='Open my HQ →'; fb.href='app.html'; }
       document.querySelectorAll('.lockcard .lk').forEach(function(el){ el.textContent='✓'; });
