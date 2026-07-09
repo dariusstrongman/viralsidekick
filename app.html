@@ -1686,6 +1686,7 @@ function pollPulse(){
         pulseCounter('subs','subscribers',IC_YT,'hsl(0 84% 62%)');
         pulseSet('subs', expandCount(yt.subs_text), '<b>'+esc(yt.name||'')+'</b> · youtube precision');
       }
+      try{ window._liveTitles=(yt.latest||[]).map(function(x){return x.title;}).filter(Boolean).slice(0,10); }catch(e){}
       var lv=(yt.latest||[])[0];
       if(lv){
         pulseCounter('lv','latest video · views',IC_YT,'var(--primary)');
@@ -1716,7 +1717,13 @@ document.addEventListener('visibilitychange', function(){
   else if(USER && (IDENT.yt.id||IDENT.yt.name)) startPulse();
 });
 function liveVitals(){
-  var _c=curCh(); var q=_c.id||_c.name; if(!q) return;
+  var _c=curCh()||{}; var q=_c.id||_c.name; if(!q) return;
+  /* paint the last known grade INSTANTLY so a refresh never flashes an empty ring */
+  try{ var cc=JSON.parse(localStorage.getItem('vs_card_'+q)||'null'); if(cc&&cc.c) applyLive(cc.c,true); }catch(e){}
+  /* enterHQ and applySpace both call goLive on load — skip the duplicate live fetch for the same channel */
+  var now=Date.now();
+  if(window._lvAt && window._lvCh===q && (now-window._lvAt)<2500) return;
+  window._lvAt=now; window._lvCh=q;
   $('liveFlag').className='liveflag';
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'card',channel:q,fresh:1})})
     .then(function(r){return r.json();})
@@ -1724,7 +1731,7 @@ function liveVitals(){
     .catch(function(){});
 }
 var LIVE_SIG=false;
-function applyLive(c){
+function applyLive(c,snap){
   LIVE=c;
   /* signals straight off the feed, computed seconds ago, not from a stored review */
   if(c.signals && Object.keys(c.signals).length){
@@ -1734,7 +1741,10 @@ function applyLive(c){
   var sc=c.score!=null?c.score:50, g=c.grade||gradeOf(sc), col=gcolor(g);
   document.documentElement.style.setProperty('--gc',col); $('idhead').style.setProperty('--gc',col);
   $('hqGrade').textContent=g; $('hqGrade').style.color=col; $('hqScore').textContent=sc;
-  var C=226, ring=$('hqRing'); ring.style.stroke=col; ring.setAttribute('stroke-dashoffset', Math.round(C - C*Math.max(0,Math.min(100,sc))/100));
+  var C=226, ring=$('hqRing'); ring.style.stroke=col;
+  var off=Math.round(C - C*Math.max(0,Math.min(100,sc))/100);
+  if(snap){ var pt=ring.style.transition; ring.style.transition='none'; ring.setAttribute('stroke-dashoffset',off); ring.getBoundingClientRect(); ring.style.transition=pt||''; }
+  else ring.setAttribute('stroke-dashoffset',off);
   var v=c.vitals||{};
   $('vMed').textContent=nfmt(v.median);
   $('vMom').textContent=(v.momentum!=null?v.momentum+'x':'-'); $('vMom').style.color=v.momentum>=1?'var(--success)':(v.momentum>0?'var(--warning)':'');
@@ -1743,7 +1753,11 @@ function applyLive(c){
   $('vEng').textContent=(v.engagement_pct!=null?v.engagement_pct+'%':'-'); $('vEng').style.color=v.engagement_pct>=3.5?'var(--success)':'';
   $('vCons').textContent=(v.consistency!=null?v.consistency:'-'); $('vCons').style.color=v.consistency>=70?'var(--success)':(v.consistency!=null&&v.consistency<40?'var(--warning)':'');
   $('liveFlag').className='liveflag';
-  $('hqWhen').textContent='live · data seconds old';
+  if(!snap){
+    $('hqWhen').textContent='live · data seconds old';
+    /* remember this grade so the next refresh paints instantly instead of flashing */
+    try{ var _cc=curCh()||{}; localStorage.setItem('vs_card_'+(_cc.id||_cc.name||''), JSON.stringify({at:Date.now(),c:c})); }catch(e){}
+  }
 }
 function loadLatestFull(){
   spaceScans().select('channel_id,report,created_at').order('created_at',{ascending:false}).limit(6).then(function(r){
@@ -1874,15 +1888,19 @@ function loadTrends(niche){
   var t=$('tWire'); if(!t) return;
   t.style.display='';
   if(WIRE_LOADED) return; WIRE_LOADED=true;
+  /* anchor the lane to THIS channel + its real recent titles so trends are relevant, not global noise */
+  var _c=curCh()||{}; var chId=_c.id||_c.name||''; var chName=looksRaw(_c.name)?(_c.handle||''):(_c.name||'');
+  var seed=[]; try{ if(Array.isArray(window._liveTitles)) seed=window._liveTitles.slice(0,10); }catch(e){}
+  var ckey=chId+'|'+(niche||'');
   try{
     var cch=JSON.parse(localStorage.getItem('vs_wire')||'null');
-    if(cch && cch.niche===niche && (Date.now()-cch.at)<30*60000){ renderWire(cch.d); return; }
+    if(cch && cch.key===ckey && (Date.now()-cch.at)<30*60000){ renderWire(cch.d); return; }
   }catch(e){}
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'trends',niche:niche||''})})
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'trends',niche:niche||'',channel:chId,channel_name:chName,seed:seed})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(!d||!d.ok){ $('wireBody').innerHTML='<div class="tsub">wire is quiet, check back shortly.</div>'; return; }
-      try{ localStorage.setItem('vs_wire',JSON.stringify({at:Date.now(),niche:niche,d:d})); }catch(e){}
+      try{ localStorage.setItem('vs_wire',JSON.stringify({at:Date.now(),key:ckey,d:d})); }catch(e){}
       renderWire(d);
     })
     .catch(function(){ $('wireBody').innerHTML='<div class="tsub">wire is quiet, check back shortly.</div>'; });
