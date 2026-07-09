@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ViralSidekick | channel scan</title>
 <meta name="description" content="Run a free AI scan of your channel: outliers, dead zones, posting windows, and a 30-day roadmap.">
-<meta name="robots" content="noindex">
 <link rel="canonical" href="https://viralsidekick.com/dashboard.html">
 <meta name="theme-color" content="#0a0d16">
 <meta property="og:type" content="website">
@@ -580,10 +579,10 @@ var scanTimer = null;
 
 function startScan(e){
   if (e) e.preventDefault();
-  var c = $('fC').value.trim(), em = $('fE').value.trim(), hp = $('fH').value;
+  var c = $('fC').value.trim().slice(0,120), em = $('fE').value.trim(), hp = $('fH').value;
   $('errBox').style.display = 'none';
   if (!c){ fail('drop in a channel handle, URL, or ID first.'); return false; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ fail('a real email is needed, that\'s where your report lives.'); return false; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ fail('a real email is needed, thats where your report lives.'); return false; }
   if (hp || Date.now() - pageT < 2500){ fail('that was too fast. try again.'); return false; }
   runAnalysis({ channel: c, email: em, website: '' });
   return false;
@@ -597,20 +596,21 @@ function runAnalysis(payload){
   $('scanTitle').textContent = payload.demo ? 'Analyzing demo channel…' : 'Scanning ' + payload.channel + '…';
   playScanLog();
   var t0 = Date.now();
-  fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
-    .then(function(r){ if(!r.ok) throw new Error('scan service returned ' + r.status); return r.json(); })
+  var _ac=(window.AbortController)?new AbortController():null; var _to=_ac?setTimeout(function(){try{_ac.abort();}catch(e){}},45000):0;
+  fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), signal:_ac?_ac.signal:undefined })
+    .then(function(r){ clearTimeout(_to); if(!r.ok) throw new Error('scan service returned ' + r.status); return r.json(); })
     .then(function(d){
       if (d.error){ throw new Error(d.error === 'channel_not_found'
-        ? 'couldn\'t find that channel. try the full URL (youtube.com/@handle) or the channel ID (starts with UC).'
+        ? 'couldnt find that channel. try the full URL (youtube.com/@handle) or the channel ID (starts with UC).'
         : d.error); }
       if (!d.ok || !d.ai){ throw new Error('that scan came back incomplete. try again in a minute.'); }
       var wait = Math.max(0, (payload.demo ? 3500 : 9000) - (Date.now() - t0));
       setTimeout(function(){ clearTimeout(scanTimer); try{ renderReport(d); }catch(e){ fail('that scan came back malformed. try again in a minute.'); } }, reduce ? 0 : wait);
     })
     .catch(function(err){
-      clearTimeout(scanTimer);
+      clearTimeout(scanTimer); clearTimeout(_to);
       if (payload.demo){ renderReport(DEMO); return; }
-      fail(err.message || 'scan failed. try again in a minute.');
+      fail((err&&err.name==='AbortError') ? 'that scan timed out. try again in a minute.' : (err.message || 'scan failed. try again in a minute.'));
     });
 }
 
@@ -621,7 +621,7 @@ function fmt(n){
   if (n >= 1e3) return (n/1e3).toFixed(1).replace('.0','') + 'K';
   return String(Math.round(n));
 }
-function esc(t){ var d = document.createElement('div'); d.textContent = t==null?'':t; return d.innerHTML; }
+function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(ch){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
 function gradeOf(s){ var t=[[97,'A+'],[93,'A'],[90,'A-'],[87,'B+'],[83,'B'],[80,'B-'],[77,'C+'],[73,'C'],[70,'C-'],[67,'D+'],[63,'D'],[60,'D-']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
 function gradeColor(g){ var c=(g||'')[0]; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
 
@@ -631,12 +631,12 @@ function renderSigStrip(S){
   if(!S||!Object.keys(S).length){ el.style.display='none'; return; }
   var chips=[];
   function chip(t){ chips.push('<span style="font-family:var(--mono);font-size:.76rem;background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:8px;padding:6px 11px">'+t+'</span>'); }
-  if(S.engagement) chip('♥ <b>'+S.engagement.avg_pct+'%</b> like rate');
-  if(S.formats&&S.formats.shorts_count&&S.formats.long_count) chip('▦ '+S.formats.shorts_count+' shorts (med '+S.formats.shorts_median+') · '+S.formats.long_count+' long (med '+S.formats.long_median+')');
-  if(S.consistency!=null) chip('◷ rhythm <b>'+S.consistency+'/100</b>');
-  if(S.title_dna&&S.title_dna.numbers) chip('✎ number titles do <b>'+S.title_dna.numbers.x+'x</b>');
-  if(S.title_dna&&S.title_dna.short_title) chip('✎ short titles do <b>'+S.title_dna.short_title.x+'x</b>');
-  if(S.power_words&&S.power_words.length) chip('⚡ power words: <b>'+S.power_words.join(', ')+'</b>');
+  if(S.engagement) chip('♥ <b>'+esc(S.engagement.avg_pct)+'%</b> like rate');
+  if(S.formats&&S.formats.shorts_count&&S.formats.long_count) chip('▦ '+esc(S.formats.shorts_count)+' shorts (med '+esc(S.formats.shorts_median)+') · '+esc(S.formats.long_count)+' long (med '+esc(S.formats.long_median)+')');
+  if(S.consistency!=null) chip('◷ rhythm <b>'+esc(S.consistency)+'/100</b>');
+  if(S.title_dna&&S.title_dna.numbers) chip('✎ number titles do <b>'+esc(S.title_dna.numbers.x)+'x</b>');
+  if(S.title_dna&&S.title_dna.short_title) chip('✎ short titles do <b>'+esc(S.title_dna.short_title.x)+'x</b>');
+  if(S.power_words&&S.power_words.length) chip('⚡ power words: <b>'+esc(S.power_words.join(', '))+'</b>');
   if(S.gem) chip('◆ hidden gem: <b>'+esc(S.gem.title).slice(0,42)+'</b>');
   if(!chips.length){ el.style.display='none'; return; }
   out.innerHTML=chips.join(''); el.style.display='';
@@ -654,7 +654,7 @@ function renderReport(d){
   drawDial(score);
   var gl = gradeOf(score), gc = gradeColor(gl);
   var gp = $('rGrade'); if (gp){ gp.textContent = gl; gp.style.color = gc; }
-  var cl = $('rCardLink'); if (cl && ch.id) cl.href = 'c.html?ch=' + encodeURIComponent(ch.id);
+  var cl = $('rCardLink'); if (cl){ var _cid = ch.id || ch.handle || ($('fC')&&$('fC').value.trim()); if(_cid) cl.href = 'c.html?ch=' + encodeURIComponent(_cid); }
   $('rVerdict').textContent = (d.ai && d.ai.verdict) || 'analysis unavailable, try re-running the scan.';
 
   var s = d.stats || {};
@@ -672,9 +672,10 @@ function renderReport(d){
 
   var ranked = ups.slice().sort(function(a,b){ return b.v - a.v; });
   $('rVids').innerHTML = ranked.map(function(u){
-    var pill = u.r >= 2.5 ? '<span class="pill hot">'+u.r.toFixed(1)+'×</span>'
-      : u.r <= 0.4 ? '<span class="pill bad">'+u.r.toFixed(1)+'×</span>'
-      : '<span class="pill mid">'+u.r.toFixed(1)+'×</span>';
+    var rr=(typeof u.r==='number'&&isFinite(u.r))?u.r:0;
+    var pill = rr >= 2.5 ? '<span class="pill hot">'+rr.toFixed(1)+'×</span>'
+      : rr <= 0.4 ? '<span class="pill bad">'+rr.toFixed(1)+'×</span>'
+      : '<span class="pill mid">'+rr.toFixed(1)+'×</span>';
     return '<div class="vid"><span class="t" title="'+esc(u.t)+'">'+esc(u.t)+'</span><span class="v">'+fmt(u.v)+'</span>'+pill+'</div>';
   }).join('');
 
@@ -729,21 +730,23 @@ function preflight(){
   var ai = (lastReport && lastReport.ai) || {};
   var outlierTitles = ((lastReport && lastReport.stats && lastReport.stats.uploads) || [])
     .filter(function(u){ return u.r >= 2.5; }).map(function(u){ return u.t; }).join(' | ');
+  var _pc=(window.AbortController)?new AbortController():null; var _pt=_pc?setTimeout(function(){try{_pc.abort();}catch(e){}},30000):0;
   fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ mode:'title', title:t, niche: ai.niche || '', context: outlierTitles }) })
-  .then(function(r){ return r.json(); })
+    body: JSON.stringify({ mode:'title', title:t, niche: ai.niche || '', context: outlierTitles }), signal:_pc?_pc.signal:undefined })
+  .then(function(r){ clearTimeout(_pt); return r.json(); })
   .then(function(d){
     var r = d.result || {};
     if (!d.ok) throw new Error(d.error || 'failed');
     out.style.display='block';
-    out.innerHTML = '<div class="pfscore"><span class="num" style="color:'+(r.score>=70?'var(--success)':r.score>=45?'var(--warning)':'var(--danger)')+'">'+r.score+'</span>'
-      + '<div class="pfbar"><div style="width:'+r.score+'%"></div></div></div>'
+    var sc=Math.max(0,Math.min(100,Number(r.score)||0));
+    out.innerHTML = '<div class="pfscore"><span class="num" style="color:'+(sc>=70?'var(--success)':sc>=45?'var(--warning)':'var(--danger)')+'">'+sc+'</span>'
+      + '<div class="pfbar"><div style="width:'+sc+'%"></div></div></div>'
       + '<div class="pfverdict">'+esc(r.verdict)+'</div>'
       + (r.rewrites||[]).map(function(rw){ return '<div class="rewrite" role="button" tabindex="0" onclick="copyRw(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();copyRw(this);}" title="click to copy">'+esc(rw)+'<small>click to copy</small></div>'; }).join('')
       + (r.hook ? '<p style="font-size:.86rem;color:var(--muted);margin-top:10px"><b style="color:var(--accent)">open with:</b> '+esc(r.hook)+'</p>' : '');
   })
   .catch(function(){ out.style.display='block'; out.innerHTML = '<p style="color:var(--danger)">pre-flight failed, try again.</p>'; })
-  .finally(function(){ btn.disabled = false; btn.textContent = 'check it'; });
+  .finally(function(){ clearTimeout(_pt); btn.disabled = false; btn.textContent = 'check it'; });
 }
 function copyRw(el){
   var t = el.childNodes[0].textContent;
@@ -756,6 +759,7 @@ function copyRw(el){
 /* ---------- share score card ---------- */
 function shareCard(){
   var d = lastReport; if (!d) return;
+  if(document.fonts && document.fonts.load && !shareCard._f){ shareCard._f=1; document.fonts.load('800 170px Inter').then(function(){ shareCard(); }).catch(function(){ shareCard(); }); return; }
   var c = document.createElement('canvas'); c.width = 1200; c.height = 630;
   var x = c.getContext('2d');
   x.fillStyle = '#0a0b10'; x.fillRect(0,0,1200,630);
@@ -782,8 +786,9 @@ function shareCard(){
   var sg = x.createLinearGradient(70,300,470,470);
   sg.addColorStop(0,'#8b5cf6'); sg.addColorStop(1,'#22d3ee');
   x.fillStyle = sg; x.fillText(String(score), 70, 440);
+  var _sw = x.measureText(String(score)).width;
   x.font = '600 44px Inter,sans-serif'; x.fillStyle = 'rgba(139,151,161,.7)';
-  x.fillText('/100', 70 + x.measureText(String(score)).width * 3.4, 440);
+  x.fillText('/100', 70 + _sw + 14, 440);
   x.font = '500 22px Inter,sans-serif'; x.fillStyle = 'rgba(233,238,242,.75)';
   var words = String((d.ai && d.ai.verdict) || '').split(' ');
   var line = '', y = 500, count = 0;

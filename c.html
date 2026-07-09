@@ -254,7 +254,7 @@ footer .fine a{color:var(--muted)}
 
   <!-- error -->
   <section id="error" class="err-wrap" style="display:none" aria-live="assertive">
-    <h2>Couldn't find that channel</h2>
+    <h2>Couldnt find that channel</h2>
     <p id="errMsg">Try a handle like <b style="color:var(--accent)">@mkbhd</b>, the full channel URL, or the channel name.</p>
     <a class="btn btn-ghost" href="c.html">Try another channel</a>
   </section>
@@ -334,7 +334,7 @@ footer .fine a{color:var(--muted)}
     </a>
     <nav class="flinks" aria-label="footer links">
       <a href="dashboard.html">Free scan</a>
-      <a href="home-classic.html#pricing">Pricing</a>
+      <a href="film.html#pricing">Pricing</a>
       <a href="privacy.html">Privacy</a>
       <a href="terms.html">Terms</a>
       <a href="mailto:contact@stromation.com">Contact</a>
@@ -389,10 +389,12 @@ function render(d){
   document.documentElement.style.setProperty('--gcolor',col);
   $('cardMain').style.setProperty('--gcolor',col);
   $('gLetter').textContent=g; $('gLetter').style.color=col;
-  $('chName').textContent=d.channel&&d.channel.name?d.channel.name:'this channel';
-  $('scoreN').textContent=d.score;
+  var chNm=(d.channel&&d.channel.name)||'this channel';
+  var sc=Number(d.score); if(!isFinite(sc)) sc=0;
+  $('chName').textContent=chNm;
+  $('scoreN').textContent=sc;
   $('headline').textContent=d.headline||'';
-  var pct=Math.max(0,Math.min(100,d.score))/100, C=327;
+  var pct=Math.max(0,Math.min(100,sc))/100, C=327;
   var ring=$('ring'); ring.style.stroke=col; ring.setAttribute('stroke-dashoffset', Math.round(C-C*pct));
   var v=d.vitals||{};
   var cells=[
@@ -407,14 +409,14 @@ function render(d){
   if(v.consistency!=null) cells.push({n:v.consistency, l:'rhythm score', cls:(v.consistency>=70?'pos':(v.consistency<40?'neg':''))});
   var grid=$('vitals'); grid.style.gridTemplateColumns='repeat('+(cells.length>4?3:cells.length)+',1fr)';
   grid.innerHTML=cells.map(function(c){return '<div class="vital '+(c.cls||'')+'" role="listitem"><div class="n">'+esc(c.n)+'</div><div class="l">'+esc(c.l)+'</div></div>';}).join('');
-  if(d.best && d.best.title){ $('bestRow').style.display='flex'; $('bestT').textContent=d.best.title; $('bestR').textContent=d.best.ratio+'x median · '+nfmt(d.best.views)+' views'; }
+  if(d.best && d.best.title){ $('bestRow').style.display='flex'; $('bestT').textContent=d.best.title; $('bestR').textContent=(d.best.ratio||0)+'x median · '+nfmt(d.best.views)+' views'; }
   else $('bestRow').style.display='none';
   var chParam=(d.channel&&d.channel.id)?d.channel.id:'';
   $('fullBtn').href='dashboard.html?c='+encodeURIComponent(chParam||'');
   var shareUrl='https://viralsidekick.com/c.html?ch='+encodeURIComponent(currentHandle||chParam);
   var tw=$('tweetBtn');
-  tw.href='https://twitter.com/intent/tweet?text='+encodeURIComponent((d.channel.name||'This channel')+' scored '+d.score+'/100 ('+g+') on ViralSidekick. grade any channel free:')+'&url='+encodeURIComponent(shareUrl);
-  document.title=(d.channel.name||'Channel')+' | '+g+' ('+d.score+'/100) | ViralSidekick';
+  tw.href='https://twitter.com/intent/tweet?text='+encodeURIComponent(chNm+' scored '+sc+'/100 ('+g+') on ViralSidekick. grade any channel free:')+'&url='+encodeURIComponent(shareUrl);
+  document.title=chNm+' | '+g+' ('+sc+'/100) | ViralSidekick';
   show('report');
 }
 
@@ -452,12 +454,12 @@ function drawShareCard(d){
 var currentHandle='';
 $('entryForm') && $('entryForm').addEventListener('submit',function(e){ e.preventDefault(); var v=$('entryInput').value.trim(); if(v) location.search='?ch='+encodeURIComponent(v); });
 $('ownForm') && $('ownForm').addEventListener('submit',function(e){ e.preventDefault(); var v=$('ownInput').value.trim(); if(v) location.search='?ch='+encodeURIComponent(v); });
-$('copyLink').addEventListener('click',function(){ var u=location.href; navigator.clipboard.writeText(u).then(function(){ var b=$('copyLink'); var t=b.textContent; b.textContent='Copied ✓'; setTimeout(function(){b.textContent=t;},1400); }); });
-$('dlCard').addEventListener('click',function(){ if(!CARD)return; var cv=drawShareCard(CARD); var a=document.createElement('a'); a.download='viralsidekick-'+((CARD.channel&&CARD.channel.name)||'card').replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'.png'; a.href=cv.toDataURL('image/png'); a.click(); });
+$('copyLink').addEventListener('click',function(){ var u=location.href; navigator.clipboard.writeText(u).then(function(){ var b=$('copyLink'); var t=b.textContent; b.textContent='Copied ✓'; setTimeout(function(){b.textContent=t;},1400); }).catch(function(){}); });
+$('dlCard').addEventListener('click',function(){ if(!CARD)return; var go=function(){ var cv=drawShareCard(CARD); var a=document.createElement('a'); a.download='viralsidekick-'+((CARD.channel&&CARD.channel.name)||'card').replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'.png'; a.href=cv.toDataURL('image/png'); a.click(); }; if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(go).catch(go); } else go(); });
 
 (function(){
   var p=new URLSearchParams(location.search);
-  var ch=p.get('ch')||p.get('c');
+  var ch=(p.get('ch')||p.get('c')||'').trim().slice(0,120);
   if(ch){ currentHandle=ch; grade(ch); }
   else show('entry');
 })();

@@ -1129,7 +1129,7 @@ function route(session){
 try{
   if(localStorage.getItem('vs_pending_invite')){
     var _at=document.getElementById('authTitle'), _as=document.getElementById('authSub');
-    if(_at) _at.textContent='You’re invited to a space';
+    if(_at) _at.textContent='youre invited to a space';
     if(_as) _as.textContent='One free account and you’re in, no channel setup, no forms. You’ll land straight in your team’s dashboard.';
   }
 }catch(e){}
@@ -1371,7 +1371,7 @@ function createSpace(){
   teamsApi('create_space',{name:name}).then(applySpace).catch(spaceFallback);
 }
 function roleChip(m){
-  var me=(m.user_id===USER.id), mine=SPACE&&SPACE.members.filter(function(x){return x.user_id===USER.id;})[0];
+  var me=(m.user_id===USER.id), mine=SPACE&&(SPACE.members||[]).filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
   var col=m.role==='owner'?'hsl(45 95% 62%)':(m.role==='admin'?'var(--accent)':'var(--muted)');
   var html='<div class="q-item"><div class="q-b"><div class="t">'+esc(m.display_name||(m.email||'').split('@')[0]||m.user_id.slice(0,8))
@@ -1417,7 +1417,7 @@ function loadBoard(){
     var rows=r.data||[];
     $('boardCount').textContent=rows.length? rows.filter(function(p){return p.status!=='done';}).length+' open':'';
     if(!rows.length){ $('boardList').innerHTML='<div class="tsub">Nothing yet, drop the first video idea.</div>'; return; }
-    var mine=SPACE.members.filter(function(m){return m.user_id===USER.id;})[0];
+    var mine=((SPACE&&SPACE.members)||[]).filter(function(m){return m.user_id===USER.id;})[0];
     var canMod=mine&&(mine.role==='owner'||mine.role==='admin');
     $('boardList').innerHTML=rows.map(function(p){
       var can=canMod||p.user_id===USER.id;
@@ -1443,7 +1443,7 @@ function postToBoard(){
   var body=$('postBody').value.trim(); if(!body||!SPACE) return;
   sb.from('viralsidekick_posts').insert({workspace_id:SPACE.workspace.id,user_id:USER.id,author_email:USER.email,author_name:(PROFILE&&PROFILE.display_name)||null,kind:$('postKind').value,body:body}).then(function(r){
     if(!r.error){ $('postBody').value=''; loadBoard(); }
-    else spaceNote(r.error.message.slice(0,60));
+    else spaceNote((r.error.message||'that did not go through').slice(0,60));
   });
 }
 function togglePost(id,status){ sb.from('viralsidekick_posts').update({status:status}).eq('id',id).then(loadBoard); }
@@ -1575,8 +1575,9 @@ function renderIdentity(){
   else { av.textContent=(String(yt.handle||yt.name||'Y').replace(/^@/,'').charAt(0)||'Y').toUpperCase(); }
   var display = looksRaw(yt.name) ? (yt.handle || 'your channel') : yt.name;
   $('hqName').textContent = display;
+  if(av) av.setAttribute('aria-label',(display||'your channel')+' avatar');
   $('idHandle').innerHTML = yt.handle? '<b>'+esc(yt.handle)+'</b>' : '';
-  $('idSubs').textContent = yt.subs? ('· '+yt.subs.replace(' subscribers',' subs')) : '';
+  $('idSubs').textContent = yt.subs? ('· '+String(yt.subs).replace(' subscribers',' subs')) : '';
   updateCardLinks();
   var ty=document.querySelector('.tag-you');
   if(ty){ var lf=ty.querySelector('#liveFlag'); if(lf){ ty.childNodes.forEach(function(n){ if(n.nodeType===3) n.textContent = (IDENT._adopted||VIEW==='space') ? ' · your team’s channel ' : ' · this is you '; }); } }
@@ -1598,7 +1599,7 @@ function renderPlatChips(){
   var out=['<span class="plat-chip on" role="listitem">'+IC_YT+' YouTube</span>'];
   if(IDENT.tiktok) out.push('<span class="plat-chip" role="listitem">'+IC_TT+' @'+esc(IDENT.tiktok.replace(/^@/,''))+'</span>');
   if(IDENT.instagram) out.push('<span class="plat-chip" role="listitem">'+IC_IG+' @'+esc(IDENT.instagram.replace(/^@/,''))+'</span>');
-  if(!IDENT.tiktok || !IDENT.instagram) out.push('<span class="plat-chip add" onclick="openConnect()" role="button" tabindex="0">+ add platform</span>');
+  if(!IDENT.tiktok || !IDENT.instagram) out.push('<span class="plat-chip add" onclick="openConnect()" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();openConnect();}" role="button" tabindex="0">+ add platform</span>');
   $('platChips').innerHTML=out.join('');
 }
 function renderTabs(){
@@ -1607,7 +1608,7 @@ function renderTabs(){
   if(IDENT.instagram) tabs.push(tabHTML('instagram','Instagram','soon',IC_IG));
   $('ptabs').innerHTML=tabs.join(''); $('ptabs').style.display = tabs.length>1?'flex':'none';
 }
-function tabHTML(p,label,st,icon){ return '<div class="ptab" data-p="'+p+'" onclick="switchPlatform(\''+p+'\')" role="tab" aria-selected="false" tabindex="0">'+icon+' '+label+' <span class="st">'+st+'</span></div>'; }
+function tabHTML(p,label,st,icon){ return '<div class="ptab" data-p="'+p+'" onclick="switchPlatform(\''+p+'\')" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();switchPlatform(\''+p+'\');}" role="tab" aria-selected="false" tabindex="0">'+icon+' '+label+' <span class="st">'+st+'</span></div>'; }
 function switchPlatform(p){
   PLATFORM=p;
   var tabsEl=$('ptabs'); Array.prototype.forEach.call(tabsEl.children,function(el){ el.classList.toggle('on', el.getAttribute('data-p')===p); el.setAttribute('aria-selected', el.getAttribute('data-p')===p); });
@@ -1624,7 +1625,8 @@ function renderAlt(p){
 }
 
 /* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
-function goLive(){ window._liveTitles=[]; liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals(); }
+function resetChannelState(){ try{ PULSE.c={}; }catch(e){} var pg=$('pulseGrid'); if(pg) pg.innerHTML=''; var tp=$('tPulse'); if(tp) tp.style.display='none'; LIVE_SIG=false; WIRE_KEY=null; window._lvCh=null; window._lvAt=0; window._liveTitles=[]; }
+function goLive(){ resetChannelState(); liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals(); }
 
 /* ============ LIVE PULSE: flip odometers polling real counts ============ */
 var PULSE={ poll:null, anim:null, c:{} }; /* c[key]={val,rate,lastVal,lastTs,el} */
@@ -1771,7 +1773,7 @@ function loadLatestFull(){
     for(var i=0;i<rows.length;i++){ if(rows[i].report && rows[i].report.ai){ row=rows[i]; break; } }
     var needScan=true;
     if(row){
-      lastFullAt=new Date(row.created_at).getTime();
+      lastFullAt=Date.parse(String(row.created_at||'').replace(' ','T')); if(isNaN(lastFullAt)) lastFullAt=Date.now();
       var stale=(Date.now()-lastFullAt)>216e5; /* 6h, the coach never coaches off old film */
       var mismatch=(IDENT.yt.id && row.channel_id && row.channel_id!==IDENT.yt.id);
       hydrateDeep(row.report.ai, row.report.radar_live, row.report.signals);
@@ -1803,14 +1805,16 @@ function showScanning(t){ var e=$('scanRun'); if(e){ e.style.display='flex'; $('
 function hideScanning(){ var e=$('scanRun'); if(e) e.style.display='none'; var b=$('refreshBtn'); if(b) b.disabled=false; }
 
 function updateCardLinks(){ var _c=curCh(); var q=_c.id||_c.name||''; if(q) $('cardBtn').href='c.html?ch='+encodeURIComponent(q); }
+function vsCopy(v){ try{ if(navigator.clipboard&&navigator.clipboard.writeText) return navigator.clipboard.writeText(v); }catch(e){} try{ var ta=document.createElement('textarea'); ta.value=v; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); return Promise.resolve(); }catch(e){ return Promise.reject(e); } }
 function copyCard(){
-  var q=IDENT.yt.id||IDENT.yt.name||''; if(!q) return;
+  var _c=curCh()||{}; var q=_c.id||_c.name||''; if(!q) return;
   var u='https://viralsidekick.com/c.html?ch='+encodeURIComponent(q);
-  navigator.clipboard.writeText(u).then(function(){ var b=$('cardCopy'); b.textContent='Copied ✓'; setTimeout(function(){b.textContent='Copy link';},1500); });
+  vsCopy(u).then(function(){ var b=$('cardCopy'); if(b){ b.textContent='Copied ✓'; setTimeout(function(){b.textContent='Copy link';},1500); } }).catch(function(){});
 }
 
 /* ---------- connect/edit modal ---------- */
-function openConnect(){ var cn=$('cmName'); if(cn) cn.value=(PROFILE&&PROFILE.display_name)||''; $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFound').style.display='none'; $('connectModal').classList.add('on'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var m=document.querySelector('.modal.on'); if(m) m.classList.remove('on'); } });
+function openConnect(){ var cn=$('cmName'); if(cn) cn.value=(PROFILE&&PROFILE.display_name)||''; $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFound').style.display='none'; $('connectModal').classList.add('on'); setTimeout(function(){ var f=$('connectModal').querySelector('input,button'); if(f) f.focus(); },30); }
 function closeConnect(){ $('connectModal').classList.remove('on'); }
 function saveConnect(){
   var cn=$('cmName'); if(cn&&cn.value.trim()){ PROFILE=PROFILE||{}; PROFILE.display_name=cn.value.trim(); }
@@ -1889,15 +1893,15 @@ function hydrateDeep(ai, radarLive, signals){
 }
 
 /* ---------- trend wire: what is hot RIGHT NOW + your fast plays ---------- */
-var WIRE_LOADED=false;
+var WIRE_KEY=null;
 function loadTrends(niche){
   var t=$('tWire'); if(!t) return;
   t.style.display='';
-  if(WIRE_LOADED) return; WIRE_LOADED=true;
   /* anchor the lane to THIS channel + its real recent titles so trends are relevant, not global noise */
   var _c=curCh()||{}; var chId=_c.id||_c.name||''; var chName=looksRaw(_c.name)?(_c.handle||''):(_c.name||'');
   var seed=[]; try{ if(Array.isArray(window._liveTitles)) seed=window._liveTitles.slice(0,10); }catch(e){}
   var ckey=chId+'|'+(niche||'');
+  if(WIRE_KEY===ckey) return; WIRE_KEY=ckey; /* already loaded/loading this exact channel+niche */
   try{
     var cch=JSON.parse(localStorage.getItem('vs_wire2')||'null');
     if(cch && cch.key===ckey && (Date.now()-cch.at)<30*60000){ renderWire(cch.d); return; }
@@ -1968,7 +1972,7 @@ function addRival(){
       var row={ channel_id:d.channel.id, handle:d.channel.handle||null, title:d.channel.name||null, is_competitor:true, user_id:USER.id };
       if(VIEW==='space' && SPACE && SPACE.workspace) row.workspace_id=SPACE.workspace.id;
       sb.from('viralsidekick_channels').insert(row).then(function(rr){
-        if(rr.error){ $('rivalEnd').textContent=rr.error.message.indexOf('policy')>=0?'viewers cannot edit':'already tracked?'; return; }
+        if(rr.error){ $('rivalEnd').textContent=(rr.error.message||'').indexOf('policy')>=0?'viewers cannot edit':'already tracked?'; return; }
         $('rivalIn').value=''; try{ localStorage.removeItem('vs_cmp'); }catch(e){}
         loadRivals();
       });
@@ -2000,15 +2004,17 @@ function renderCompare(res, me){
   var failed=(res||[]).filter(function(x){return x.error;});
   if(!rows.length){ $('rivalBody').innerHTML='<div class="tsub">YouTube is rate-limiting reads right now, retry in a minute.</div>'; return; }
   var meid=(me&&me.id)||'';
+  var meName=(me&&(me.name||me.handle))||''; var meKey=(me&&(me.id||me.name))||'';
+  function isMeRow(x){ return (meid && x.id===meid) || (meKey && x.input===meKey) || (meName && x.name===meName); }
   var html='<div style="overflow-x:auto"><table class="cmp"><thead><tr><th>channel</th><th>grade</th><th>median</th><th>momentum</th><th>like rate</th><th>rhythm</th><th></th></tr></thead><tbody>';
   rows.forEach(function(x){
-    var isMe=x.id===meid || rows.indexOf(x)===0;
+    var isMe=isMeRow(x);
     var riv=RIVALS.filter(function(r){return r.channel_id===x.id;})[0];
     html+='<tr class="'+(isMe?'me':'')+'">'
       +'<td>'+(isMe?'◈ ':'')+esc(x.name||x.input)+'</td>'
-      +'<td><b style="color:'+gcolor(x.grade)+'">'+esc(x.grade)+'</b> <span class="dim">'+x.score+'</span></td>'
+      +'<td><b style="color:'+gcolor(x.grade)+'">'+esc(x.grade)+'</b> <span class="dim">'+esc(x.score)+'</span></td>'
       +'<td>'+nfmt(x.median)+'</td>'
-      +'<td style="color:'+(x.momentum>=1?'var(--success)':'var(--warning)')+'">'+x.momentum+'x</td>'
+      +'<td style="color:'+(x.momentum>=1?'var(--success)':'var(--warning)')+'">'+esc(x.momentum)+'x</td>'
       +'<td>'+(x.engagement_pct!=null?x.engagement_pct+'%':'-')+'</td>'
       +'<td>'+(x.consistency!=null?x.consistency:'-')+'</td>'
       +'<td>'+(x.stale?'<span class="dim" title="live read failed, showing the last stored numbers">stale</span> ':'')+(riv&&!isMe?'<button class="bbtn" onclick="delRival(\''+riv.id+'\')" aria-label="untrack">✕</button>':'')+'</td>'
@@ -2016,19 +2022,19 @@ function renderCompare(res, me){
   });
   failed.forEach(function(x){
     var riv=RIVALS.filter(function(r){return r.channel_id===x.input;})[0];
-    html+='<tr><td class="dim">'+esc((riv&&riv.title)||x.input)+'</td><td colspan="5" class="dim">couldn’t read right now, retries next refresh</td>'
+    html+='<tr><td class="dim">'+esc((riv&&riv.title)||x.input)+'</td><td colspan="5" class="dim">couldnt read right now, retries next refresh</td>'
       +'<td>'+(riv?'<button class="bbtn" onclick="delRival(\''+riv.id+'\')" aria-label="untrack">✕</button>':'')+'</td></tr>';
   });
   html+='</tbody></table></div>';
   /* the coach reads the table: where is the opening? (computed, no AI) */
   try {
-    var me=rows.filter(function(x){return x.id===meid;})[0]||rows[0];
-    var rivalsOnly=rows.filter(function(x){return x!==me;});
-    if(me && rivalsOnly.length){
+    var mine=rows.filter(isMeRow)[0];
+    var rivalsOnly=rows.filter(function(x){return x!==mine;});
+    if(mine && rivalsOnly.length){
       var bestR=rivalsOnly.slice().sort(function(a,b){return (b.score||0)-(a.score||0);})[0];
       var line;
-      if((me.score||0)>=(bestR.score||0)+8) line='you outscore '+esc(bestR.name)+' by '+((me.score||0)-(bestR.score||0))+'. their recent form is soft, out-ship them while it lasts.';
-      else if((bestR.score||0)>=(me.score||0)+8) line=esc(bestR.name)+' is running hotter ('+bestR.score+' vs your '+me.score+'). study their last two weeks, then take the format back.';
+      if((mine.score||0)>=(bestR.score||0)+8) line='you outscore '+esc(bestR.name)+' by '+((mine.score||0)-(bestR.score||0))+'. their recent form is soft, out-ship them while it lasts.';
+      else if((bestR.score||0)>=(mine.score||0)+8) line=esc(bestR.name)+' is running hotter ('+bestR.score+' vs your '+mine.score+'). study their last two weeks, then take the format back.';
       else line='dead even with '+esc(bestR.name)+'. consistency decides this one, win the rhythm score.';
       var mo=rivalsOnly.filter(function(x){return (x.momentum||0)<0.8;});
       if(mo.length) line+=' '+mo.map(function(x){return esc(x.name);}).join(', ')+' '+(mo.length>1?'are':'is')+' in a momentum dip, strike windows are open.';
@@ -2114,7 +2120,7 @@ function buildFmt(idea, fmt){
         var txt='TITLE: '+(bp.title||'')+'\n'+(bp.logline?'LOGLINE: '+bp.logline+'\n':'')+'\nSCRIPT ('+d.format+'):\n'
           +sc.map(function(r){return '['+(r.t||'')+']'+(r.shot?'\nSHOT: '+r.shot:'')+(r.line?'\nLINE: '+r.line:'')+(r.note?'\nNOTE: '+r.note:'')+'\n';}).join('\n')
           +'\nTHUMBNAIL: '+((bp.thumbnail||{}).concept||'')+'\nDESCRIPTION: '+(bp.description||'')+'\nTAGS: '+((bp.hashtags||[]).join(' '))+'\nONE RULE: '+(bp.one_rule||'');
-        navigator.clipboard.writeText(txt); ca.textContent='copied ✓'; setTimeout(function(){ca.textContent='copy the script';},1500);
+        vsCopy(txt).then(function(){ ca.textContent='copied ✓'; setTimeout(function(){ca.textContent='copy the script';},1500); }).catch(function(){});
       };
     })
     .catch(function(){ $('bpBody').innerHTML='<div class="tsub">network hiccup, try again.</div>'; });
@@ -2272,7 +2278,7 @@ function renderHistory(rows){
 function weekStreak(rows){
   if(!rows.length) return 0;
   var weeks={}; rows.forEach(function(x){ var d=new Date(x.created_at); var wk=Math.floor((Date.now()-d.getTime())/6048e5); weeks[wk]=1; });
-  var s=0; while(weeks[s]) s++; return s;
+  var s = weeks[0] ? 0 : 1; var n=0; while(weeks[s]){ n++; s++; } return n;
 }
 function relTime(when){
   var t=(typeof when==='number')?when:new Date(when).getTime(); var s=(Date.now()-t)/1000;
@@ -2282,7 +2288,7 @@ function relTime(when){
 function bindCopies(root){
   Array.prototype.forEach.call(root.querySelectorAll('[data-copy]'), function(el){
     el.style.cursor='pointer';
-    el.onclick=function(){ var v=el.getAttribute('data-copy'); navigator.clipboard.writeText(v); var o=el.textContent; el.textContent='copied ✓'; setTimeout(function(){ el.textContent=o; },1200); };
+    el.onclick=function(){ var v=el.getAttribute('data-copy'); var o=el.textContent; vsCopy(v).then(function(){ el.textContent='copied ✓'; setTimeout(function(){ el.textContent=o; },1200); }).catch(function(){}); };
   });
 }
 function drawSpark(rows){

@@ -252,14 +252,14 @@ footer .fline a{color:var(--muted)}
         VIRALSIDEKICK
       </div>
       <h1 data-split>Good videos die <em>in the noise.</em></h1>
-      <p class="tag">Not because they're bad. Because nobody shows you what to fix. This is the story of one channel that found out.</p>
+      <p class="tag">Not because theyre bad. Because nobody shows you what to fix. This is the story of one channel that found out.</p>
     </div>
   </div>
 
   <!-- 2 · your channel -->
   <div class="stext" id="s-vision" data-show-at="0.15" data-hide-at="0.28">
     <div class="inner">
-      <div class="q">“</div>
+      <div class="q" aria-hidden="true">“</div>
       <blockquote>One of those dots is <b>your channel.</b> The views flatlined and nobody could tell you why.</blockquote>
       <div class="div"></div>
       <div class="attr">this is where most creators quit</div>
@@ -285,7 +285,7 @@ footer .fline a{color:var(--muted)}
     <div class="inner">
       <div class="overline"><span class="live-dot"></span>act two · live</div>
       <h2 class="stitle">The <em>niche radar.</em></h2>
-      <p class="sbody">While you read this, the engine sweeps the channels around yours and catches what's erupting, then writes your version of it.</p>
+      <p class="sbody">While you read this, the engine sweeps the channels around yours and catches whats erupting, then writes your version of it.</p>
       <div class="glass-grid">
         <div class="gcell"><span class="gi">⚡</span><div class="gt">Niche Radar <span class="pill">LIVE</span></div><div class="gd">real erupting videos, pulled minutes ago</div></div>
         <div class="gcell"><span class="gi">◉</span><div class="gt">Live Pulse</div><div class="gd">subs + views rolling in real time</div></div>
@@ -300,7 +300,7 @@ footer .fline a{color:var(--muted)}
     <div class="inner">
       <div class="overline v">act three</div>
       <h2 class="stitle">Then the curve <em class="vio">bends.</em></h2>
-      <p class="sbody">Not luck. A plan. Fix the format, hit the window, ride what's erupting, and compound.</p>
+      <p class="sbody">Not luck. A plan. Fix the format, hit the window, ride whats erupting, and compound.</p>
       <div class="steps">
         <div class="step"><span class="k">01</span><span class="dots"></span><span class="v"><b>paste your channel</b>, thirty seconds</span></div>
         <div class="step"><span class="k">02</span><span class="dots"></span><span class="v"><b>get the autopsy</b> + your 30-day roadmap</span></div>
@@ -331,9 +331,9 @@ footer .fline a{color:var(--muted)}
 
   <div class="xplain">
     <div class="overline" style="justify-content:center">prefer it explained? · 60 seconds</div>
-    <h3 class="xtitle">What you're <em>actually getting.</em></h3>
+    <h3 class="xtitle">What youre <em>actually getting.</em></h3>
     <div class="xframe">
-      <video controls preload="metadata" poster="explainer-poster.webp" playsinline>
+      <video controls preload="metadata" poster="explainer-poster.webp" playsinline style="width:100%;aspect-ratio:16/9;height:auto;display:block">
         <source src="explainer.mp4" type="video/mp4">
       </video>
     </div>
@@ -658,11 +658,11 @@ function progress(){
   return { p: clamp(-r.top/(r.height-innerHeight),0,1),
            inside: r.bottom > innerHeight - 2 };   /* false once the outro scrolls in */
 }
-var pd=0;
-function animate(t){
+var pd=0, _t=0;
+function render(){
   var st=progress(), raw=st.p;
   pd+=(raw-pd)*(REDUCE?1:0.10);           /* buttery displayed progress */
-  draw(pd,t||0);
+  if(st.inside) draw(pd, REDUCE?0:_t);    /* skip the draw once scrolled past the stage */
 
   var active=0;
   texts.forEach(function(tx,ti){
@@ -676,8 +676,8 @@ function animate(t){
     var a=+texts[i].getAttribute('data-show-at'), b=i+1<texts.length? +texts[i+1].getAttribute('data-show-at'):1;
     l.style.height=clamp((raw-a)/(b-a),0,1)*100+'%';
   });
-  requestAnimationFrame(animate);
 }
+function animate(t){ _t=t||0; if(document.hidden){ requestAnimationFrame(animate); return; } render(); requestAnimationFrame(animate); }
 
 /* ---------- boot ---------- */
 (function(){
@@ -693,7 +693,8 @@ function animate(t){
       },220);
     }
   },110);
-  if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(function(){ requestAnimationFrame(animate); }); }
+  if(REDUCE){ render(); addEventListener('scroll',render,{passive:true}); addEventListener('resize',render); }
+  else if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(function(){ requestAnimationFrame(animate); }); }
   else requestAnimationFrame(animate);
 })();
 </script>

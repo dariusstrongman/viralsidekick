@@ -1,0 +1,4 @@
+# security-model SQL: keep local, never publish
+viralsidekick-schema.sql
+viralsidekick-security.sql
+viralsidekick-teams.sql
