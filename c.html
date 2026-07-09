@@ -466,7 +466,7 @@ function render(d){
 function drawShareCard(d){
   var cv=document.createElement('canvas'); cv.width=1200; cv.height=630; var x=cv.getContext('2d');
   var g=d.grade||'F';
-  var colmap={A:'#34e5a4',B:'#3ad0f0',C:'#f6c23e',D:'#f08a2a',F:'#f0524d'};
+  var colmap={S:'#f5c542',A:'#34e5a4',B:'#3ad0f0',C:'#f6c23e',D:'#f08a2a',F:'#f0524d'};
   var col=colmap[(g[0])]||'#8b5cf6';
   x.fillStyle='#0a0c14'; x.fillRect(0,0,1200,630);
   var grd=x.createRadialGradient(1000,-60,80,1000,-60,900); grd.addColorStop(0,'rgba(139,92,246,0.28)'); grd.addColorStop(1,'rgba(10,12,20,0)'); x.fillStyle=grd; x.fillRect(0,0,1200,630);

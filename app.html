@@ -1001,7 +1001,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
               <div class="tsub" style="margin-top:10px;color:var(--muted)">7 days free, then $19/mo, cancel anytime. one video that hits pays for this for years.</div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
-              <div style="display:inline-flex;border:1px solid var(--line);border-radius:99px;overflow:hidden;font-size:.72rem">
+              <div style="display:inline-flex;border:1px solid var(--border2);border-radius:99px;overflow:hidden;font-size:.72rem">
                 <button type="button" id="billMo" onclick="setBilling('monthly')" style="border:0;background:var(--accent);color:#08131a;padding:4px 12px;cursor:pointer;font-weight:700">monthly</button>
                 <button type="button" id="billYr" onclick="setBilling('annual')" style="border:0;background:transparent;color:var(--muted);padding:4px 12px;cursor:pointer;font-weight:600">annual, save $38</button>
               </div>
@@ -1258,7 +1258,7 @@ function loadProfile(){
     PROFILE = r.data || {};
     IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
     IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||'';
-    IS_PRO = (PROFILE.plan==='pro'||PROFILE.plan==='team');
+    IS_PRO = (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROFILE.plan_status==null || PROFILE.plan_status==='active' || PROFILE.plan_status==='trialing');
 
     /* INVITED? accept BEFORE any onboarding, team members walk straight into
        the space, no channel setup, no forms. (token survives oauth redirects
@@ -1509,7 +1509,7 @@ function celebrateUpgrade(){
         el.textContent=(plan==='team'?'TEAM':'PRO')+' is live. the coach expects more now.';
         setTimeout(function(){ el.remove(); },5000);
       } else if(tries<20){ setTimeout(poll,3000); }
-      else { el.textContent='payment received, your plan lands within a minute. refresh if it does not.'; setTimeout(function(){ el.remove(); },8000); }
+      else { el.textContent='we could not confirm your upgrade yet. if you were charged, email contact@stromation.com and we will sort it fast.'; el.style.background='linear-gradient(120deg,hsl(28 90% 55%),hsl(20 90% 52%))'; setTimeout(function(){ el.remove(); },12000); }
     });
   })();
 }
@@ -1708,13 +1708,14 @@ function pulseSet(key, newVal, subHTML){
   if(r) r.textContent = c.rate>0 ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
 }
 function pollPulse(){
-  var _c=curCh(); var q=_c.id||_c.name; if(!q) return;
+  var _c=curCh(); var q=_c.id||_c.name; if(!q) return Promise.resolve();
   var body={ mode:'live', channel:q, website:'' };
   if(IDENT.tiktok) body.tiktok=IDENT.tiktok;
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+  return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(function(r){return r.json();})
     .then(function(d){
-      if(!d||!d.ok) return;
+      if(!d||!d.ok){ PULSE.fails=(PULSE.fails||0)+1; return; }
+      PULSE.fails=0;
       var yt=d.youtube||{};
       if(yt.subs_text){
         pulseCounter('subs','subscribers',IC_YT,'hsl(0 84% 62%)');
@@ -1742,10 +1743,13 @@ function pollPulse(){
         pulseCounter('tt','tiktok followers',IC_TT,'var(--accent)');
         pulseSet('tt', d.tiktok.followers, '<b>@'+esc(d.tiktok.handle)+'</b> · exact'+(d.tiktok.likes?' · '+nfmt(d.tiktok.likes)+' likes':''));
       }
-    }).catch(function(){});
+    }).catch(function(){ PULSE.fails=(PULSE.fails||0)+1; });
 }
-function startPulse(){ stopPulse(); pollPulse(); PULSE.poll=setInterval(pollPulse, 45000); }
-function stopPulse(){ if(PULSE.poll){clearInterval(PULSE.poll);PULSE.poll=null;} if(PULSE.anim){clearInterval(PULSE.anim);PULSE.anim=null;} }
+/* self-scheduling with exponential backoff so a throttling YouTube/TikTok endpoint
+   is not hammered every 45s by 30 open tabs (root cause of IP soft-blocks) */
+function schedulePulse(){ if(document.hidden) return; var delay=45000*Math.min(6, 1+(PULSE.fails||0)); PULSE.poll=setTimeout(function(){ pollPulse().then(schedulePulse); }, delay); }
+function startPulse(){ stopPulse(); PULSE.fails=0; pollPulse().then(schedulePulse); }
+function stopPulse(){ if(PULSE.poll){clearTimeout(PULSE.poll);PULSE.poll=null;} if(PULSE.anim){clearInterval(PULSE.anim);PULSE.anim=null;} }
 document.addEventListener('visibilitychange', function(){
   if(document.hidden) stopPulse();
   else if(USER && (IDENT.yt.id||IDENT.yt.name)) startPulse();
@@ -1808,8 +1812,11 @@ function loadLatestFull(){
     if(needScan) backgroundScan();
   });
 }
+function ordMsg(cmd, receipt){ var os=$('orderStrip'); if(os) os.classList.remove('hide'); var a=$('ordCmd'); if(a) a.innerHTML=cmd; var b=$('ordReceipt'); if(b) b.innerHTML=receipt||''; }
 function backgroundScan(){
   var _c=curCh(); var q=_c.id||_c.name; if(!q) return;
+  if(window._scanning) return; /* in-flight guard: never double-bill a racing manual + auto scan */
+  window._scanning=true;
   var os=$('orderStrip');
   if(os && os.classList.contains('hide')){
     os.classList.remove('hide');
@@ -1818,13 +1825,19 @@ function backgroundScan(){
     $('ordReceipt').innerHTML='<b>first verdict lands in ~30 seconds.</b> every upload gets read, your niche gets swept live, and you get THE GOAL plus your first orders.';
   }
   showScanning('the coach is reviewing the latest film…');
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:q,email:USER.email,user_id:USER.id,workspace_id:(SPACE&&SPACE.workspace)?SPACE.workspace.id:null,website:''})})
+  var _ac=(window.AbortController)?new AbortController():null; var _to=_ac?setTimeout(function(){try{_ac.abort();}catch(e){}},90000):0;
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:q,email:USER.email,user_id:USER.id,token:ACCESS,workspace_id:(SPACE&&SPACE.workspace)?SPACE.workspace.id:null,website:''}),signal:_ac?_ac.signal:undefined})
     .then(function(r){return r.json();})
     .then(function(d){
-      hideScanning();
+      clearTimeout(_to); hideScanning();
       if(d&&d.ai){ hydrateDeep(d.ai,d.radar_live,d.signals,d.breakout); lastFullAt=Date.now(); setTimeout(loadHistory,1200); }
+      else if(d&&d.error==='too_new'){ ordMsg('your channel needs a few more uploads', 'a real read needs at least 3 public uploads. come back after your next one and the coach reads it in full.'); }
+      else if(d&&(d.error==='session expired - sign in again'||d.error==='session_expired')){ ordMsg('your session expired', 'refresh the page and sign in again to keep the coach on your channel.'); }
+      else if(d&&d.error){ ordMsg('the read did not come back clean', 'tap refresh to try again. if it keeps happening, your channel may be private or too new.'); }
+      else { ordMsg('the read is taking longer than usual', 'tap refresh to retry. big channels and busy niches can take a full minute.'); }
     })
-    .catch(function(){ hideScanning(); });
+    .catch(function(){ clearTimeout(_to); hideScanning(); ordMsg('the read timed out', 'tap refresh to try again, the coach will pick up where it left off.'); })
+    .finally(function(){ window._scanning=false; });
 }
 function refreshLive(){ liveVitals(); backgroundScan(); }
 function showScanning(t){ var e=$('scanRun'); if(e){ e.style.display='flex'; $('scanRunTxt').textContent=t||'refreshing…'; } var b=$('refreshBtn'); if(b) b.disabled=true; }
@@ -1880,7 +1893,7 @@ function hydrateDeep(ai, radarLive, signals, breakout){
   if(rad.length){
     rb.innerHTML = rad.map(function(x){
       var ang=x.your_angle||x.your_version||'';
-      var u=(x.urgency||'').toLowerCase(), uc=(u.indexOf('48h')>=0||u.indexOf('24h')>=0||u.indexOf('week')>=0)?'now':'soon';
+      var u=(x.urgency||'').toLowerCase(), uc=(u.indexOf('48h')>=0||u.indexOf('24h')>=0)?'now':'soon';
       return '<div class="rd"><div class="trend"><span>'+esc(x.trend||'')+'</span><span class="urg '+uc+'">'+esc(x.urgency||'')+(x.format?' · '+esc(x.format):'')+'</span></div>'
         +(x.evidence?'<div class="ev">'+esc(x.evidence)+'</div>':'')
         +(x.steal_this?'<div class="ev" style="color:var(--accent)"><b>steal this:</b> '+esc(x.steal_this)+'</div>':'')
@@ -2146,7 +2159,7 @@ function renderIdeas(rows){
 function markIdea(id,status){
   if(!(window.sb && USER && USER.id)) return;
   var patch={status:status, updated_at:new Date().toISOString()};
-  if(status==='shipped'){ var u=window.prompt('paste the video URL so the coach can track it (optional):',''); if(u) patch.video_url=String(u).trim(); }
+  if(status==='shipped'){ var u=window.prompt('paste the video URL so the coach can track it (optional):',''); if(u){ u=String(u).trim(); if(/^https?:\/\//i.test(u)) patch.video_url=u; else if(u) patch.video_url='https://'+u.replace(/^\/+/,''); } }
   sb.from('viralsidekick_ideas').update(patch).eq('id',id).eq('user_id',USER.id).then(function(){ loadIdeas(); }).catch(function(){});
 }
 function deleteIdea(id){
@@ -2309,14 +2322,15 @@ function titleTest(inId, outId){
   var niche=(LASTAI&&LASTAI.niche)||'creator content';
   $(outId).style.display='block';
   $('labScore'+suf).textContent='…'; $('labVerdict'+suf).textContent='scoring against your niche'; $('labRewrites'+suf).innerHTML=''; $('labHook'+suf).textContent='';
+  var _ac=(window.AbortController)?new AbortController():null; var _to=_ac?setTimeout(function(){try{_ac.abort();}catch(e){}},30000):0;
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'title',title:t,niche:niche,
       dna:(window._lastSignals&&window._lastSignals.title_dna)||null,
       power_words:(window._lastSignals&&window._lastSignals.power_words)||null,
       context:((LASTAI&&LASTAI.next_video&&LASTAI.next_video.title_options)||[]).join(' | '),
-      website:''})})
-    .then(function(r){return r.json();})
+      website:''}),signal:_ac?_ac.signal:undefined})
+    .then(function(r){clearTimeout(_to);return r.json();})
     .then(function(d){
-      if(!d.ok||!d.result){ $('labScore'+suf).textContent='!'; $('labVerdict'+suf).textContent='could not score that one, try again'; return; }
+      if(!d.ok||!d.result){ $('labScore'+suf).textContent='!'; $('labVerdict'+suf).textContent=(d&&d.error==='daily_limit')?'title lab is capped for today, back tomorrow':'could not score that one, try again'; return; }
       var o=d.result; $('labScore'+suf).textContent=o.score!=null?o.score:'-'; $('labScore'+suf).style.color=scoreColor(o.score);
       $('labVerdict'+suf).textContent=o.verdict||'';
       $('labRewrites'+suf).innerHTML=(o.rewrites||[]).map(function(r){return '<div class="lab-rw" data-copy="'+esc(r)+'">'+esc(r)+'</div>';}).join('');

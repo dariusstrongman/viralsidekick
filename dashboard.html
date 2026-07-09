@@ -638,7 +638,7 @@ function runAnalysis(payload){
   $('scanTitle').textContent = payload.demo ? 'Analyzing demo channel…' : 'Scanning ' + payload.channel + '…';
   playScanLog();
   var t0 = Date.now();
-  var _ac=(window.AbortController)?new AbortController():null; var _to=_ac?setTimeout(function(){try{_ac.abort();}catch(e){}},45000):0;
+  var _ac=(window.AbortController)?new AbortController():null; var _to=_ac?setTimeout(function(){try{_ac.abort();}catch(e){}},90000):0;
   fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), signal:_ac?_ac.signal:undefined })
     .then(function(r){ clearTimeout(_to); if(!r.ok) throw new Error('scan service returned ' + r.status); return r.json(); })
     .then(function(d){
@@ -646,8 +646,11 @@ function runAnalysis(payload){
         ? 'couldnt find that channel. try the full URL (youtube.com/@handle) or the channel ID (starts with UC).'
         : d.error === 'too_new'
         ? (d.detail || 'we found you, but a real read needs at least 3 public uploads. come back after your next one.')
+        : d.error === 'daily_limit'
+        ? (d.detail || 'free scans are capped for today. create a free account for your own locked-in channel.')
         : d.error); }
-      if (!d.ok || !d.ai){ throw new Error('that scan came back incomplete. try again in a minute.'); }
+      /* the AI read can fail while stats + radar are fine - render the data (charts, outliers, radar) with a note instead of hard-failing and double-billing a retry */
+      if (!d.ok){ throw new Error('that scan came back incomplete. try again in a minute.'); }
       var wait = Math.max(0, (payload.demo ? 3500 : 9000) - (Date.now() - t0));
       setTimeout(function(){ clearTimeout(scanTimer); try{ renderReport(d); }catch(e){ fail('that scan came back malformed. try again in a minute.'); } }, reduce ? 0 : wait);
     })
