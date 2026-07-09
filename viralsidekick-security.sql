@@ -1,13 +1,13 @@
 -- ============================================================================
--- ViralSidekick SECURITY hardening v3 — the definitive version. RUN THIS WHOLE
+-- ViralSidekick SECURITY hardening v3, the definitive version. RUN THIS WHOLE
 -- FILE in the Supabase SQL editor (one paste, then Run).
 --
 -- Why v3: v1's column REVOKEs were no-ops (a table UPDATE grant overrides them).
 -- v2 (revoke table / grant back safe cols) is correct BUT only works if it truly
--- runs — a partial paste silently leaves the table wide open. v3 adds a database
+-- runs, a partial paste silently leaves the table wide open. v3 adds a database
 -- TRIGGER that forcibly resets protected columns for any non-server caller. A
 -- trigger cannot be overridden by grant ordering and cannot half-apply, so this
--- closes the self-upgrade-to-Pro hole for good. Idempotent — safe to re-run.
+-- closes the self-upgrade-to-Pro hole for good. Idempotent, safe to re-run.
 -- ============================================================================
 
 alter table viralsidekick_profiles add column if not exists channel_changed_at timestamptz;
@@ -15,7 +15,7 @@ alter table viralsidekick_profiles add column if not exists channel_changed_at t
 -- ---------------------------------------------------------------------------
 -- 1) THE GUARANTEE: a trigger. Only the server (service_role key) may change
 --    plan / billing / channel binding. Everyone else's attempts are reverted
---    to the existing value — the UPDATE still "succeeds" (returns 200) but the
+--    to the existing value, the UPDATE still "succeeds" (returns 200) but the
 --    protected fields do not move. auth.role() reflects the request's JWT.
 -- ---------------------------------------------------------------------------
 create or replace function viralsidekick_guard_profile()
@@ -59,7 +59,7 @@ grant insert (id, email, display_name, avatar_url, timezone, referral_source,
               onboarded, tiktok_handle, instagram_handle, updated_at)
   on viralsidekick_profiles to authenticated;
 
--- and may edit only these (NOT plan / billing / channel binding — server only)
+-- and may edit only these (NOT plan / billing / channel binding, server only)
 grant update (email, display_name, avatar_url, timezone, referral_source,
               onboarded, tiktok_handle, instagram_handle, updated_at)
   on viralsidekick_profiles to authenticated;

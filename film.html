@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ViralSidekick — the film</title>
-<meta name="description" content="A scroll film about going viral. Good videos die in the noise — this is the story of one channel that found out why.">
+<title>ViralSidekick | the film</title>
+<meta name="description" content="A scroll film about going viral. Good videos die in the noise, this is the story of one channel that found out why.">
 <link rel="canonical" href="https://viralsidekick.com/film.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="ViralSidekick — the film">
+<meta property="og:title" content="ViralSidekick, the film">
 <meta property="og:description" content="A scroll-driven film about going viral. Watch a channel get autopsied, graded, and turned around.">
 <meta property="og:url" content="https://viralsidekick.com/film.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -52,7 +52,7 @@ a{color:inherit;text-decoration:none}
 #loader .bar{width:140px;height:1px;background:rgba(238,240,247,.09);overflow:hidden}
 #loader .bar div{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width .18s}
 
-/* persistent topbar — always-available sign in */
+/* persistent topbar, always-available sign in */
 #topbar{position:fixed;top:0;left:0;right:0;z-index:55;display:flex;align-items:center;justify-content:space-between;padding:18px 26px;opacity:0;transition:opacity .8s;pointer-events:none}
 #topbar.on{opacity:1;pointer-events:auto}
 #topbar .tlogo{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.3em;color:var(--white)}
@@ -271,10 +271,10 @@ footer .fline a{color:var(--muted)}
     <div class="inner">
       <div class="overline">act one</div>
       <h2 class="stitle">The <em class="g">autopsy.</em></h2>
-      <p class="sbody">ViralSidekick reads every upload and finds what your dashboard never showed you — the pattern.</p>
+      <p class="sbody">ViralSidekick reads every upload and finds what your dashboard never showed you, the pattern.</p>
       <div class="feat-list">
         <div class="feat"><span class="ic r">✕</span><div><div class="t">Dead zones <span class="k bad">0.2x median</span></div><div class="d">the formats your audience keeps voting against</div></div></div>
-        <div class="feat"><span class="ic g">◆</span><div><div class="t">The breakout <span class="k good">4.2x median</span></div><div class="d">the one video that worked — and the exact reason why</div></div></div>
+        <div class="feat"><span class="ic g">◆</span><div><div class="t">The breakout <span class="k good">4.2x median</span></div><div class="d">the one video that worked, and the exact reason why</div></div></div>
         <div class="feat"><span class="ic c">◷</span><div><div class="t">Posting windows</div><div class="d">when your winners actually went live, to the hour</div></div></div>
       </div>
     </div>
@@ -285,7 +285,7 @@ footer .fline a{color:var(--muted)}
     <div class="inner">
       <div class="overline"><span class="live-dot"></span>act two · live</div>
       <h2 class="stitle">The <em>niche radar.</em></h2>
-      <p class="sbody">While you read this, the engine sweeps the channels around yours and catches what's erupting — then writes your version of it.</p>
+      <p class="sbody">While you read this, the engine sweeps the channels around yours and catches what's erupting, then writes your version of it.</p>
       <div class="glass-grid">
         <div class="gcell"><span class="gi">⚡</span><div class="gt">Niche Radar <span class="pill">LIVE</span></div><div class="gd">real erupting videos, pulled minutes ago</div></div>
         <div class="gcell"><span class="gi">◉</span><div class="gt">Live Pulse</div><div class="gd">subs + views rolling in real time</div></div>
@@ -300,11 +300,11 @@ footer .fline a{color:var(--muted)}
     <div class="inner">
       <div class="overline v">act three</div>
       <h2 class="stitle">Then the curve <em class="vio">bends.</em></h2>
-      <p class="sbody">Not luck. A plan. Fix the format, hit the window, ride what's erupting — and compound.</p>
+      <p class="sbody">Not luck. A plan. Fix the format, hit the window, ride what's erupting, and compound.</p>
       <div class="steps">
-        <div class="step"><span class="k">01</span><span class="dots"></span><span class="v"><b>paste your channel</b> — thirty seconds</span></div>
+        <div class="step"><span class="k">01</span><span class="dots"></span><span class="v"><b>paste your channel</b>, thirty seconds</span></div>
         <div class="step"><span class="k">02</span><span class="dots"></span><span class="v"><b>get the autopsy</b> + your 30-day roadmap</span></div>
-        <div class="step"><span class="k">03</span><span class="dots"></span><span class="v"><b>ship, re-scan, climb</b> — watch the grade move</span></div>
+        <div class="step"><span class="k">03</span><span class="dots"></span><span class="v"><b>ship, re-scan, climb</b>, watch the grade move</span></div>
       </div>
     </div>
   </div>
@@ -373,7 +373,7 @@ footer .fline a{color:var(--muted)}
 
 <script>
 /* ============================================================
-   VIRALSIDEKICK — procedural scroll film
+   VIRALSIDEKICK, procedural scroll film
    No frames, no video: the whole scene is a continuous function
    of scroll progress. Infinitely smooth by construction.
    ============================================================ */
@@ -473,7 +473,7 @@ function draw(p,t){
   ctx.clearRect(0,0,W,H);
   ctx.globalCompositeOperation='lighter';
 
-  /* ============ ACT 1+2 — the noise field (every forgotten video) ============ */
+  /* ============ ACT 1+2, the noise field (every forgotten video) ============ */
   var a1=win(p,0,0.30,0.07);
   if(a1>0.004){
     for(var i=0;i<N;i++){
@@ -485,7 +485,7 @@ function draw(p,t){
       var fade=1-smooth((p-0.10)/0.16);
       glowDot(x,y,pt.r*0.8,i%9===0?VIOLET:WHITE,(0.05+flick*0.11)*a1*fade);
     }
-    /* YOUR dot — cyan, pulsing, becomes the origin of the chart */
+    /* YOUR dot, cyan, pulsing, becomes the origin of the chart */
     var yd=chartPt(0,1,0);
     var pulse=0.7+0.3*Math.sin(t*0.003);
     glowDot(yd.x,yd.y,2.2,CYAN,a1*pulse*(0.4+smooth((p-0.08)/0.1)*0.6));
@@ -496,7 +496,7 @@ function draw(p,t){
     }
   }
 
-  /* ============ ACT 2+3+5 — the view-curve ============ */
+  /* ============ ACT 2+3+5, the view-curve ============ */
   /* the curve draws itself: reveal = how much of x we show */
   var reveal=clamp((p-0.17)/0.18,0,1)*0.66 + clamp((p-0.62)/0.16,0,1)*0.34;
   var aC=win(p,0.17,0.85,0.06);
@@ -523,11 +523,11 @@ function draw(p,t){
       }
       ctx.stroke();
     });
-    /* the writing head — a bright comet at the tip */
+    /* the writing head, a bright comet at the tip */
     var tip=chartPt(reveal,1,0);
     glowDot(tip.x,tip.y,2.6,reveal>0.9?CYAN:VIOLET,aC*0.9);
 
-    /* ============ ACT 3 — autopsy annotations ============ */
+    /* ============ ACT 3, autopsy annotations ============ */
     var a3=win(p,0.30,0.50,0.05);
     if(a3>0.004){
       ctx.font='500 10px "JetBrains Mono", monospace';
@@ -547,7 +547,7 @@ function draw(p,t){
         ctx.beginPath(); ctx.arc(bq.x,bq.y,12+Math.sin(t*0.004+1)*2,0,7); ctx.stroke();
         glowDot(bq.x,bq.y,2,GREEN,a3*0.8);
         ctx.fillStyle='rgba('+GREEN+','+(a3)+')';
-        ctx.fillText('◆ 4.2x median — the pattern', bq.x-30, bq.y-22);
+        ctx.fillText('◆ 4.2x median, the pattern', bq.x-30, bq.y-22);
       }
       /* scanline sweep */
       var sx=lerp(chartPt(0,1,0).x, chartPt(1,1,0).x, (Math.sin(t*0.0012)+1)/2);
@@ -556,7 +556,7 @@ function draw(p,t){
       ctx.fillStyle=sg; ctx.fillRect(sx-40,H*0.18,80,H*0.64);
     }
 
-    /* ============ ACT 5 — particles entrain and stream up the ascent ============ */
+    /* ============ ACT 5, particles entrain and stream up the ascent ============ */
     var a5=win(p,0.60,0.85,0.06);
     if(a5>0.004){
       for(var j=0;j<70;j++){
@@ -571,7 +571,7 @@ function draw(p,t){
     }
   }
 
-  /* ============ ACT 4 — the radar ============ */
+  /* ============ ACT 4, the radar ============ */
   var a4=win(p,0.46,0.64,0.05);
   if(a4>0.004){
     var rx=IS_MOBILE? W*0.5 : W*0.66, ry=H*0.46, rr=Math.min(W,H)*(IS_MOBILE?0.32:0.30);
@@ -583,7 +583,7 @@ function draw(p,t){
     /* cross hairs */
     ctx.strokeStyle='rgba('+CYAN+','+(a4*0.08)+')';
     ctx.beginPath(); ctx.moveTo(rx-rr,ry); ctx.lineTo(rx+rr,ry); ctx.moveTo(rx,ry-rr); ctx.lineTo(rx,ry+rr); ctx.stroke();
-    /* sweep — scroll-driven with gentle time drift */
+    /* sweep, scroll-driven with gentle time drift */
     var ang=p*14+t*0.0006;
     var sweep=ctx.createConicGradient? (function(){
       var g=ctx.createConicGradient(ang,rx,ry);
@@ -606,10 +606,10 @@ function draw(p,t){
     });
     ctx.font='500 9px "JetBrains Mono", monospace';
     ctx.fillStyle='rgba('+CYAN+','+(a4*0.7)+')';
-    ctx.fillText('NICHE RADAR — LIVE', rx-rr*0.35, ry-rr-14);
+    ctx.fillText('NICHE RADAR, LIVE', rx-rr*0.35, ry-rr-14);
   }
 
-  /* ============ ACT 6 — the grade ============ */
+  /* ============ ACT 6, the grade ============ */
   var a6=win(p,0.82,1.01,0.06);
   if(a6>0.004){
     var gx=W*0.5, gy=IS_MOBILE? H*0.14 : H*0.17, gr=Math.min(W,H)*0.082;

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Channel report card — ViralSidekick</title>
-<meta name="description" content="A free letter grade for any YouTube channel. See the score, the vitals, and the breakout format — then get the full AI autopsy.">
+<title>Channel report card | ViralSidekick</title>
+<meta name="description" content="A free letter grade for any YouTube channel. See the score, the vitals, and the breakout format, then get the full AI autopsy.">
 <link rel="canonical" href="https://viralsidekick.com/c.html">
-<meta property="og:title" content="Grade any YouTube channel — free — ViralSidekick">
+<meta property="og:title" content="Grade any YouTube channel, free, ViralSidekick">
 <meta property="og:description" content="Paste a channel, get an instant A+ to F report card. Score, vitals, breakout hits, and what to fix.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://viralsidekick.com/c.html">
@@ -237,7 +237,7 @@ footer .fine a{color:var(--muted)}
   <section id="entry" class="entry" style="display:none" aria-label="grade a channel">
     <span class="eyebrow"><span class="dot" aria-hidden="true"></span>free channel report card</span>
     <h1>Grade any <span class="grad">YouTube channel</span> in seconds</h1>
-    <p>Paste a channel. Get an instant A+ to F report card — score, vitals, and the breakout format. No signup.</p>
+    <p>Paste a channel. Get an instant A+ to F report card, score, vitals, and the breakout format. No signup.</p>
     <form class="entryform" id="entryForm">
       <label for="entryInput" class="sr-only">YouTube channel handle, URL, or name</label>
       <input id="entryInput" type="text" placeholder="@mkbhd  ·  channel URL  ·  or name" autocomplete="off" autofocus>
@@ -268,13 +268,13 @@ footer .fine a{color:var(--muted)}
             <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="9"></circle>
             <circle id="ring" cx="60" cy="60" r="52" fill="none" stroke="var(--gcolor,var(--primary))" stroke-width="9" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327"></circle>
           </svg>
-          <div class="gletter"><b id="gLetter" aria-label="grade">–</b><small>grade</small></div>
+          <div class="gletter"><b id="gLetter" aria-label="grade">-</b><small>grade</small></div>
         </div>
         <div class="ch-meta">
           <div class="who">youtube report card</div>
-          <h1 id="chName">—</h1>
-          <div class="score-line"><b id="scoreN">–</b>/100 viral-readiness score</div>
-          <div class="headline" id="headline">—</div>
+          <h1 id="chName">-</h1>
+          <div class="score-line"><b id="scoreN">-</b>/100 viral-readiness score</div>
+          <div class="headline" id="headline">-</div>
         </div>
       </div>
 
@@ -282,12 +282,12 @@ footer .fine a{color:var(--muted)}
 
       <div class="best" id="bestRow" style="display:none">
         <span class="tag">breakout hit</span>
-        <span class="t" id="bestT">—</span>
-        <span class="r" id="bestR">—</span>
+        <span class="t" id="bestT">-</span>
+        <span class="r" id="bestR">-</span>
       </div>
 
       <div class="locked">
-        <h3 id="lockTitle">locked — the full ViralSidekick breakdown</h3>
+        <h3 id="lockTitle">locked, the full ViralSidekick breakdown</h3>
         <div class="lockgrid" aria-label="locked features">
           <div class="lockcard"><span class="lk" aria-hidden="true">🔒</span><div class="h">AI autopsy</div><div class="b" aria-hidden="true">Two surgical paragraphs on exactly why the channel over/under-performs, tied to real videos.</div></div>
           <div class="lockcard"><span class="lk" aria-hidden="true">🔒</span><div class="h">Niche radar (live)</div><div class="b" aria-hidden="true">What is erupting in the niche right now and the exact video this channel should make about it.</div></div>
@@ -295,7 +295,7 @@ footer .fine a{color:var(--muted)}
         </div>
         <div class="cta-band">
           <p id="lockPitch">This card is the teaser. The autopsy, live radar, posting windows and roadmap are one free scan away.</p>
-          <a class="btn btn-primary" id="fullBtn" href="dashboard.html">Get the full AI breakdown — free</a>
+          <a class="btn btn-primary" id="fullBtn" href="dashboard.html">Get the full AI breakdown, free</a>
         </div>
       </div>
     </div>
@@ -397,11 +397,11 @@ function render(d){
   var v=d.vitals||{};
   var cells=[
     {n:nfmt(v.median), l:'median views'},
-    {n:(v.cadence_days!=null? v.cadence_days+'d':'—'), l:'upload cadence'},
-    {n:v.uploads||'—', l:'recent uploads'},
+    {n:(v.cadence_days!=null? v.cadence_days+'d':', '), l:'upload cadence'},
+    {n:v.uploads||', ', l:'recent uploads'},
     {n:v.outliers||0, l:'breakout hits', cls:(v.outliers>0?'pos':'')},
     {n:v.flops||0, l:'dead zones', cls:(v.flops>0?'neg':'')},
-    {n:(v.momentum!=null? v.momentum+'x':'—'), l:'recent momentum', cls:(v.momentum>=1?'pos':(v.momentum>0?'neg':''))}
+    {n:(v.momentum!=null? v.momentum+'x':', '), l:'recent momentum', cls:(v.momentum>=1?'pos':(v.momentum>0?'neg':''))}
   ];
   if(v.engagement_pct!=null) cells.push({n:v.engagement_pct+'%', l:'like rate', cls:(v.engagement_pct>=3.5?'pos':'')});
   if(v.consistency!=null) cells.push({n:v.consistency, l:'rhythm score', cls:(v.consistency>=70?'pos':(v.consistency<40?'neg':''))});
@@ -414,7 +414,7 @@ function render(d){
   var shareUrl='https://viralsidekick.com/c.html?ch='+encodeURIComponent(currentHandle||chParam);
   var tw=$('tweetBtn');
   tw.href='https://twitter.com/intent/tweet?text='+encodeURIComponent((d.channel.name||'This channel')+' scored '+d.score+'/100 ('+g+') on ViralSidekick. grade any channel free:')+'&url='+encodeURIComponent(shareUrl);
-  document.title=(d.channel.name||'Channel')+' — '+g+' ('+d.score+'/100) — ViralSidekick';
+  document.title=(d.channel.name||'Channel')+', '+g+' ('+d.score+'/100), ViralSidekick';
   show('report');
 }
 
@@ -464,7 +464,7 @@ $('dlCard').addEventListener('click',function(){ if(!CARD)return; var cv=drawSha
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* signed-in visitors are members, not prospects — no fake locks, no "log in" */
+/* signed-in visitors are members, not prospects, no fake locks, no "log in" */
 (function(){
   try{
     var sbc = window.supabase.createClient('https://fzlwnsoknngbdkizxpnl.supabase.co','sb_publishable_K81b73rtZnF0fR6B5mnDWQ_I2CO_OK6');
@@ -474,7 +474,7 @@ $('dlCard').addEventListener('click',function(){ if(!CARD)return; var cv=drawSha
       document.body.classList.add('member');
       var na=document.getElementById('navAuth'); if(na){ na.textContent='My HQ'; na.href='app.html'; }
       var nc=document.getElementById('navCta'); if(nc){ nc.textContent='Open my HQ'; nc.href='app.html'; }
-      var lt=document.getElementById('lockTitle'); if(lt) lt.textContent='your full breakdown — unlocked in your HQ';
+      var lt=document.getElementById('lockTitle'); if(lt) lt.textContent='your full breakdown, unlocked in your HQ';
       var lp=document.getElementById('lockPitch'); if(lp) lp.textContent='You are signed in. The autopsy, live radar, posting windows and roadmap are waiting in your HQ.';
       var fb=document.getElementById('fullBtn'); if(fb){ fb.textContent='Open my HQ →'; fb.href='app.html'; }
       document.querySelectorAll('.lockcard .lk').forEach(function(el){ el.textContent='✓'; });

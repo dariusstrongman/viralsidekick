@@ -111,7 +111,7 @@ drop policy if exists "workspace videos read" on viralsidekick_scan_videos;
 create policy "workspace videos read" on viralsidekick_scan_videos for select
   using (workspace_id in (select vs_my_workspaces()) or auth.uid() = user_id);
 
--- 5) TEAM BOARD: ideas, notes, wins, questions — app reads/writes under RLS
+-- 5) TEAM BOARD: ideas, notes, wins, questions, app reads/writes under RLS
 create table if not exists viralsidekick_posts (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid references viralsidekick_workspaces(id) on delete cascade,
