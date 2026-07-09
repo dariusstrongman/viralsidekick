@@ -16,6 +16,8 @@
 <meta name="twitter:image" content="https://viralsidekick.com/og.png">
 <meta property="og:url" content="https://viralsidekick.com/dashboard.html">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://n8n.stromation.com">
@@ -419,6 +421,11 @@ footer .fine a{color:var(--muted)}
 
     <div class="verdict"><div class="vl">// the verdict</div><p id="rVerdict">—</p></div>
 
+    <div class="verdict" id="sigStrip" style="display:none;border-color:hsl(190 92% 56% / .3);background:linear-gradient(180deg,hsl(190 92% 56% / .06),hsl(228 18% 8% / .6))">
+      <div class="vl" style="color:var(--accent)">// deep signals — computed from every field the feed exposes</div>
+      <div id="sigChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px"></div>
+    </div>
+
     <div class="grid">
       <div class="card c12">
         <div class="clabel">channel vitals</div>
@@ -612,7 +619,24 @@ function esc(t){ var d = document.createElement('div'); d.textContent = t==null?
 function gradeOf(s){ var t=[[90,'A+'],[85,'A'],[80,'A-'],[75,'B+'],[70,'B'],[65,'B-'],[60,'C+'],[55,'C'],[50,'C-'],[45,'D+'],[40,'D'],[33,'D-']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
 function gradeColor(g){ var c=(g||'')[0]; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
 
+function renderSigStrip(S){
+  var el=document.getElementById('sigStrip'), out=document.getElementById('sigChips');
+  if(!el||!out) return;
+  if(!S||!Object.keys(S).length){ el.style.display='none'; return; }
+  var chips=[];
+  function chip(t){ chips.push('<span style="font-family:var(--mono);font-size:.76rem;background:hsl(230 24% 4%);border:1px solid var(--border);border-radius:8px;padding:6px 11px">'+t+'</span>'); }
+  if(S.engagement) chip('♥ <b>'+S.engagement.avg_pct+'%</b> like rate');
+  if(S.formats&&S.formats.shorts_count&&S.formats.long_count) chip('▦ '+S.formats.shorts_count+' shorts (med '+S.formats.shorts_median+') · '+S.formats.long_count+' long (med '+S.formats.long_median+')');
+  if(S.consistency!=null) chip('◷ rhythm <b>'+S.consistency+'/100</b>');
+  if(S.title_dna&&S.title_dna.numbers) chip('✎ number titles do <b>'+S.title_dna.numbers.x+'x</b>');
+  if(S.title_dna&&S.title_dna.short_title) chip('✎ short titles do <b>'+S.title_dna.short_title.x+'x</b>');
+  if(S.power_words&&S.power_words.length) chip('⚡ power words: <b>'+S.power_words.join(', ')+'</b>');
+  if(S.gem) chip('◆ hidden gem: <b>'+esc(S.gem.title).slice(0,42)+'</b>');
+  if(!chips.length){ el.style.display='none'; return; }
+  out.innerHTML=chips.join(''); el.style.display='';
+}
 function renderReport(d){
+  renderSigStrip(d.signals||null);
   show('report');
   $('demoBanner').style.display = d.demo ? '' : 'none';
   var ch = d.channel || {};

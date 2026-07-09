@@ -15,6 +15,8 @@
 <meta name="twitter:image" content="https://viralsidekick.com/og.png">
 <meta name="theme-color" content="#0a0d16">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://n8n.stromation.com">
@@ -401,6 +403,8 @@ function render(d){
     {n:v.flops||0, l:'dead zones', cls:(v.flops>0?'neg':'')},
     {n:(v.momentum!=null? v.momentum+'x':'—'), l:'recent momentum', cls:(v.momentum>=1?'pos':(v.momentum>0?'neg':''))}
   ];
+  if(v.engagement_pct!=null) cells.push({n:v.engagement_pct+'%', l:'like rate', cls:(v.engagement_pct>=3.5?'pos':'')});
+  if(v.consistency!=null) cells.push({n:v.consistency, l:'rhythm score', cls:(v.consistency>=70?'pos':(v.consistency<40?'neg':''))});
   var grid=$('vitals'); grid.style.gridTemplateColumns='repeat('+(cells.length>4?3:cells.length)+',1fr)';
   grid.innerHTML=cells.map(function(c){return '<div class="vital '+(c.cls||'')+'" role="listitem"><div class="n">'+esc(c.n)+'</div><div class="l">'+esc(c.l)+'</div></div>';}).join('');
   if(d.best && d.best.title){ $('bestRow').style.display='flex'; $('bestT').textContent=d.best.title; $('bestR').textContent=d.best.ratio+'x median · '+nfmt(d.best.views)+' views'; }
