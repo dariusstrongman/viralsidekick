@@ -38,7 +38,7 @@ a{color:inherit;text-decoration:none}
 
 
 /* ambient */
-#grain{position:fixed;inset:0;z-index:100;pointer-events:none;opacity:.03}
+#grain{position:fixed;inset:0;width:100%;height:100%;z-index:100;pointer-events:none;opacity:.03}
 #vignette{position:fixed;inset:0;z-index:99;pointer-events:none;background:radial-gradient(ellipse at center,transparent 52%,rgba(8,9,15,.55) 100%)}
 
 /* loader */
@@ -244,7 +244,7 @@ footer .fline a{color:var(--muted)}
 </head>
 <body>
 
-<svg id="grain" aria-hidden="true"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+<svg id="grain" aria-hidden="true" width="100%" height="100%" preserveAspectRatio="none"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
 <div id="vignette" aria-hidden="true"></div>
 
 <div id="loader">
