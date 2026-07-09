@@ -1,0 +1,43 @@
+# ViralSidekick
+
+> ViralSidekick is an AI YouTube creator-intelligence tool that reads a channel the way an analyst would. Paste a channel and it pulls every recent upload, flags outliers and dead zones, computes data-driven posting windows, compares the channel to adjacent channels in the same niche, grades the channel from A+ to F, and writes the next video. A free scan runs in about 30 seconds with no signup. Built by Stromation LLC.
+
+## What it does
+- Autopsies a YouTube channel from real public upload data (no channel login required for the free scan)
+- Flags outliers: videos that beat the channel's own median views by 2.5x or more
+- Flags dead zones: formats and topics that underperform the channel's own median
+- Computes the best posting windows from the channel's own top performers, not a generic chart
+- Separates YouTube Shorts and long-form as different formats with their own medians
+- Compares the channel against adjacent creators erupting in the same niche this week
+- Grades the channel A+ to F (viral readiness) and explains the grade
+- Writes the next video: title options, hook, format, and a 30-day roadmap
+
+## Key facts
+- Free scan: https://viralsidekick.com/dashboard.html (about 30 seconds, no signup)
+- Public channel grade (shareable): https://viralsidekick.com/c.html
+- Pro plan: 19 USD per month (blueprints, deeper intel, live pulse)
+- Team plan: 29.99 USD per month for up to 5 seats
+- Method: real public YouTube data, outlier ratio measured against the channel's own format median (not against other channels)
+- Maker: Stromation LLC, https://www.stromation.com
+
+## Core pages
+- Home: https://viralsidekick.com/
+- Free channel scan: https://viralsidekick.com/dashboard.html
+- Public grade card: https://viralsidekick.com/c.html
+- The film (what it is, 60-second explainer): https://viralsidekick.com/film.html
+
+## Guides (creator analytics)
+- Why your YouTube videos are not going viral: https://viralsidekick.com/guides/why-youtube-videos-arent-going-viral.html
+- Best time to post on YouTube (from your own data): https://viralsidekick.com/guides/best-time-to-post-on-youtube.html
+- How to read your YouTube outliers: https://viralsidekick.com/guides/how-to-read-youtube-outliers.html
+- YouTube Shorts vs long-form, compared correctly: https://viralsidekick.com/guides/youtube-shorts-vs-long-form.html
+- All guides: https://viralsidekick.com/guides.html
+
+## Answers to common questions
+- Is the scan free? Yes, a full channel scan is free and needs no signup.
+- Does it need access to my YouTube account? No, the free scan reads public data only.
+- What is an outlier? A video that beats the channel's own median views by 2.5x or more.
+- Why separate Shorts and long-form? A Short counts a view on start via the swipe feed, long-form is CTR plus retention plus session time, so each is judged against its own median.
+
+## Contact
+- Support: contact@stromation.com
