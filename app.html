@@ -754,7 +754,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .lens-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .lens-row+.lens-row{margin-top:8px}
 .lens-k{font-family:var(--mono);font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);flex:0 0 auto;min-width:54px}
-.lens-btn{font-size:.82rem;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:99px;padding:5px 13px;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.lens-btn{font-size:.82rem;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:99px;padding:5px 13px;cursor:pointer;font-family:var(--sans);transition:all .15s;max-width:min(220px,60vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lens-btn:hover:not(:disabled){border-color:var(--lensc);color:var(--fg)}
 .lens-btn.on{color:#0b0d12;background:var(--lensc);border-color:var(--lensc)}
 .lens-btn:disabled{opacity:.4;cursor:not-allowed}
@@ -982,7 +982,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <div class="pulse-grid" id="pulseGrid"></div>
         </div>
 <div class="tile goal s6" id="tGoal" style="display:none">
-          <h3><span class="acc" aria-hidden="true">🎯</span> subscriber goal <span class="end goal-pred" id="goalPredWrap" style="display:none"><span class="pdot"></span>live prediction</span></h3>
+          <h3><span class="acc" aria-hidden="true">◎</span> subscriber goal <span class="end goal-pred" id="goalPredWrap" style="display:none"><span class="pdot"></span>live prediction</span></h3>
           <div class="goal-target">
             <span class="gt-cur" id="goalCur">0</span>
             <span class="gt-of">of</span>
@@ -1006,7 +1006,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <div class="tile s6" id="tWire" style="--tc:var(--warning);display:none">
           <h3><span class="acc" aria-hidden="true">⚡</span> trend wire <span class="end"><span class="live-chip"><span class="dot"></span>THE INTERNET · RIGHT NOW</span></span></h3>
           <div id="wireBody"><div class="tsub">Reading what the internet is chasing right now…</div></div>
-          <div id="digestRow" class="digest-row" style="display:none"><label class="digest-tog"><input type="checkbox" id="digestChk" onchange="toggleDigest()"><span>📬 email me the wire every morning</span></label></div>
+          <div id="digestRow" class="digest-row" style="display:none"><label class="digest-tog"><input type="checkbox" id="digestChk" onchange="toggleDigest()"><span>◈ email me the wire every morning</span></label></div>
         </div>
 
         <div class="tile radar s4" id="tRadar">
@@ -1074,7 +1074,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
 <div class="tile s3" id="tIdeas">
           <h3><span class="acc" aria-hidden="true">★</span> idea bank <span class="lens-tag" id="ideaLensTag" style="display:none"></span> <button class="hbtn" onclick="openIdeaEditor()">+ new idea</button> <span class="end" id="ideaCount"></span></h3>
-          <div id="ideasBody"><div class="tsub">Save any idea from the radar, your next video, or the wire, or hit <b style="color:var(--accent)">+ new idea</b> to write one with a title, notes, and a full script. Mark it shipped when you post it so the coach can see what worked.</div></div>
+          <div id="ideasBody"><div class="tsub">Save an idea from the radar, your next video or the wire, or hit <b style="color:var(--accent)">+ new idea</b> to write one with a title, notes and a script. Mark it shipped and the coach reads its real views back against your median.</div></div>
         </div>
 
 <div class="tile s3" id="tRoad">
@@ -1142,14 +1142,14 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <h3><span class="acc" aria-hidden="true">▤</span> team board <span class="board-team" id="boardTeam"></span> <span class="shared-pill">shared</span> <span class="end" id="boardCount"></span></h3>
           <div class="caprow" style="margin-top:0;margin-bottom:10px">
             <select id="postKind" aria-label="post type" onchange="onBoardKind()" style="background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);padding:9px;font-family:var(--sans);font-size:.84rem">
-              <option value="idea">💡 video idea</option>
+              <option value="idea">◆ video idea</option>
               <option value="note">✎ note</option>
               <option value="win">✦ win</option>
               <option value="question">? question</option>
             </select>
             <input id="postBody" type="text" placeholder="a quick note for the team…" style="flex:1;display:none;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')postToBoard()">
             <button id="postQuickBtn" class="btn btn-ghost" style="flex:0 0 auto;display:none" onclick="postToBoard()">Post</button>
-            <button id="postIdeaBtn" class="btn btn-primary" style="flex:1" onclick="openIdeaEditor(null,'',{target:'board'})">✎ write a video idea — title, notes + script</button>
+            <button id="postIdeaBtn" class="btn btn-primary" style="flex:1" onclick="openIdeaEditor(null,'',{target:'board'})">✎ write a video idea: title, notes + script</button>
           </div>
           <div id="boardList"><div class="tsub">Ideas, notes, wins, everything your space posts lands here.</div></div>
         </div>
@@ -1228,7 +1228,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
   <div class="modal" id="bpModal">
     <div class="mc" style="max-width:640px">
       <span class="x" onclick="document.getElementById('bpModal').classList.remove('on')">✕</span>
-      <h2>🎬 the script</h2>
+      <h2>▶ the script</h2>
       <p class="sm mut" id="bpIdea" style="margin-bottom:14px"></p>
       <div id="bpBody"><div class="tsub">the coach is building it…</div></div>
     </div>
@@ -1565,8 +1565,8 @@ function renderViewSwitch(){
       '<div class="lens-row"><span class="lens-k">Personal</span>'+personalBtn+'</div>'
     + '<div class="lens-row"><span class="lens-k">Teams</span>'+teamBtns+'</div>'
     + '<div class="lens-desc">'+(mine
-        ? '◈ viewing your private workspace — the ideas, board notes and rivals here are yours alone'+(sameCh?', not shared with '+tName:', not shared with any team')
-        : '⬡ viewing '+tName+' — shared'+(nMem?' with '+nMem+' member'+(nMem>1?'s':''):'')+'. the ideas, board and rivals here are the team’s'+(sameCh?' · same channel as My Dashboard':''))+'</div>';
+        ? '◈ viewing your private workspace, the ideas, board notes and rivals here are yours alone'+(sameCh?', not shared with '+tName:', not shared with any team')
+        : '⬡ viewing '+tName+', shared'+(nMem?' with '+nMem+' member'+(nMem>1?'s':''):'')+'. the ideas, board and rivals here are the team\'s'+(sameCh?' · same channel as My Dashboard':''))+'</div>';
   Array.prototype.forEach.call(host.querySelectorAll('.lens-btn'),function(b){
     b.onclick=function(){
       if(b.disabled)return;
@@ -1711,7 +1711,8 @@ function spaceFallback(){ $('spaceBody').innerHTML='<div class="tsub">Spaces are
 function ownPro(){ return (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROFILE.plan_status==null || PROFILE.plan_status==='active' || PROFILE.plan_status==='trialing'); }
 function recomputePro(){ var was=IS_PRO; IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); if(IS_PRO!==was){ try{ renderPro(); }catch(e){} } }
 function syncTeamPro(){ recomputePro(); }
-function spaceNote(t){ var e=$('spaceEnd'); if(e){ e.textContent=t; setTimeout(function(){e.textContent= SPACE?'':'';},4000); } }
+function seatLabel(){ if(!(SPACE&&SPACE.workspace)) return ''; var n=(SPACE.members&&SPACE.members.length)||0; return (SPACE.workspace.plan==='team')?'<span style="color:hsl(45 95% 62%)">TEAM · '+n+'/5</span>':n+'/5 seats'; }
+function spaceNote(t){ var e=$('spaceEnd'); if(e){ e.textContent=t; setTimeout(function(){ e.innerHTML=seatLabel(); },4000); } }
 function applySpace(d){
   if(!d || d.error){
     if(d && /not signed in/.test(d.error||'')) spaceFallback();
@@ -1774,7 +1775,7 @@ function renderSpace(){
   var mine=mem.filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
   var isTeam=(ws.plan==='team');
-  $('spaceEnd').innerHTML=(isTeam?'<span style="color:hsl(45 95% 62%)">TEAM · '+mem.length+'/5</span>':mem.length+'/5 seats');
+  $('spaceEnd').innerHTML=seatLabel();
   var html='';
   /* on more than one team -> a switcher right here, active team highlighted */
   if(SPACES && SPACES.length>1){
@@ -1832,7 +1833,7 @@ function loadBoard(){
     var canMod=mine&&(mine.role==='owner'||mine.role==='admin');
     $('boardList').innerHTML=rows.map(function(p){
       var can=canMod||p.user_id===USER.id, isIdea=(p.kind==='idea');
-      var badge=(isIdea&&(p.notes||p.script))?' <span class="idea-note-dot" title="'+(p.script?'has a script':'has notes')+'">'+(p.script?'🎬':'📝')+'</span>':'';
+      var badge=(isIdea&&(p.notes||p.script))?' <span class="idea-note-dot" title="'+(p.script?'has a script':'has notes')+'">'+(p.script?'▶':'✎')+'</span>':'';
       return '<div class="bp'+(p.status==='done'?' done':'')+'">'
         +'<span class="bk '+esc(p.kind||'note')+'">'+esc(p.kind||'note')+'</span>'
         +'<div class="bb"><div class="bt"'+(isIdea?' style="cursor:pointer" title="open" onclick="openIdeaEditor(\''+esc(p.id)+'\',\'\',{target:\'board\'})"':'')+'>'+esc(p.body||'')+badge+'</div>'
@@ -1903,6 +1904,7 @@ function celebrateUpgrade(){
 }
 function renderPro(){
   var badge=$('proBadge'), tile=$('proCard'), head=$('idhead');
+  if(tile && window._proCardOrig==null) window._proCardOrig=tile.innerHTML; /* keep the upsell so we can restore it if Pro is lost */
   var isTeamPlan = PROFILE && PROFILE.plan==='team';
   if(IS_PRO || isTeamPlan){
     if(badge) badge.innerHTML='<span class="pro-badge">'+(isTeamPlan?'TEAM':'PRO')+'</span>';
@@ -1922,7 +1924,10 @@ function renderPro(){
     }
   } else {
     if(badge) badge.innerHTML=''; if(head) head.classList.remove('pro');
-    if(tile) tile.style.display='';
+    if(tile){
+      if(window._proCardOrig!=null){ tile.innerHTML=window._proCardOrig; tile.style.borderColor=''; tile.style.removeProperty('--tc'); } /* revert to the upsell, not a stale "active" card */
+      tile.style.display='';
+    }
   }
 }
 
@@ -2112,6 +2117,7 @@ function pollPulse(){
         logSubs(_sv); renderGoal(); /* feed the live growth prediction */
       }
       try{ window._liveTitles=(yt.latest||[]).map(function(x){return x.title;}).filter(Boolean).slice(0,10); }catch(e){}
+      try{ syncShipResults(yt.latest||[]); }catch(e){} /* close the loop: read shipped-idea videos back against your median */
       var lv=(yt.latest||[])[0];
       if(lv){
         pulseCounter('lv','latest video · views',IC_YT,'var(--primary)');
@@ -2239,7 +2245,7 @@ function backgroundScan(){
     .then(function(d){
       clearTimeout(_to); hideScanning();
       if(d&&d.ai){ hydrateDeep(d.ai,d.radar_live,d.signals,d.breakout); lastFullAt=Date.now(); setTimeout(loadHistory,1200); }
-      else if(d&&d.error==='too_new'){ ordMsg('your channel needs a few more uploads', 'a real read needs at least 3 public uploads. come back after your next one and the coach reads it in full.'); }
+      else if(d&&d.error==='too_new'){ ordMsg('your channel needs a few more uploads', 'a real read needs at least 3 public uploads. come back after your next one and the coach reads it in full.'); restDeepTiles(); }
       else if(d&&(d.error==='session expired - sign in again'||d.error==='session_expired')){ ordMsg('your session expired', 'refresh the page and sign in again to keep the coach on your channel.'); }
       else if(d&&d.error){ ordMsg('the read did not come back clean', 'tap refresh to try again. if it keeps happening, your channel may be private or too new.'); }
       else { ordMsg('the read is taking longer than usual', 'tap refresh to retry. big channels and busy niches can take a full minute.'); }
@@ -2247,10 +2253,19 @@ function backgroundScan(){
     .catch(function(){ clearTimeout(_to); hideScanning(); ordMsg('the read timed out', 'tap refresh to try again, the coach will pick up where it left off.'); })
     .finally(function(){ window._scanning=false; });
 }
+/* a sub-3-upload channel can't get a full read yet, so stop the deep tiles promising data that won't arrive this session */
+function restDeepTiles(){
+  var m=[['radarBody','your niche radar lights up once the coach can read at least 3 uploads'],
+    ['nextBody','next-video angles appear after your first full read'],
+    ['roadBody','your 30-day roadmap drops after the first read'],
+    ['signalsBody','signals sharpen once you have a few uploads'],
+    ['winBody','your posting window shows once you have a few videos up']];
+  m.forEach(function(p){ var el=$(p[0]); if(el) el.innerHTML='<div class="tsub">'+p[1]+'</div>'; });
+}
 function refreshLive(){
   liveVitals();
   if(window._scanning){ ordMsg('already refreshing…','the coach is still reading the last film, hang tight.'); return; }
-  if(lastFullAt && (Date.now()-lastFullAt)<45000){ ordMsg('just refreshed','the coach read your film seconds ago — it re-reads automatically on a new upload or a big change.'); return; }
+  if(lastFullAt && (Date.now()-lastFullAt)<45000){ ordMsg('just refreshed','the coach read your film seconds ago, it re-reads automatically on a new upload or a big change.'); return; }
   backgroundScan();
 }
 function showScanning(t){ var e=$('scanRun'); if(e){ e.style.display='flex'; $('scanRunTxt').textContent=t||'refreshing…'; } var b=$('refreshBtn'); if(b) b.disabled=true; }
@@ -2293,7 +2308,7 @@ function hydrateDeep(ai, radarLive, signals, breakout){
     if(og){
       if(g && g.target){
         og.classList.remove('hide');
-        og.innerHTML='<span class="gk">🎯 the goal</span><span class="gt">'+esc(g.target)+'</span>'
+        og.innerHTML='<span class="gk">◎ the goal</span><span class="gt">'+esc(g.target)+'</span>'
           +(g.deadline?'<span class="gd">'+esc(String(g.deadline)).replace(/^(\d+)$/,'$1 days')+'</span>':'')
           +(g.path?'<span class="gp">'+esc(g.path)+'</span>':'');
       } else og.classList.add('hide');
@@ -2593,22 +2608,24 @@ function renderIdeas(rows){
   var cnt=document.getElementById('ideaCount');
   var live=rows.filter(function(x){ return x.status!=='shipped'&&x.status!=='killed'; });
   if(cnt) cnt.textContent=rows.length?(live.length+' open'):'';
-  if(!rows.length){ el.innerHTML='<div class="tsub">Save any idea from the radar, your next video, or the wire, and it lands here. Mark it shipped when you post it so the coach can see what worked.</div>'; return; }
+  if(!rows.length){ el.innerHTML='<div class="tsub">Save an idea from the radar, your next video or the wire, or hit <b style="color:var(--accent)">+ new idea</b> to write one with a title, notes and a script. Mark it shipped and the coach reads its real views back against your median.</div>'; return; }
   var srcColor={radar:'var(--accent)',next:'hsl(260 90% 66%)',wire:'hsl(45 95% 62%)',blueprint:'var(--success)',title:'hsl(200 90% 60%)',manual:'var(--muted)'};
   var stTxt={filming:'filming',shipped:'shipped ✓',killed:'killed'};
+  var med=(LIVE&&LIVE.vitals&&LIVE.vitals.median)||0;
   el.innerHTML=rows.map(function(x){
     var sc=srcColor[x.source]||'var(--muted)', done=(x.status==='shipped'||x.status==='killed');
     var e=encodeURIComponent(x.text);
     return '<div style="border:1px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:8px;'+(done?'opacity:.6':'')+'">'
       +'<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:5px">'
-      +'<span style="font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:'+sc+';border:1px solid '+sc+';border-radius:4px;padding:1px 6px">'+esc(x.source||'idea')+'</span>'
+      +'<span style="font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:'+sc+';border:1px solid '+sc+';border-radius:4px;padding:1px 6px">'+esc(srcLabel(x.source))+'</span>'
       +(x.format?'<span style="font-size:.62rem;color:var(--faint)">'+esc(x.format)+'</span>':'')
-      +((x.notes||x.script)?'<span class="idea-note-dot" title="'+(x.script?'has a script':'has notes')+'">'+(x.script?'🎬':'📝')+'</span>':'')
+      +((x.notes||x.script)?'<span class="idea-note-dot" title="'+(x.script?'has a script':'has notes')+'">'+(x.script?'▶':'✎')+'</span>':'')
       +(x.scheduled_for?'<span style="font-size:.6rem;color:var(--accent);border:1px solid hsl(190 92% 56% / .35);border-radius:4px;padding:1px 6px" title="on your calendar">▦ '+esc(fmtSchedule(x.scheduled_for))+'</span>':'')
       +(x.status&&x.status!=='saved'?'<span style="font-size:.62rem;color:'+(x.status==='shipped'?'var(--success)':x.status==='killed'?'var(--danger)':'var(--warning)')+'">'+esc(stTxt[x.status]||x.status)+'</span>':'')
       +'</div>'
       +'<div style="font-size:.88rem;line-height:1.4;margin-bottom:6px;cursor:pointer" onclick="openIdeaEditor(\''+x.id+'\')" title="open">'+esc(x.text)+'</div>'
-      +(x.video_url?'<a href="'+esc(x.video_url)+'" target="_blank" rel="noopener" style="font-size:.74rem;color:var(--accent)">view the video →</a>':'')
+      +(x.status==='shipped'&&x.result_views!=null?shipResultHTML(x,med):'')
+      +(x.video_url?'<div style="margin-top:6px"><a href="'+esc(x.video_url)+'" target="_blank" rel="noopener" style="font-size:.74rem;color:var(--accent)">view the video →</a></div>':'')
       +'<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:'+(x.video_url?'6px':'2px')+'">'
       +(!done?'<span class="mini-act" onclick="openIdeaEditor(\''+x.id+'\')">✎ open</span><span class="mini-act p" data-pkg="'+e+'">⚡ package</span><span class="mini-act b" data-bp="'+e+'">▶ script</span>':'')
       +(x.status!=='shipped'?'<span class="mini-act" onclick="markIdea(\''+x.id+'\',\'shipped\')">✓ shipped</span>':'')
@@ -2626,6 +2643,33 @@ function markIdea(id,status){
 function deleteIdea(id){
   if(!(window.sb && USER && USER.id)) return;
   ideaScope(sb.from('viralsidekick_ideas').delete().eq('id',id)).then(function(){ loadIdeas(); }).catch(function(){});
+}
+/* ---------- results loop: a shipped idea gets its real views read back against your median ---------- */
+function _ytId(u){ u=String(u||''); var m=u.match(/[?&]v=([\w-]{11})/)||u.match(/youtu\.be\/([\w-]{11})/)||u.match(/\/shorts\/([\w-]{11})/)||u.match(/embed\/([\w-]{11})/); return m?m[1]:''; }
+function srcLabel(s){ return ({next:'next video',blueprint:'script',radar:'radar',wire:'wire',title:'title',manual:'mine'})[s]||s||'idea'; }
+/* match shipped ideas to the channel's recent uploads and pull their real views (persist once, then grow live) */
+function syncShipResults(latest){
+  if(!latest||!latest.length||!_ideaCache||!_ideaCache.length) return;
+  var byId={}; latest.forEach(function(v){ if(v&&v.id) byId[v.id]=v; });
+  var changed=false;
+  _ideaCache.forEach(function(x){
+    if(x.status!=='shipped'||!x.video_url) return;
+    var vid=_ytId(x.video_url); if(!vid) return;
+    var v=byId[vid]; if(!v||v.views==null) return;
+    if(x.result_views==null){
+      x.result_views=v.views; changed=true;
+      try{ ideaScope(sb.from('viralsidekick_ideas').update({result_views:v.views}).eq('id',x.id)).then(function(){}).catch(function(){}); }catch(e){}
+    } else if(v.views>x.result_views){ x.result_views=v.views; changed=true; }
+  });
+  if(changed){ try{ renderIdeas(_ideaCache); }catch(e){} }
+}
+function shipResultHTML(x, med){
+  var v=x.result_views, ratio=med>0?(v/med):0;
+  var tone = ratio>=1.5?'var(--success)': ratio>=1?'hsl(45 95% 62%)': ratio>0?'var(--muted)':'var(--accent)';
+  var verdict = ratio>=1.5?'beat your median': ratio>=1?'above your median': ratio>0?'under your median':'tracking';
+  var called = (x.source==='radar'||x.source==='next'||x.source==='blueprint') && ratio>=1.5;
+  return '<div style="margin-top:7px;font-size:.74rem;color:'+tone+';border:1px solid '+tone+';border-radius:8px;padding:5px 9px;display:inline-block" title="views on the video you shipped from this idea, vs your channel median">'
+    +'◉ '+nfmt(v)+' views'+(ratio>0?' · '+ratio.toFixed(1)+'x median · '+verdict:'')+(called?' · the coach called it':'')+'</div>';
 }
 /* ---------- idea editor: title + notes + full script. target 'idea' = swipe file (personal/team), 'board' = the team board ---------- */
 var _iedId=null, _iedRow=null, _iedTarget='idea';
@@ -2893,7 +2937,7 @@ function renderPackage(r, idea){
   var ie=encodeURIComponent(idea), be=encodeURIComponent(titles[0]||idea);
   h+='<div class="pkg-acts">'
     +'<span class="mini-act" data-qadd="'+be+'" data-qsrc="package">★ save to ideas</span>'
-    +'<span class="mini-act b" data-bp="'+ie+'">🎬 write the full script</span>'
+    +'<span class="mini-act b" data-bp="'+ie+'">▶ write the full script</span>'
     +'</div>';
   $('pkgBody').innerHTML=h;
   bindCopies($('pkgBody'));
@@ -3265,7 +3309,7 @@ function renderGoal(){
   var p=predictSubs(cur,target), eta=$('goalEta'), togo=$('goalTogo'), note=$('goalNote'), pw=$('goalPredWrap');
   if(p.status==='reached'){
     pw.style.display='none'; togo.style.display='none';
-    eta.innerHTML='🎉 <b>goal reached</b> — time to raise the bar';
+    eta.innerHTML='✦ <b>goal reached</b> · time to raise the bar';
     note.textContent='you passed '+Number(target).toLocaleString('en-US')+' subs. set a bigger number above.';
     return;
   }
