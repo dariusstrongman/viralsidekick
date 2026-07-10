@@ -681,6 +681,21 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .ied-lens.mine{color:hsl(260 90% 72%);border:1px solid hsl(260 90% 66% / .5)}
 .ied-lens.team{color:hsl(45 95% 66%);border:1px solid hsl(45 95% 62% / .5)}
 .idea-note-dot{font-size:.62rem;color:var(--faint)}
+/* content calendar */
+.cal-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity}
+.cal-day{flex:0 0 132px;min-height:104px;border:1px solid var(--border2);border-radius:11px;padding:9px;background:hsl(230 24% 4% / .5);scroll-snap-align:start}
+.cal-day.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px hsl(190 92% 56% / .3)}
+.cal-day.weekend{background:hsl(230 24% 3% / .6)}
+.cal-dow{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.cal-date{font-family:var(--mono);font-size:.92rem;font-weight:700;color:var(--fg);margin-bottom:8px;line-height:1}
+.cal-day.today .cal-date{color:var(--accent)}
+.cal-item{font-size:.7rem;line-height:1.25;background:hsl(260 90% 66% / .13);border:1px solid hsl(260 90% 66% / .32);border-radius:7px;padding:5px 7px;margin-bottom:5px;cursor:pointer;color:var(--fg);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;transition:.15s}
+.cal-item:hover{border-color:hsl(260 90% 66%)}
+.cal-item.team{background:hsl(45 95% 62% / .13);border-color:hsl(45 95% 62% / .35)}
+.cal-item.team:hover{border-color:hsl(45 95% 62%)}
+.cal-item.shipped{opacity:.5;text-decoration:line-through}
+.cal-item .dot{font-size:.62rem}
+.cal-empty{font-size:.66rem;color:hsl(230 12% 26%)}
 /* team switcher inside the space tile */
 .team-switch{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}
 .team-switch .tsw{font-family:var(--mono);font-size:.66rem;letter-spacing:.03em;border:1px solid var(--border2);border-radius:9px;padding:5px 11px;color:var(--muted);background:transparent;cursor:pointer;transition:.15s}
@@ -1086,6 +1101,12 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
             <span>now <b id="sigNowV">-</b></span><span id="sigDelta" class="delta flat" aria-live="polite"></span>
           </div>
         </div>
+
+<div class="tile s6" id="tCal">
+          <h3><span class="acc" aria-hidden="true">▦</span> content calendar <span class="lens-tag" id="calLensTag" style="display:none"></span> <span class="end" id="calCount"></span></h3>
+          <div class="tsub" id="calHint" style="margin-bottom:10px">Give any idea a publish date and it lands here, your next two weeks planned at a glance.</div>
+          <div class="cal-strip" id="calStrip"></div>
+        </div>
 </div>
 </section>
 
@@ -1231,6 +1252,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <input id="iedTitle" type="text" maxlength="160" placeholder="what is the video? e.g. i tried the cheapest camera on amazon"></div>
       <div class="ied-field" id="iedFmtField"><label for="iedFmt">format</label>
         <select id="iedFmt"><option value="">not sure yet</option><option value="short">short · 30-60s vertical</option><option value="longform">long-form · 8-12 min</option></select></div>
+      <div class="ied-field" id="iedDateField"><label for="iedDate">publish date <span style="text-transform:none;letter-spacing:0;color:var(--faint)">· optional, puts it on your content calendar</span></label>
+        <input id="iedDate" type="date"></div>
       <div class="ied-field"><label for="iedNotes">notes · angle, hook, anything to remember</label>
         <textarea id="iedNotes" maxlength="4000" placeholder="the hook, the twist, b-roll you need, why it'll work…"></textarea></div>
       <div class="ied-field"><label>script</label>
@@ -2526,8 +2549,41 @@ function loadIdeas(){
   ideaScope(sb.from('viralsidekick_ideas').select('*')).order('created_at',{ascending:false}).limit(40)
     .then(function(r){
       if(r.error){ el.innerHTML='<div class="tsub">your idea bank warms up as soon as the ideas table is live.</div>'; return; }
-      _ideaCache=r.data||[]; renderIdeas(_ideaCache);
+      _ideaCache=r.data||[]; renderIdeas(_ideaCache); renderCalendar();
     }).catch(function(){});
+}
+function fmtSchedule(s){ var p=String(s||'').split('-'); return p.length===3?(parseInt(p[1],10)+'/'+parseInt(p[2],10)):s; }
+function _localDateStr(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+/* content calendar: the next two weeks, scheduled ideas dropped on their day. lens-scoped like the idea bank. */
+function renderCalendar(){
+  var strip=$('calStrip'); if(!strip) return;
+  var teamLens=!!(VIEW==='space'&&SPACE&&SPACE.workspace);
+  setLensTag('calLensTag', teamLens, teamLens?(SPACE.workspace.name||'team'):'', (SPACES&&SPACES.length));
+  var rows=(_ideaCache||[]).filter(function(x){ return x.scheduled_for; });
+  var cnt=$('calCount'); if(cnt) cnt.textContent = rows.length ? rows.length+' scheduled' : '';
+  var byDay={}; rows.forEach(function(x){ (byDay[x.scheduled_for]=byDay[x.scheduled_for]||[]).push(x); });
+  var today=new Date(); today.setHours(0,0,0,0);
+  var todayStr=_localDateStr(today);
+  var overdue=rows.filter(function(x){ return x.scheduled_for<todayStr && x.status!=='shipped'; });
+  var DOW=['SUN','MON','TUE','WED','THU','FRI','SAT'], DAYS=14, html='';
+  for(var i=0;i<DAYS;i++){
+    var d=new Date(today.getTime()+i*86400000), ds=_localDateStr(d), wd=d.getDay();
+    var items=byDay[ds]||[];
+    var cls='cal-day'+(i===0?' today':'')+((wd===0||wd===6)?' weekend':'');
+    var inner='<div class="cal-dow">'+DOW[wd]+(i===0?' · today':'')+'</div><div class="cal-date">'+(d.getMonth()+1)+'/'+d.getDate()+'</div>';
+    if(items.length){
+      inner+=items.map(function(x){
+        return '<div class="cal-item'+(teamLens?' team':'')+(x.status==='shipped'?' shipped':'')+'" onclick="openIdeaEditor(\''+x.id+'\')" title="'+esc(x.text)+(x.status&&x.status!=='saved'?' · '+esc(x.status):'')+'">'+(x.status==='shipped'?'<span class="dot">✓ </span>':'')+esc(x.text)+'</div>';
+      }).join('');
+    } else inner+='<div class="cal-empty">—</div>';
+    html+='<div class="'+cls+'">'+inner+'</div>';
+  }
+  strip.innerHTML=html;
+  var hint=$('calHint');
+  if(hint){
+    if(!rows.length) hint.innerHTML='Open any idea and set a <b style="color:var(--accent)">publish date</b> to drop it here, your next two weeks planned at a glance.';
+    else hint.innerHTML = (overdue.length?'<span style="color:var(--warning)">'+overdue.length+' past due</span> · ':'')+rows.length+' scheduled'+(teamLens?' · shared with your team':'');
+  }
 }
 function renderIdeas(rows){
   var el=document.getElementById('ideasBody'); if(!el) return;
@@ -2545,6 +2601,7 @@ function renderIdeas(rows){
       +'<span style="font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:'+sc+';border:1px solid '+sc+';border-radius:4px;padding:1px 6px">'+esc(x.source||'idea')+'</span>'
       +(x.format?'<span style="font-size:.62rem;color:var(--faint)">'+esc(x.format)+'</span>':'')
       +((x.notes||x.script)?'<span class="idea-note-dot" title="'+(x.script?'has a script':'has notes')+'">'+(x.script?'🎬':'📝')+'</span>':'')
+      +(x.scheduled_for?'<span style="font-size:.6rem;color:var(--accent);border:1px solid hsl(190 92% 56% / .35);border-radius:4px;padding:1px 6px" title="on your calendar">▦ '+esc(fmtSchedule(x.scheduled_for))+'</span>':'')
       +(x.status&&x.status!=='saved'?'<span style="font-size:.62rem;color:'+(x.status==='shipped'?'var(--success)':x.status==='killed'?'var(--danger)':'var(--warning)')+'">'+esc(stTxt[x.status]||x.status)+'</span>':'')
       +'</div>'
       +'<div style="font-size:.88rem;line-height:1.4;margin-bottom:6px;cursor:pointer" onclick="openIdeaEditor(\''+x.id+'\')" title="open">'+esc(x.text)+'</div>'
@@ -2589,6 +2646,8 @@ function openIdeaEditor(id, seedText, opts){
   $('iedTitle').value = editing ? (toBoard?(_iedRow.body||''):(_iedRow.text||'')) : (seedText||'');
   $('iedFmt').value = (_iedRow.format)||'';
   var ff=$('iedFmtField'); if(ff) ff.style.display = toBoard ? 'none' : ''; /* board posts have no format column */
+  var dt=$('iedDate'); if(dt) dt.value = (_iedRow.scheduled_for)||'';
+  var df=$('iedDateField'); if(df) df.style.display = toBoard ? 'none' : ''; /* calendar is the idea bank, not the board */
   $('iedNotes').value = (_iedRow.notes)||'';
   $('iedMsg').textContent='';
   $('iedDelete').style.display = editing ? '' : 'none';
@@ -2682,7 +2741,8 @@ function saveIdeaEditor(){
   }
   /* ---- swipe file (personal / team idea bank) ---- */
   if(!editing && _ideaCache.some(function(x){ return x.text===title; })){ $('iedSave').disabled=false; $('iedMsg').textContent='you already have that one'; return; }
-  var full={ text:title, format:$('iedFmt').value||null, notes:notes, script:script, updated_at:new Date().toISOString() };
+  var sched=($('iedDate')&&$('iedDate').value)||null;
+  var full={ text:title, format:$('iedFmt').value||null, notes:notes, script:script, scheduled_for:sched, updated_at:new Date().toISOString() };
   var lean={ text:title, format:$('iedFmt').value||null, updated_at:new Date().toISOString() };
   function run(patch, isRetry){
     var p;
@@ -2695,7 +2755,7 @@ function saveIdeaEditor(){
     }
     p.then(function(r){
       if(r&&r.error){
-        if(!isRetry && (full.notes!=null || full.script!=null)) run(lean, true); /* notes/script columns may not exist yet -> save the core */
+        if(!isRetry && (full.notes!=null || full.script!=null || full.scheduled_for!=null)) run(lean, true); /* new columns may not exist yet -> save the core */
         else finish(true);
       } else finish(false);
     }).catch(function(){ if(!isRetry) run(lean, true); else finish(true); });
