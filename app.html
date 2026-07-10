@@ -689,6 +689,20 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .digest-row{margin-top:13px;border-top:1px solid var(--border);padding-top:11px}
 .digest-tog{display:inline-flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);cursor:pointer}
 .digest-tog input{width:16px;height:16px;accent-color:var(--warning);cursor:pointer;flex:0 0 auto}
+
+/* ===== LENS BAR (private dashboard vs shared team space) ===== */
+.lensbar{margin:2px 0 8px;padding:11px 15px 11px 17px;border:1px solid var(--border);border-radius:13px;position:relative;overflow:hidden;background:hsl(230 24% 6% / .6)}
+.lensbar::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--lensc,var(--primary))}
+.lensbar.lens-mine{--lensc:hsl(260 90% 66%)}
+.lensbar.lens-team{--lensc:hsl(45 95% 62%);background:linear-gradient(100deg,hsl(45 95% 62% / .07),transparent 70%)}
+.lens-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.lens-k{font-family:var(--mono);font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);flex:0 0 auto}
+.lens-btn{font-size:.82rem;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:99px;padding:5px 13px;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.lens-btn:hover:not(:disabled){border-color:var(--lensc);color:var(--fg)}
+.lens-btn.on{color:#0b0d12;background:var(--lensc);border-color:var(--lensc)}
+.lens-btn:disabled{opacity:.4;cursor:not-allowed}
+.lens-desc{font-size:.74rem;color:var(--faint);margin-top:7px;font-family:var(--mono);letter-spacing:.02em}
+.shared-pill{font-family:var(--mono);font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;color:hsl(45 95% 62%);background:hsl(45 95% 62% / .12);border:1px solid hsl(45 95% 62% / .35);padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -884,6 +898,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
       </div>
 
+      <!-- lens bar: which view am I in (private vs shared team space) -->
+      <div class="lensbar" id="lensBar" aria-live="polite" style="display:none"></div>
+
       <!-- content niche banner -->
       <div class="nichebar" id="nicheBar" aria-live="polite"></div>
 
@@ -1052,7 +1069,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
 
 <div class="tile s6" id="tBoard" style="--tc:hsl(45 95% 62%);display:none">
-          <h3><span class="acc" aria-hidden="true">▤</span> team board <span class="end" id="boardCount"></span></h3>
+          <h3><span class="acc" aria-hidden="true">▤</span> team board <span class="shared-pill">shared</span> <span class="end" id="boardCount"></span></h3>
           <div class="caprow" style="margin-top:0;margin-bottom:10px">
             <select id="postKind" aria-label="post type" style="background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);padding:9px;font-family:var(--sans);font-size:.84rem">
               <option value="idea">💡 video idea</option>
@@ -1427,14 +1444,23 @@ function curCh(){
   return IDENT.yt;
 }
 function renderViewSwitch(){
-  var host=$('viewSwitch'); if(!host) return;
-  if(!SPACE || !SPACE.workspace){ host.style.display='none'; return; }
+  var old=$('viewSwitch'); if(old) old.style.display='none'; /* superseded by the lens bar */
+  var host=$('lensBar'); if(!host) return;
+  if(!SPACE || !SPACE.workspace){ host.style.display='none'; return; } /* no team -> no lens bar */
   var ownCh = !!(IDENT.yt.id||IDENT.yt.name) && !IDENT._adopted;
-  host.style.display='flex';
+  var team = esc(SPACE.workspace.name||'team space');
+  var nMem = (SPACE.members&&SPACE.members.length)||0;
+  var mine = VIEW!=='space';
+  host.className = 'lensbar ' + (mine?'lens-mine':'lens-team');
+  host.style.display='';
   host.innerHTML =
-    '<button class="vsw'+(VIEW==='mine'?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="connect your own channel first"')+'>◈ my dashboard</button>'
-   +'<button class="vsw'+(VIEW==='space'?' on':'')+'" data-view="space">⬡ '+esc(SPACE.workspace.name||'team space')+'</button>';
-  Array.prototype.forEach.call(host.querySelectorAll('.vsw'),function(b){
+    '<div class="lens-row"><span class="lens-k">viewing</span>'
+    + '<button class="lens-btn'+(mine?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="connect your own channel first"')+'>◈ My Dashboard</button>'
+    + '<button class="lens-btn'+(!mine?' on':'')+'" data-view="space">⬡ '+team+'</button></div>'
+    + '<div class="lens-desc">'+(mine
+        ? 'private to you, nothing here is shared with your team'
+        : 'shared team space'+(nMem?' · visible to '+nMem+' member'+(nMem>1?'s':''):''))+'</div>';
+  Array.prototype.forEach.call(host.querySelectorAll('.lens-btn'),function(b){
     b.onclick=function(){ if(b.disabled)return; switchView(b.getAttribute('data-view')); };
   });
 }
