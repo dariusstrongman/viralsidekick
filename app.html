@@ -669,6 +669,18 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 /* ===== PACKAGE BUILDER ===== */
 .mini-act.p{border-color:hsl(190 92% 56% / .45);color:var(--accent)}
 .mini-act.p:hover{background:hsl(190 92% 56% / .12)}
+/* ===== IDEA EDITOR ===== */
+.hbtn{font-family:var(--mono);font-size:.6rem;letter-spacing:.04em;border:1px solid hsl(190 92% 56% / .45);border-radius:7px;padding:2px 9px;color:var(--accent);background:transparent;cursor:pointer;transition:.15s;vertical-align:middle;margin-left:4px}
+.hbtn:hover{background:hsl(190 92% 56% / .12);color:#fff}
+.ied-field{margin-bottom:13px}
+.ied-field label{display:block;font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
+.ied-field input,.ied-field textarea,.ied-field select{width:100%;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:10px;color:var(--fg);padding:10px 12px;font-family:var(--sans);font-size:.9rem}
+.ied-field textarea{resize:vertical;line-height:1.45;min-height:64px}
+.ied-scriptbox{white-space:pre-wrap;font-family:var(--mono);font-size:.76rem;line-height:1.5;color:var(--fg);background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:10px;padding:12px;max-height:300px;overflow:auto}
+.ied-lens{font-size:.6rem;font-family:var(--mono);padding:1px 8px;border-radius:6px;vertical-align:middle;margin-left:6px}
+.ied-lens.mine{color:hsl(260 90% 72%);border:1px solid hsl(260 90% 66% / .5)}
+.ied-lens.team{color:hsl(45 95% 66%);border:1px solid hsl(45 95% 62% / .5)}
+.idea-note-dot{font-size:.62rem;color:var(--faint)}
 .pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
 .pkg-sec{margin-bottom:15px}
 .pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -1016,8 +1028,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
 
 <div class="tile s3" id="tIdeas">
-          <h3><span class="acc" aria-hidden="true">★</span> idea bank <span class="end" id="ideaCount"></span></h3>
-          <div id="ideasBody"><div class="tsub">Save any idea from the radar, your next video, or the wire, and it lands here. Mark it shipped when you post it so the coach can see what worked.</div></div>
+          <h3><span class="acc" aria-hidden="true">★</span> idea bank <button class="hbtn" onclick="openIdeaEditor()">+ new idea</button> <span class="end" id="ideaCount"></span></h3>
+          <div id="ideasBody"><div class="tsub">Save any idea from the radar, your next video, or the wire, or hit <b style="color:var(--accent)">+ new idea</b> to write one with a title, notes, and a full script. Mark it shipped when you post it so the coach can see what worked.</div></div>
         </div>
 
 <div class="tile s3" id="tRoad">
@@ -1171,6 +1183,28 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <p class="sm mut" id="pkgIdea" style="margin-bottom:8px"></p>
       <div id="pkgPred" class="pkg-pred" style="display:none"></div>
       <div id="pkgBody"><div class="tsub">packaging it for your channel…</div></div>
+    </div>
+  </div>
+
+  <!-- idea editor: compose/edit a video idea with title, notes + full script (personal OR team) -->
+  <div class="modal" id="ideaModal" role="dialog" aria-modal="true" aria-labelledby="ideaModalTitle">
+    <div class="mc" style="max-width:600px">
+      <span class="x" onclick="document.getElementById('ideaModal').classList.remove('on')">✕</span>
+      <h2 id="ideaModalTitle">✎ Video idea <span id="iedLens" class="ied-lens"></span></h2>
+      <p class="sm mut" id="iedWhere" style="margin-bottom:16px"></p>
+      <div class="ied-field"><label for="iedTitle">the idea / working title</label>
+        <input id="iedTitle" type="text" maxlength="160" placeholder="what is the video? e.g. i tried the cheapest camera on amazon"></div>
+      <div class="ied-field"><label for="iedFmt">format</label>
+        <select id="iedFmt"><option value="">not sure yet</option><option value="short">short · 30-60s vertical</option><option value="longform">long-form · 8-12 min</option></select></div>
+      <div class="ied-field"><label for="iedNotes">notes · angle, hook, anything to remember</label>
+        <textarea id="iedNotes" maxlength="4000" placeholder="the hook, the twist, b-roll you need, why it'll work…"></textarea></div>
+      <div class="ied-field"><label>script</label>
+        <div id="iedScriptWrap"></div></div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:4px">
+        <button class="btn btn-primary btn-sm" onclick="saveIdeaEditor()" id="iedSave">Save idea</button>
+        <button class="btn btn-ghost btn-sm" id="iedDelete" style="display:none" onclick="deleteFromEditor()">Delete</button>
+        <span id="iedMsg" class="sm mut" aria-live="polite"></span>
+      </div>
     </div>
   </div>
 
@@ -2312,7 +2346,7 @@ function fmtHint(){
 }
 function miniActs(text, source){
   var e=encodeURIComponent(text);
-  return '<span class="mini-act p" data-pkg="'+e+'">⚡ package</span><span class="mini-act b" data-bp="'+e+'">▶ script</span><span class="mini-act" data-qadd="'+e+'" data-qsrc="'+encodeURIComponent(source||'manual')+'">★ save</span>';
+  return '<span class="mini-act p" data-pkg="'+e+'">⚡ package</span><span class="mini-act b" data-bp="'+e+'">▶ script</span><span class="mini-act" data-iedit="'+e+'">✎ notes</span><span class="mini-act" data-qadd="'+e+'" data-qsrc="'+encodeURIComponent(source||'manual')+'">★ save</span>';
 }
 function addToQueue(text){
   var m=loadQ(); m.__custom=(m.__custom||[]);
@@ -2357,12 +2391,13 @@ function renderIdeas(rows){
       +'<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:5px">'
       +'<span style="font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:'+sc+';border:1px solid '+sc+';border-radius:4px;padding:1px 6px">'+esc(x.source||'idea')+'</span>'
       +(x.format?'<span style="font-size:.62rem;color:var(--faint)">'+esc(x.format)+'</span>':'')
+      +((x.notes||x.script)?'<span class="idea-note-dot" title="'+(x.script?'has a script':'has notes')+'">'+(x.script?'🎬':'📝')+'</span>':'')
       +(x.status&&x.status!=='saved'?'<span style="font-size:.62rem;color:'+(x.status==='shipped'?'var(--success)':x.status==='killed'?'var(--danger)':'var(--warning)')+'">'+esc(stTxt[x.status]||x.status)+'</span>':'')
       +'</div>'
-      +'<div style="font-size:.88rem;line-height:1.4;margin-bottom:6px">'+esc(x.text)+'</div>'
+      +'<div style="font-size:.88rem;line-height:1.4;margin-bottom:6px;cursor:pointer" onclick="openIdeaEditor(\''+x.id+'\')" title="open">'+esc(x.text)+'</div>'
       +(x.video_url?'<a href="'+esc(x.video_url)+'" target="_blank" rel="noopener" style="font-size:.74rem;color:var(--accent)">view the video →</a>':'')
       +'<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:'+(x.video_url?'6px':'2px')+'">'
-      +(!done?'<span class="mini-act p" data-pkg="'+e+'">⚡ package</span><span class="mini-act b" data-bp="'+e+'">▶ script</span>':'')
+      +(!done?'<span class="mini-act" onclick="openIdeaEditor(\''+x.id+'\')">✎ open</span><span class="mini-act p" data-pkg="'+e+'">⚡ package</span><span class="mini-act b" data-bp="'+e+'">▶ script</span>':'')
       +(x.status!=='shipped'?'<span class="mini-act" onclick="markIdea(\''+x.id+'\',\'shipped\')">✓ shipped</span>':'')
       +((x.status==='saved')?'<span class="mini-act" onclick="markIdea(\''+x.id+'\',\'filming\')">◐ filming</span>':'')
       +'<span class="mini-act" onclick="deleteIdea(\''+x.id+'\')" title="remove">✕</span>'
@@ -2378,6 +2413,118 @@ function markIdea(id,status){
 function deleteIdea(id){
   if(!(window.sb && USER && USER.id)) return;
   ideaScope(sb.from('viralsidekick_ideas').delete().eq('id',id)).then(function(){ loadIdeas(); }).catch(function(){});
+}
+/* ---------- idea editor: title + notes + full script, personal OR team ---------- */
+var _iedId=null, _iedRow=null;
+function openIdeaEditor(id, seedText){
+  var m=$('ideaModal'); if(!m) return;
+  var editing = id!=null && id!=='';
+  _iedId = editing ? id : null;
+  _iedRow = editing ? Object.assign({}, (_ideaCache.filter(function(x){return x.id===id;})[0]||{})) : {};
+  var teamView = !!(VIEW==='space' && SPACE && SPACE.workspace);
+  var lens=$('iedLens'); if(lens){ lens.className='ied-lens '+(teamView?'team':'mine'); lens.textContent = teamView ? ('⬡ '+esc(SPACE.workspace.name||'team')) : '◈ personal'; }
+  var where=$('iedWhere'); if(where){ where.innerHTML = teamView
+    ? 'saved to your <b style="color:hsl(45 95% 66%)">shared team</b> idea bank, everyone in the space sees it.'
+    : 'saved to your <b style="color:hsl(260 90% 72%)">personal</b> idea bank, only you see it.'; }
+  $('iedTitle').value = editing ? (_iedRow.text||'') : (seedText||'');
+  $('iedFmt').value = (_iedRow.format)||'';
+  $('iedNotes').value = (_iedRow.notes)||'';
+  $('iedMsg').textContent='';
+  $('iedDelete').style.display = editing ? '' : 'none';
+  $('iedSave').textContent = editing ? 'Save changes' : 'Save idea';
+  renderIedScript();
+  m.classList.add('on');
+  setTimeout(function(){ try{ $('iedTitle').focus(); }catch(e){} },40);
+}
+function renderIedScript(){
+  var wrap=$('iedScriptWrap'); if(!wrap) return;
+  var scr=(_iedRow&&_iedRow.script)||'';
+  if(scr){
+    wrap.innerHTML='<div class="ied-scriptbox">'+esc(scr)+'</div>'
+      +'<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:8px">'
+      +'<button class="btn btn-ghost btn-sm" onclick="copyIedScript()">copy script</button>'
+      +'<button class="btn btn-ghost btn-sm" onclick="genIdeaScript()">regenerate</button>'
+      +'<button class="btn btn-ghost btn-sm" onclick="clearIedScript()">clear</button></div>';
+  } else {
+    wrap.innerHTML='<div class="tsub" style="margin-bottom:8px">No script yet. Let the coach write a shoot-ready one, or paste your own.</div>'
+      +'<div style="display:flex;gap:9px;flex-wrap:wrap">'
+      +'<button class="btn btn-primary btn-sm" onclick="genIdeaScript()">✍ generate the script</button>'
+      +'<button class="btn btn-ghost btn-sm" onclick="pasteIedScript()">paste my own</button></div>';
+  }
+}
+function pasteIedScript(){
+  var wrap=$('iedScriptWrap'); if(!wrap) return;
+  var cur=(_iedRow&&_iedRow.script)||'';
+  wrap.innerHTML='<textarea id="iedScriptTa" style="width:100%;min-height:170px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:10px;color:var(--fg);padding:12px;font-family:var(--mono);font-size:.78rem;line-height:1.5" placeholder="paste or write your script here…">'+esc(cur)+'</textarea>'
+    +'<div style="display:flex;gap:9px;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="keepPastedScript()">keep script</button><button class="btn btn-ghost btn-sm" onclick="renderIedScript()">cancel</button></div>';
+  setTimeout(function(){ try{ $('iedScriptTa').focus(); }catch(e){} },30);
+}
+function keepPastedScript(){ var ta=$('iedScriptTa'); if(!ta) return; _iedRow=_iedRow||{}; _iedRow.script=ta.value.trim(); renderIedScript(); }
+function clearIedScript(){ if(_iedRow) _iedRow.script=''; renderIedScript(); }
+function copyIedScript(){ var s=(_iedRow&&_iedRow.script)||''; vsCopy(s).then(function(){ var msg=$('iedMsg'); if(msg){ msg.textContent='copied ✓'; setTimeout(function(){msg.textContent='';},1500);} }).catch(function(){}); }
+function blueprintText(bp, fmt){
+  var sc=bp.script||[];
+  return 'TITLE: '+(bp.title||'')+'\n'+(bp.logline?'LOGLINE: '+bp.logline+'\n':'')+'\nSCRIPT ('+(fmt||'')+'):\n'
+    +sc.map(function(r){return '['+(r.t||'')+']'+(r.shot?'\nSHOT: '+r.shot:'')+(r.line?'\nLINE: '+r.line:'')+(r.note?'\nNOTE: '+r.note:'')+'\n';}).join('\n')
+    +'\nTHUMBNAIL: '+((bp.thumbnail||{}).concept||'')+((bp.thumbnail&&bp.thumbnail.text_overlay)?' · text: '+bp.thumbnail.text_overlay:'')
+    +'\nDESCRIPTION: '+(bp.description||'')+'\nTAGS: '+((bp.hashtags||[]).map(function(t){return String(t).indexOf('#')===0?t:'#'+t;}).join(' '))
+    +(bp.one_rule?'\nONE RULE: '+bp.one_rule:'');
+}
+function genIdeaScript(){
+  var idea=$('iedTitle').value.trim();
+  if(!idea){ $('iedMsg').textContent='add the idea first'; return; }
+  if(!IS_PRO){ var msg=$('iedMsg'); if(msg) msg.innerHTML='<a href="'+(($('proBtn')&&$('proBtn').href)||PRO_URL)+'" target="_blank" rel="noopener" style="color:var(--accent)">scripts are Pro · start the 7-day free trial →</a>'; return; }
+  var fmt=$('iedFmt').value || fmtHint() || 'short';
+  var wrap=$('iedScriptWrap');
+  wrap.innerHTML='<div class="tsub"><span class="spin" style="display:inline-block;vertical-align:middle;margin-right:8px"></span>the script writer is on it… ('+(fmt==='short'?'~10s':'~20s')+')</div>';
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mode:'blueprint',idea:idea,niche:(LASTAI&&LASTAI.niche)||'',format:fmt,token:ACCESS,website:''})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d||!d.ok||!d.blueprint){ wrap.innerHTML='<div class="tsub">'+esc((d&&d.detail)||'could not write that one, try again.')+'</div><div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="renderIedScript()">back</button></div>'; return; }
+      _iedRow=_iedRow||{}; _iedRow.script=blueprintText(d.blueprint, d.format);
+      if(!$('iedFmt').value && d.format) $('iedFmt').value=d.format;
+      renderIedScript();
+      var msg=$('iedMsg'); if(msg){ msg.textContent='script ready · hit Save to keep it'; }
+    }).catch(function(){ wrap.innerHTML='<div class="tsub">network hiccup, try again.</div><div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="renderIedScript()">back</button></div>'; });
+}
+function saveIdeaEditor(){
+  if(!(window.sb && USER && USER.id)){ $('iedMsg').textContent='sign in first'; return; }
+  var title=$('iedTitle').value.trim();
+  if(!title){ $('iedMsg').textContent='the idea needs a line'; return; }
+  var editing=!!_iedId;
+  if(!editing && _ideaCache.some(function(x){ return x.text===title; })){ $('iedMsg').textContent='you already have that one'; return; }
+  $('iedSave').disabled=true; $('iedMsg').textContent='saving…';
+  var full={ text:title, format:$('iedFmt').value||null, notes:$('iedNotes').value.trim()||null, script:(_iedRow&&_iedRow.script)||null, updated_at:new Date().toISOString() };
+  var lean={ text:title, format:$('iedFmt').value||null, updated_at:new Date().toISOString() };
+  function finish(err){
+    $('iedSave').disabled=false;
+    if(err){ $('iedMsg').textContent='could not save, try again'; return; }
+    $('iedMsg').textContent='saved ✓'; loadIdeas();
+    setTimeout(function(){ var mm=$('ideaModal'); if(mm) mm.classList.remove('on'); },450);
+  }
+  function run(patch, isRetry){
+    var p;
+    if(editing){ p=ideaScope(sb.from('viralsidekick_ideas').update(patch).eq('id',_iedId)); }
+    else {
+      var _c=(typeof curCh==='function'?curCh():null)||{};
+      var row=Object.assign({ user_id:USER.id, channel_id:_c.id||null, source:'manual', niche:(LASTAI&&LASTAI.niche)||null, status:'saved' }, patch);
+      if(VIEW==='space' && SPACE && SPACE.workspace && SPACE.workspace.id) row.workspace_id=SPACE.workspace.id;
+      p=sb.from('viralsidekick_ideas').insert(row);
+    }
+    p.then(function(r){
+      if(r&&r.error){
+        if(!isRetry && (full.notes!=null || full.script!=null)) run(lean, true); /* notes/script columns may not exist yet -> save the core */
+        else finish(true);
+      } else finish(false);
+    }).catch(function(){ if(!isRetry) run(lean, true); else finish(true); });
+  }
+  run(full, false);
+}
+function deleteFromEditor(){
+  if(!_iedId){ var mm=$('ideaModal'); if(mm) mm.classList.remove('on'); return; }
+  if(!window.confirm('delete this idea?')) return;
+  ideaScope(sb.from('viralsidekick_ideas').delete().eq('id',_iedId)).then(function(){ loadIdeas(); var mm=$('ideaModal'); if(mm) mm.classList.remove('on'); }).catch(function(){});
 }
 function buildIt(idea){
   var modal=$('bpModal');
@@ -2536,6 +2683,8 @@ document.addEventListener('click',function(e){
   if(fmtb){ buildFmt(window._bpIdea||$('bpIdea').textContent, fmtb.getAttribute('data-bpfmt')); return; }
   var bpb=e.target.closest('[data-bp]');
   if(bpb){ var pm=$('pkgModal'); if(pm) pm.classList.remove('on'); window._bpIdea=decodeURIComponent(bpb.getAttribute('data-bp')); buildIt(window._bpIdea); return; }
+  var ied=e.target.closest('[data-iedit]');
+  if(ied){ openIdeaEditor(null, decodeURIComponent(ied.getAttribute('data-iedit'))); return; }
   var qb=e.target.closest('[data-qadd]');
   if(qb){ var _t=decodeURIComponent(qb.getAttribute('data-qadd')); var _s=qb.getAttribute('data-qsrc')?decodeURIComponent(qb.getAttribute('data-qsrc')):'manual'; addToQueue(_t); saveIdea(_t,_s); qb.textContent='saved ★'; }
 });
