@@ -687,6 +687,10 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .team-switch .tsw:hover{color:#fff;border-color:hsl(45 95% 62% / .6)}
 .team-switch .tsw.on{color:hsl(45 95% 66%);border-color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1);cursor:default}
 .board-team{font-family:var(--mono);font-size:.66rem;letter-spacing:.04em;color:hsl(45 95% 66%);margin-left:2px}
+/* lens tag: is this tile showing your private data or the team's shared data */
+.lens-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.05em;padding:2px 8px;border-radius:6px;vertical-align:middle;margin-left:4px;white-space:nowrap}
+.lens-tag.mine{color:hsl(260 90% 74%);border:1px solid hsl(260 90% 66% / .45)}
+.lens-tag.team{color:hsl(45 95% 66%);border:1px solid hsl(45 95% 62% / .5);background:hsl(45 95% 62% / .08)}
 .pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
 .pkg-sec{margin-bottom:15px}
 .pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -993,7 +997,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
 
         <div class="tile s6" id="tRivals" style="--tc:var(--danger)">
-          <h3><span class="acc" aria-hidden="true">⚔</span> competitor analysis <span class="end" id="rivalEnd"></span></h3>
+          <h3><span class="acc" aria-hidden="true">⚔</span> competitor analysis <span class="lens-tag" id="rivalLensTag" style="display:none"></span> <span class="end" id="rivalEnd"></span></h3>
           <div id="rivalBody"><div class="tsub">Add the channels you compete with, side-by-side grades, momentum and engagement, refreshed live.</div></div>
           <div class="caprow" id="rivalAdd">
             <input id="rivalIn" type="text" placeholder="add a competitor… @handle or URL" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')addRival()">
@@ -1034,7 +1038,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
 
 <div class="tile s3" id="tIdeas">
-          <h3><span class="acc" aria-hidden="true">★</span> idea bank <button class="hbtn" onclick="openIdeaEditor()">+ new idea</button> <span class="end" id="ideaCount"></span></h3>
+          <h3><span class="acc" aria-hidden="true">★</span> idea bank <span class="lens-tag" id="ideaLensTag" style="display:none"></span> <button class="hbtn" onclick="openIdeaEditor()">+ new idea</button> <span class="end" id="ideaCount"></span></h3>
           <div id="ideasBody"><div class="tsub">Save any idea from the radar, your next video, or the wire, or hit <b style="color:var(--accent)">+ new idea</b> to write one with a title, notes, and a full script. Mark it shipped when you post it so the coach can see what worked.</div></div>
         </div>
 
@@ -1071,7 +1075,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <section class="zone" style="--zc:hsl(45 95% 62%)">
 <div class="zone-h"><span class="zdot"></span>your orbit · people + account</div>
 <div class="bento">
-<div class="tile s4" id="tSpace" style="--tc:hsl(45 95% 62%)">
+<div class="tile s4" id="tSpace" style="--tc:hsl(45 95% 62%);display:none">
           <h3><span class="acc" aria-hidden="true">⬡</span> your space <span class="end" id="spaceEnd"></span></h3>
           <div id="spaceBody"><div class="tsub">Loading your space…</div></div>
         </div>
@@ -1518,9 +1522,37 @@ function switchView(v){
   if(v===VIEW) return;
   VIEW=v; try{ localStorage.setItem('vs_view',v); }catch(e){}
   renderViewSwitch(); renderIdentity();
-  try{ loadIdeas(); }catch(e){} /* ideas/queue are view-scoped, reload them for the new lens */
+  applyLensChrome();          /* show/hide team-only tiles + set the private/shared tags */
+  try{ loadIdeas(); }catch(e){} /* every scoped surface reloads for the new lens */
+  try{ loadRivals(); }catch(e){}
   try{ renderQueue((LASTAI&&LASTAI.fixes)||[]); }catch(e){}
+  try{ loadBoard(); }catch(e){}
   goLive();
+}
+/* one place that decides what belongs to the personal lens vs a team lens.
+   my dashboard = strictly personal; a team lens adds the team surfaces and
+   labels every shared tile so you always know whose data you are looking at. */
+function setLensTag(id, team, name, show){
+  var el=$(id); if(!el) return;
+  if(!show){ el.style.display='none'; return; }
+  el.style.display='';
+  if(team){ el.className='lens-tag team'; el.textContent='⬡ '+name+' · shared'; }
+  else { el.className='lens-tag mine'; el.textContent='◈ private'; }
+}
+function applyLensChrome(){
+  var inTeam=!!(SPACE&&SPACE.workspace);
+  var teamLens=(VIEW==='space'&&inTeam);
+  var hasTeams=(SPACES&&SPACES.length>0);
+  var canCreate=(typeof PROFILE!=='undefined'&&PROFILE&&PROFILE.plan==='team');
+  /* team board + your space are team data, they only belong in the team lens
+     (the one exception: a Team-plan owner with no space yet needs the create box) */
+  var tb=$('tBoard'); if(tb) tb.style.display=teamLens?'':'none';
+  var ts=$('tSpace');
+  if(ts) ts.style.display = teamLens ? '' : ((!hasTeams&&canCreate)?'':'none');
+  /* only tag scoped tiles when the user actually has both lenses to confuse */
+  var name=inTeam?(SPACE.workspace.name||'team'):'';
+  setLensTag('ideaLensTag', teamLens, name, hasTeams);
+  setLensTag('rivalLensTag', teamLens, name, hasTeams);
 }
 function spaceScans(){
   /* two clean scopes: MY view = my private scans (never a workspace row); SPACE view = the team's shared record only */
@@ -1594,28 +1626,25 @@ function applySpace(d){
   renderViewSwitch();
   renderSpace();
   loadBoard();
+  applyLensChrome();
   goLive(); /* re-pull history with the shared lens */
 }
 function renderNoSpace(){
   SPACE=null; recomputePro(); /* dropped from the team -> lose team-granted Pro unless own plan covers it */
-  var tb=$('tBoard'); if(tb) tb.style.display='none';
-  var ts=$('tSpace');
-  /* the space + board are team-only surfaces. if you are not in a team AND cannot open one,
-     hide the whole thing, the team-plan tile is the funnel. only Team-plan owners see "create". */
+  /* the space + board are team-only surfaces. only a Team-plan owner with no space
+     yet gets the create box, the team-plan tile is the funnel for everyone else. */
   var canCreate = (typeof PROFILE!=='undefined' && PROFILE && PROFILE.plan==='team');
-  if(!canCreate){
-    if(ts) ts.style.display='none';
-    var tu0=$('tTeamUp'); if(tu0) tu0.style.display='';
-    return;
+  if(canCreate){
+    $('spaceEnd').textContent='';
+    $('spaceBody').innerHTML=
+      '<div class="tsub" style="margin-bottom:12px">A space is a shared brain, invite your editor, your co-host, your team. Everyone sees the live channel, the radar, the plan.</div>'
+      +'<div class="caprow" style="margin-top:4px">'
+      +'<input id="spName" type="text" placeholder="name your space (e.g. DMGDaily)" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key===\'Enter\')createSpace()">'
+      +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="createSpace()">Create space</button>'
+      +'</div>';
   }
-  if(ts) ts.style.display='';
-  $('spaceEnd').textContent='';
-  $('spaceBody').innerHTML=
-    '<div class="tsub" style="margin-bottom:12px">A space is a shared brain, invite your editor, your co-host, your team. Everyone sees the live channel, the radar, the plan.</div>'
-    +'<div class="caprow" style="margin-top:4px">'
-    +'<input id="spName" type="text" placeholder="name your space (e.g. DMGDaily)" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key===\'Enter\')createSpace()">'
-    +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="createSpace()">Create space</button>'
-    +'</div>';
+  var tu0=$('tTeamUp'); if(tu0) tu0.style.display = canCreate ? 'none' : '';
+  applyLensChrome();
 }
 function createSpace(){
   var name=$('spName').value.trim()||'my space';
@@ -1638,7 +1667,7 @@ function roleChip(m){
   return html+'</div>';
 }
 function renderSpace(){
-  var ts=$('tSpace'); if(ts) ts.style.display=''; /* team member -> this tile belongs on screen */
+  /* visibility of this tile is owned by applyLensChrome (team lens only) */
   var ws=SPACE.workspace, mem=SPACE.members||[], inv=SPACE.invites||[];
   var mine=mem.filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
@@ -1687,7 +1716,8 @@ function boardIdeaActs(p){
 }
 function loadBoard(){
   var t=$('tBoard'); if(!t) return;
-  if(!SPACE){ t.style.display='none'; return; }
+  /* the board is team data, it only shows in the team lens */
+  if(!SPACE || VIEW!=='space'){ t.style.display='none'; return; }
   t.style.display='';
   onBoardKind();
   var bt=$('boardTeam'); if(bt) bt.textContent = SPACE.workspace ? ('· '+(SPACE.workspace.name||'')) : '';
