@@ -1988,17 +1988,19 @@ function hydrateDeep(ai, radarLive, signals, breakout){
 var WIRE_KEY=null;
 function loadTrends(niche){
   var t=$('tWire'); if(!t) return;
-  t.style.display='';
+  t.style.display=''; window._wireNiche=niche||'';
   /* anchor the lane to THIS channel + its real recent titles so trends are relevant, not global noise */
   var _c=curCh()||{}; var chId=_c.id||_c.name||''; var chName=looksRaw(_c.name)?(_c.handle||''):(_c.name||'');
   var seed=[]; try{ if(Array.isArray(window._liveTitles)) seed=window._liveTitles.slice(0,10); }catch(e){}
-  var ckey=chId+'|'+(niche||'');
-  if(WIRE_KEY===ckey) return; WIRE_KEY=ckey; /* already loaded/loading this exact channel+niche */
+  /* the creator's tracked competitors seed a deterministic, style-specific lane (server caches + persists it) */
+  var rivalIds=[]; try{ rivalIds=(RIVALS||[]).map(function(r){return r.channel_id;}).filter(Boolean); }catch(e){}
+  var ckey=chId+'|'+(niche||'')+'|'+rivalIds.slice().sort().join(',');
+  if(WIRE_KEY===ckey) return; WIRE_KEY=ckey; /* already loaded/loading this exact channel+niche+rivals */
   try{
     var cch=JSON.parse(localStorage.getItem('vs_wire2')||'null');
     if(cch && cch.key===ckey && (Date.now()-cch.at)<30*60000){ renderWire(cch.d); return; }
   }catch(e){}
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'trends',niche:niche||'',channel:chId,channel_name:chName,channel_subs:_c.subs||'',seed:seed})})
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'trends',niche:niche||'',channel:chId,channel_name:chName,channel_subs:_c.subs||'',seed:seed,rivals:rivalIds})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(!d||!d.ok){ $('wireBody').innerHTML='<div class="tsub">wire is quiet, check back shortly.</div>'; return; }
@@ -2053,6 +2055,7 @@ function loadRivals(){
     if(!RIVALS.length){ $('rivalBody').innerHTML='<div class="tsub">Add the channels you compete with, side-by-side grades, momentum and engagement, refreshed live.</div>'; $('rivalEnd').textContent=''; return; }
     $('rivalEnd').textContent=RIVALS.length+' tracked';
     runCompare();
+    try{ if(typeof loadTrends==='function') loadTrends(window._wireNiche||''); }catch(e){} /* fold tracked rivals into the lane */
   });
 }
 function addRival(){
