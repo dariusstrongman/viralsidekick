@@ -1309,6 +1309,7 @@ function showApp(){
      init (profile load, scans, pulse timers) once per user, or every refresh re-bills a scan. */
   if(window._appUser===USER.id) return;
   window._appUser=USER.id;
+  try { migrateQueue(); } catch(e){}
   try { loadIdeas(); } catch(e){}
   bootType();
   loadProfile();
@@ -1398,14 +1399,17 @@ function renderViewSwitch(){
 function switchView(v){
   if(v===VIEW) return;
   VIEW=v; try{ localStorage.setItem('vs_view',v); }catch(e){}
-  renderViewSwitch(); renderIdentity(); goLive();
+  renderViewSwitch(); renderIdentity();
+  try{ loadIdeas(); }catch(e){} /* ideas/queue are view-scoped, reload them for the new lens */
+  try{ renderQueue((LASTAI&&LASTAI.fixes)||[]); }catch(e){}
+  goLive();
 }
 function spaceScans(){
-  /* drive model: MY view = my scans; SPACE view = the team's shared record */
+  /* two clean scopes: MY view = my private scans (never a workspace row); SPACE view = the team's shared record only */
   var q=sb.from('viralsidekick_scans');
   if(VIEW==='space' && SPACE && SPACE.workspace)
     return { select:function(cols){ return q.select(cols).eq('workspace_id', SPACE.workspace.id); } };
-  return { select:function(cols){ return q.select(cols).eq('user_id', USER.id); } };
+  return { select:function(cols){ return q.select(cols).eq('user_id', USER.id).is('workspace_id', null); } };
 }
 var SPACE=null;
 function teamsApi(action, extra){
@@ -2099,10 +2103,10 @@ function renderWire(d){
 /* ---------- competitor analysis ---------- */
 var RIVALS=[];
 function rivalScope(){
-  /* one list: everything you can see (yours + your space's). explicit owner scope, never RLS alone */
+  /* MY view = only my personal rivals (no workspace row); SPACE view = only the team's shared rivals */
   var base=sb.from('viralsidekick_channels').select('id,channel_id,handle,title').eq('is_competitor',true);
-  if(VIEW==='space' && SPACE && SPACE.workspace) return base.or('user_id.eq.'+USER.id+',workspace_id.eq.'+SPACE.workspace.id);
-  return base.eq('user_id',USER.id);
+  if(VIEW==='space' && SPACE && SPACE.workspace) return base.eq('workspace_id',SPACE.workspace.id);
+  return base.eq('user_id',USER.id).is('workspace_id',null);
 }
 function loadRivals(){
   rivalScope().then(function(r){
@@ -2132,7 +2136,9 @@ function addRival(){
 }
 function delRival(id){
   var q=sb.from('viralsidekick_channels').delete().eq('id',id);
-  if(!(VIEW==='space' && SPACE && SPACE.workspace)) q=q.eq('user_id',USER.id); /* dont let a stray id delete someone elses row */
+  /* keep the delete inside the current scope so a stray id can never reach another space or a personal row */
+  if(VIEW==='space' && SPACE && SPACE.workspace) q=q.eq('workspace_id',SPACE.workspace.id);
+  else q=q.eq('user_id',USER.id).is('workspace_id',null);
   q.then(function(){ try{ localStorage.removeItem('vs_cmp'); }catch(e){} loadRivals(); });
 }
 function runCompare(){
@@ -2226,13 +2232,16 @@ function saveIdea(text, source, format){
   if(_ideaCache.some(function(x){ return x.text===text; })){ return Promise.resolve(true); } /* no dup spam */
   var _c=(typeof curCh==='function'?curCh():null)||{};
   var row={ user_id:USER.id, channel_id:_c.id||null, text:text, source:source||'manual', niche:(LASTAI&&LASTAI.niche)||null, format:format||null, status:'saved' };
-  if(typeof SPACE!=='undefined' && SPACE && SPACE.workspace && SPACE.workspace.id) row.workspace_id=SPACE.workspace.id;
+  /* only tag a workspace when you are actually in the shared space, so personal ideas stay private */
+  if(VIEW==='space' && SPACE && SPACE.workspace && SPACE.workspace.id) row.workspace_id=SPACE.workspace.id;
   return sb.from('viralsidekick_ideas').insert(row).then(function(r){ if(!r.error) loadIdeas(); return !r.error; }).catch(function(){ return false; });
 }
+/* one filter for every idea read/write so mine=private, space=shared */
+function ideaScope(q){ return (VIEW==='space' && SPACE && SPACE.workspace) ? q.eq('workspace_id',SPACE.workspace.id) : q.eq('user_id',USER.id).is('workspace_id',null); }
 function loadIdeas(){
   var el=document.getElementById('ideasBody'); if(!el) return;
   if(!(window.sb && typeof USER!=='undefined' && USER && USER.id)) return;
-  sb.from('viralsidekick_ideas').select('*').eq('user_id',USER.id).order('created_at',{ascending:false}).limit(40)
+  ideaScope(sb.from('viralsidekick_ideas').select('*')).order('created_at',{ascending:false}).limit(40)
     .then(function(r){
       if(r.error){ el.innerHTML='<div class="tsub">your idea bank warms up as soon as the ideas table is live.</div>'; return; }
       _ideaCache=r.data||[]; renderIdeas(_ideaCache);
@@ -2269,11 +2278,11 @@ function markIdea(id,status){
   if(!(window.sb && USER && USER.id)) return;
   var patch={status:status, updated_at:new Date().toISOString()};
   if(status==='shipped'){ var u=window.prompt('paste the video URL so the coach can track it (optional):',''); if(u){ u=String(u).trim(); if(/^https?:\/\//i.test(u)) patch.video_url=u; else if(u) patch.video_url='https://'+u.replace(/^\/+/,''); } }
-  sb.from('viralsidekick_ideas').update(patch).eq('id',id).eq('user_id',USER.id).then(function(){ loadIdeas(); }).catch(function(){});
+  ideaScope(sb.from('viralsidekick_ideas').update(patch).eq('id',id)).then(function(){ loadIdeas(); }).catch(function(){});
 }
 function deleteIdea(id){
   if(!(window.sb && USER && USER.id)) return;
-  sb.from('viralsidekick_ideas').delete().eq('id',id).eq('user_id',USER.id).then(function(){ loadIdeas(); }).catch(function(){});
+  ideaScope(sb.from('viralsidekick_ideas').delete().eq('id',id)).then(function(){ loadIdeas(); }).catch(function(){});
 }
 function buildIt(idea){
   var modal=$('bpModal');
@@ -2390,7 +2399,18 @@ function renderSignals(S){
 }
 
 /* ---------- action queue (second brain) ---------- */
-function qKey(){ return 'vsq_'+(USER?USER.id:'x'); }
+/* keyed per view: your personal checklist and the team space's checklist are separate lists */
+function qKey(){
+  var b='vsq_'+(USER?USER.id:'x');
+  if(VIEW==='space' && SPACE && SPACE.workspace) return b+'_ws_'+SPACE.workspace.id;
+  return b+'_mine';
+}
+function migrateQueue(){
+  if(!USER) return;
+  try{ var legacy='vsq_'+USER.id, mineK=legacy+'_mine';
+    if(localStorage.getItem(mineK)==null && localStorage.getItem(legacy)!=null) localStorage.setItem(mineK, localStorage.getItem(legacy));
+  }catch(e){}
+}
 function loadQ(){ try{ return JSON.parse(localStorage.getItem(qKey())||'{}'); }catch(e){ return {}; } }
 function saveQ(o){ try{ localStorage.setItem(qKey(), JSON.stringify(o)); }catch(e){} }
 var CUSTOM=[];
