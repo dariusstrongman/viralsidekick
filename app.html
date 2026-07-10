@@ -1089,14 +1089,15 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <div class="tile s6" id="tBoard" style="--tc:hsl(45 95% 62%);display:none">
           <h3><span class="acc" aria-hidden="true">▤</span> team board <span class="board-team" id="boardTeam"></span> <span class="shared-pill">shared</span> <span class="end" id="boardCount"></span></h3>
           <div class="caprow" style="margin-top:0;margin-bottom:10px">
-            <select id="postKind" aria-label="post type" style="background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);padding:9px;font-family:var(--sans);font-size:.84rem">
+            <select id="postKind" aria-label="post type" onchange="onBoardKind()" style="background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);padding:9px;font-family:var(--sans);font-size:.84rem">
               <option value="idea">💡 video idea</option>
               <option value="note">✎ note</option>
               <option value="win">✦ win</option>
               <option value="question">? question</option>
             </select>
-            <input id="postBody" type="text" placeholder="drop a video idea for the team…" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')postToBoard()">
-            <button class="btn btn-ghost" style="flex:0 0 auto" onclick="postToBoard()">Post</button>
+            <input id="postBody" type="text" placeholder="a quick note for the team…" style="flex:1;display:none;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')postToBoard()">
+            <button id="postQuickBtn" class="btn btn-ghost" style="flex:0 0 auto;display:none" onclick="postToBoard()">Post</button>
+            <button id="postIdeaBtn" class="btn btn-primary" style="flex:1" onclick="openIdeaEditor(null,'',{target:'board'})">✎ write a video idea — title, notes + script</button>
           </div>
           <div id="boardList"><div class="tsub">Ideas, notes, wins, everything your space posts lands here.</div></div>
         </div>
@@ -1200,7 +1201,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <p class="sm mut" id="iedWhere" style="margin-bottom:16px"></p>
       <div class="ied-field"><label for="iedTitle">the idea / working title</label>
         <input id="iedTitle" type="text" maxlength="160" placeholder="what is the video? e.g. i tried the cheapest camera on amazon"></div>
-      <div class="ied-field"><label for="iedFmt">format</label>
+      <div class="ied-field" id="iedFmtField"><label for="iedFmt">format</label>
         <select id="iedFmt"><option value="">not sure yet</option><option value="short">short · 30-60s vertical</option><option value="longform">long-form · 8-12 min</option></select></div>
       <div class="ied-field"><label for="iedNotes">notes · angle, hook, anything to remember</label>
         <textarea id="iedNotes" maxlength="4000" placeholder="the hook, the twist, b-roll you need, why it'll work…"></textarea></div>
@@ -1670,24 +1671,40 @@ function renderSpace(){
   var tu=$('tTeamUp'); if(tu) tu.style.display = isTeam ? 'none' : '';
 }
 /* ---------- team board: the space's shared scratchpad ---------- */
+var _boardCache=[];
+function onBoardKind(){
+  var k=($('postKind')||{}).value, idea=(k==='idea');
+  var pb=$('postBody'), pq=$('postQuickBtn'), pi=$('postIdeaBtn');
+  if(pb) pb.style.display = idea?'none':'';
+  if(pq) pq.style.display = idea?'none':'';
+  if(pi) pi.style.display = idea?'':'none';
+}
+function boardIdeaActs(p){
+  var e=encodeURIComponent(p.body||'');
+  return '<span class="mini-act" onclick="openIdeaEditor(\''+esc(p.id)+'\',\'\',{target:\'board\'})">✎ open</span>'
+    +'<span class="mini-act p" data-pkg="'+e+'">⚡ package</span>'
+    +'<span class="mini-act b" data-bp="'+e+'">▶ script</span>';
+}
 function loadBoard(){
   var t=$('tBoard'); if(!t) return;
   if(!SPACE){ t.style.display='none'; return; }
   t.style.display='';
+  onBoardKind();
   var bt=$('boardTeam'); if(bt) bt.textContent = SPACE.workspace ? ('· '+(SPACE.workspace.name||'')) : '';
   sb.from('viralsidekick_posts').select('*').eq('workspace_id',SPACE.workspace.id).order('created_at',{ascending:false}).limit(60).then(function(r){
-    var rows=r.data||[];
+    var rows=r.data||[]; _boardCache=rows;
     $('boardCount').textContent=rows.length? rows.filter(function(p){return p.status!=='done';}).length+' open':'';
-    if(!rows.length){ $('boardList').innerHTML='<div class="tsub">Nothing yet, drop the first video idea.</div>'; return; }
+    if(!rows.length){ $('boardList').innerHTML='<div class="tsub">Nothing yet, hit <b style="color:hsl(45 95% 66%)">write a video idea</b> above to start the team\'s list.</div>'; return; }
     var mine=((SPACE&&SPACE.members)||[]).filter(function(m){return m.user_id===USER.id;})[0];
     var canMod=mine&&(mine.role==='owner'||mine.role==='admin');
     $('boardList').innerHTML=rows.map(function(p){
-      var can=canMod||p.user_id===USER.id;
+      var can=canMod||p.user_id===USER.id, isIdea=(p.kind==='idea');
+      var badge=(isIdea&&(p.notes||p.script))?' <span class="idea-note-dot" title="'+(p.script?'has a script':'has notes')+'">'+(p.script?'🎬':'📝')+'</span>':'';
       return '<div class="bp'+(p.status==='done'?' done':'')+'">'
         +'<span class="bk '+esc(p.kind||'note')+'">'+esc(p.kind||'note')+'</span>'
-        +'<div class="bb"><div class="bt">'+esc(p.body||'')+'</div>'
+        +'<div class="bb"><div class="bt"'+(isIdea?' style="cursor:pointer" title="open" onclick="openIdeaEditor(\''+esc(p.id)+'\',\'\',{target:\'board\'})"':'')+'>'+esc(p.body||'')+badge+'</div>'
         +'<div class="bm">'+esc(p.author_name||(p.author_email||'').split('@')[0])+' · '+relTime(p.created_at)+'</div></div>'
-        +(p.kind==='idea'&&p.status!=='done'?'<div style="margin-top:5px">'+miniActs(p.body||'')+'</div>':'')
+        +(isIdea&&p.status!=='done'?'<div style="margin-top:5px">'+boardIdeaActs(p)+'</div>':'')
         +(can?'<div class="bx">'
           +'<button class="bbtn" data-act="toggle" data-id="'+esc(p.id)+'" data-next="'+(p.status==='done'?'open':'done')+'">'+(p.status==='done'?'reopen':'done ✓')+'</button>'
           +'<button class="bbtn" data-act="del" data-id="'+esc(p.id)+'" aria-label="delete post">✕</button>'
@@ -2441,24 +2458,32 @@ function deleteIdea(id){
   if(!(window.sb && USER && USER.id)) return;
   ideaScope(sb.from('viralsidekick_ideas').delete().eq('id',id)).then(function(){ loadIdeas(); }).catch(function(){});
 }
-/* ---------- idea editor: title + notes + full script, personal OR team ---------- */
-var _iedId=null, _iedRow=null;
-function openIdeaEditor(id, seedText){
+/* ---------- idea editor: title + notes + full script. target 'idea' = swipe file (personal/team), 'board' = the team board ---------- */
+var _iedId=null, _iedRow=null, _iedTarget='idea';
+function openIdeaEditor(id, seedText, opts){
   var m=$('ideaModal'); if(!m) return;
+  _iedTarget = (opts&&opts.target)||'idea';
   var editing = id!=null && id!=='';
   _iedId = editing ? id : null;
-  _iedRow = editing ? Object.assign({}, (_ideaCache.filter(function(x){return x.id===id;})[0]||{})) : {};
-  var teamView = !!(VIEW==='space' && SPACE && SPACE.workspace);
-  var lens=$('iedLens'); if(lens){ lens.className='ied-lens '+(teamView?'team':'mine'); lens.textContent = teamView ? ('⬡ '+esc(SPACE.workspace.name||'team')) : '◈ personal'; }
-  var where=$('iedWhere'); if(where){ where.innerHTML = teamView
-    ? 'saved to your <b style="color:hsl(45 95% 66%)">shared team</b> idea bank, everyone in the space sees it.'
-    : 'saved to your <b style="color:hsl(260 90% 72%)">personal</b> idea bank, only you see it.'; }
-  $('iedTitle').value = editing ? (_iedRow.text||'') : (seedText||'');
+  var pool = _iedTarget==='board' ? _boardCache : _ideaCache;
+  _iedRow = editing ? Object.assign({}, (pool.filter(function(x){return x.id===id;})[0]||{})) : {};
+  var toBoard = _iedTarget==='board';
+  /* a board idea is always the active team; the swipe file follows the lens */
+  var teamView = toBoard || !!(VIEW==='space' && SPACE && SPACE.workspace);
+  var teamName = (SPACE&&SPACE.workspace&&SPACE.workspace.name)||'team';
+  var lens=$('iedLens'); if(lens){ lens.className='ied-lens '+(teamView?'team':'mine'); lens.textContent = teamView ? ('⬡ '+esc(teamName)) : '◈ personal'; }
+  var where=$('iedWhere'); if(where){ where.innerHTML = toBoard
+    ? 'posted to the <b style="color:hsl(45 95% 66%)">'+esc(teamName)+'</b> team board, everyone in the space sees it.'
+    : (teamView
+      ? 'saved to your <b style="color:hsl(45 95% 66%)">shared team</b> idea bank, everyone in the space sees it.'
+      : 'saved to your <b style="color:hsl(260 90% 72%)">personal</b> idea bank, only you see it.'); }
+  $('iedTitle').value = editing ? (toBoard?(_iedRow.body||''):(_iedRow.text||'')) : (seedText||'');
   $('iedFmt').value = (_iedRow.format)||'';
+  var ff=$('iedFmtField'); if(ff) ff.style.display = toBoard ? 'none' : ''; /* board posts have no format column */
   $('iedNotes').value = (_iedRow.notes)||'';
   $('iedMsg').textContent='';
   $('iedDelete').style.display = editing ? '' : 'none';
-  $('iedSave').textContent = editing ? 'Save changes' : 'Save idea';
+  $('iedSave').textContent = editing ? 'Save changes' : (toBoard?'Post to board':'Save idea');
   renderIedScript();
   m.classList.add('on');
   setTimeout(function(){ try{ $('iedTitle').focus(); }catch(e){} },40);
@@ -2520,16 +2545,36 @@ function saveIdeaEditor(){
   var title=$('iedTitle').value.trim();
   if(!title){ $('iedMsg').textContent='the idea needs a line'; return; }
   var editing=!!_iedId;
-  if(!editing && _ideaCache.some(function(x){ return x.text===title; })){ $('iedMsg').textContent='you already have that one'; return; }
+  var toBoard=_iedTarget==='board';
+  var notes=$('iedNotes').value.trim()||null, script=(_iedRow&&_iedRow.script)||null;
   $('iedSave').disabled=true; $('iedMsg').textContent='saving…';
-  var full={ text:title, format:$('iedFmt').value||null, notes:$('iedNotes').value.trim()||null, script:(_iedRow&&_iedRow.script)||null, updated_at:new Date().toISOString() };
-  var lean={ text:title, format:$('iedFmt').value||null, updated_at:new Date().toISOString() };
   function finish(err){
     $('iedSave').disabled=false;
     if(err){ $('iedMsg').textContent='could not save, try again'; return; }
-    $('iedMsg').textContent='saved ✓'; loadIdeas();
+    $('iedMsg').textContent='saved ✓';
+    if(toBoard) loadBoard(); else loadIdeas();
     setTimeout(function(){ var mm=$('ideaModal'); if(mm) mm.classList.remove('on'); },450);
   }
+  /* ---- team board post ---- */
+  if(toBoard){
+    if(!(SPACE&&SPACE.workspace)){ $('iedSave').disabled=false; $('iedMsg').textContent='open a team first'; return; }
+    var bFull={ body:title, kind:'idea', notes:notes, script:script };
+    var bLean={ body:title, kind:'idea' };
+    var runB=function(patch, isRetry){
+      var p;
+      if(editing){ p=sb.from('viralsidekick_posts').update(patch).eq('id',_iedId).eq('workspace_id',SPACE.workspace.id); }
+      else { p=sb.from('viralsidekick_posts').insert(Object.assign({ workspace_id:SPACE.workspace.id, user_id:USER.id, author_email:USER.email, author_name:(PROFILE&&PROFILE.display_name)||null }, patch)); }
+      p.then(function(r){
+        if(r&&r.error){ if(!isRetry && (notes!=null||script!=null)) runB(bLean,true); else finish(true); }
+        else finish(false);
+      }).catch(function(){ if(!isRetry) runB(bLean,true); else finish(true); });
+    };
+    runB(bFull,false); return;
+  }
+  /* ---- swipe file (personal / team idea bank) ---- */
+  if(!editing && _ideaCache.some(function(x){ return x.text===title; })){ $('iedSave').disabled=false; $('iedMsg').textContent='you already have that one'; return; }
+  var full={ text:title, format:$('iedFmt').value||null, notes:notes, script:script, updated_at:new Date().toISOString() };
+  var lean={ text:title, format:$('iedFmt').value||null, updated_at:new Date().toISOString() };
   function run(patch, isRetry){
     var p;
     if(editing){ p=ideaScope(sb.from('viralsidekick_ideas').update(patch).eq('id',_iedId)); }
@@ -2549,9 +2594,15 @@ function saveIdeaEditor(){
   run(full, false);
 }
 function deleteFromEditor(){
-  if(!_iedId){ var mm=$('ideaModal'); if(mm) mm.classList.remove('on'); return; }
+  var mm=$('ideaModal');
+  if(!_iedId){ if(mm) mm.classList.remove('on'); return; }
   if(!window.confirm('delete this idea?')) return;
-  ideaScope(sb.from('viralsidekick_ideas').delete().eq('id',_iedId)).then(function(){ loadIdeas(); var mm=$('ideaModal'); if(mm) mm.classList.remove('on'); }).catch(function(){});
+  if(_iedTarget==='board'){
+    if(!(SPACE&&SPACE.workspace)){ if(mm) mm.classList.remove('on'); return; }
+    sb.from('viralsidekick_posts').delete().eq('id',_iedId).eq('workspace_id',SPACE.workspace.id).then(function(){ loadBoard(); if(mm) mm.classList.remove('on'); }).catch(function(){});
+    return;
+  }
+  ideaScope(sb.from('viralsidekick_ideas').delete().eq('id',_iedId)).then(function(){ loadIdeas(); if(mm) mm.classList.remove('on'); }).catch(function(){});
 }
 function buildIt(idea){
   var modal=$('bpModal');
