@@ -24,6 +24,7 @@
   --border:hsl(228 14% 16%); --border2:hsl(228 14% 24%);
   --primary:hsl(260 90% 66%); --primary-soft:hsl(260 90% 66% / .14);
   --accent:hsl(190 92% 56%); --success:hsl(160 84% 50%); --warning:hsl(38 96% 60%); --danger:hsl(0 84% 60%);
+  --mine:hsl(260 90% 66%); --mine-txt:hsl(260 90% 72%); --team:hsl(45 95% 62%); --team-txt:hsl(45 95% 66%);
   --radius:14px;
   --sans:'Inter',system-ui,-apple-system,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,monospace;
@@ -678,9 +679,15 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .ied-field textarea{resize:vertical;line-height:1.45;min-height:64px}
 .ied-scriptbox{white-space:pre-wrap;font-family:var(--mono);font-size:.76rem;line-height:1.5;color:var(--fg);background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:10px;padding:12px;max-height:300px;overflow:auto}
 .ied-lens{font-size:.6rem;font-family:var(--mono);padding:1px 8px;border-radius:6px;vertical-align:middle;margin-left:6px}
-.ied-lens.mine{color:hsl(260 90% 72%);border:1px solid hsl(260 90% 66% / .5)}
-.ied-lens.team{color:hsl(45 95% 66%);border:1px solid hsl(45 95% 62% / .5)}
+.ied-lens.mine{color:var(--mine-txt);border:1px solid hsl(260 90% 66% / .5)}
+.ied-lens.team{color:var(--team-txt);border:1px solid hsl(45 95% 62% / .5)}
 .idea-note-dot{font-size:.62rem;color:var(--faint)}
+/* since your last visit */
+.since-card{position:relative;margin:4px 0 14px;padding:11px 40px 11px 15px;border:1px solid hsl(190 92% 56% / .3);border-radius:12px;background:linear-gradient(100deg,hsl(190 92% 56% / .09),transparent 72%);font-size:.8rem;color:var(--fg);font-family:var(--mono);letter-spacing:.01em;line-height:1.5}
+.since-card .sc-k{color:var(--accent);text-transform:uppercase;font-size:.58rem;letter-spacing:.16em;margin-right:5px}
+.since-card .sc-when{color:var(--muted)}
+.since-card .sc-x{position:absolute;top:9px;right:12px;color:var(--faint);cursor:pointer;font-size:.95rem;line-height:1}
+.since-card .sc-x:hover{color:var(--fg)}
 /* marching-order actions */
 .q-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 .q-acts .mini-act{margin-left:0}
@@ -707,8 +714,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .board-team{font-family:var(--mono);font-size:.66rem;letter-spacing:.04em;color:hsl(45 95% 66%);margin-left:2px}
 /* lens tag: is this tile showing your private data or the team's shared data */
 .lens-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.05em;padding:2px 8px;border-radius:6px;vertical-align:middle;margin-left:4px;white-space:nowrap}
-.lens-tag.mine{color:hsl(260 90% 74%);border:1px solid hsl(260 90% 66% / .45)}
-.lens-tag.team{color:hsl(45 95% 66%);border:1px solid hsl(45 95% 62% / .5);background:hsl(45 95% 62% / .08)}
+.lens-tag.mine{color:var(--mine-txt);border:1px solid hsl(260 90% 66% / .45)}
+.lens-tag.team{color:var(--team-txt);border:1px solid hsl(45 95% 62% / .5);background:hsl(45 95% 62% / .08)}
 /* team collaboration header card over the team section */
 .tc-header{text-align:center;margin:14px 0 8px;padding:18px 16px;border:1px solid hsl(45 95% 62% / .24);border-radius:16px;background:radial-gradient(130% 120% at 50% 0,hsl(45 95% 62% / .08),transparent 68%)}
 .tc-eyebrow{font-family:var(--mono);font-size:.58rem;letter-spacing:.34em;text-transform:uppercase;color:hsl(45 95% 66%);font-weight:700}
@@ -961,6 +968,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <!-- content niche banner -->
       <div class="nichebar" id="nicheBar" aria-live="polite"></div>
 
+      <!-- since your last visit -->
+      <div class="since-card" id="sinceCard" style="display:none" aria-live="polite"></div>
+
       <!-- platform tabs -->
       <div class="order hide" id="orderStrip">
         <div class="ord-goal hide" id="ordGoal"></div>
@@ -1070,6 +1080,20 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
               aria-label="add a custom action item">
             <button class="btn btn-ghost" style="flex:0 0 auto" onclick="captureIdea()">Add</button>
           </div>
+        </div>
+
+<div class="tile s3" id="tStudio" style="--tc:var(--accent)">
+          <h3><span class="acc" aria-hidden="true">⚡</span> creator tools</h3>
+          <div class="tsub" style="margin-bottom:9px">Turn any idea or title into a shoot-ready package, thumbnail, or full script.</div>
+          <div class="lab-form">
+            <input id="studioIn" type="text" placeholder="a video idea or title…" aria-label="idea for the tools" onkeydown="if(event.key==='Enter')studioGo('package')">
+            <button class="btn btn-primary" style="flex:0 0 auto" onclick="studioGo('package')">⚡ package</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn btn-ghost btn-sm" onclick="studioGo('package')">⚡ package + thumbnail</button>
+            <button class="btn btn-ghost btn-sm" onclick="studioGo('script')">▶ full script</button>
+          </div>
+          <div class="tsub" style="margin-top:9px;font-size:.72rem;color:var(--faint)">AI thumbnails generate inside the package. Title testing lives in the title lab below.</div>
         </div>
 
 <div class="tile s3" id="tIdeas">
@@ -2118,6 +2142,7 @@ function pollPulse(){
       }
       try{ window._liveTitles=(yt.latest||[]).map(function(x){return x.title;}).filter(Boolean).slice(0,10); }catch(e){}
       try{ syncShipResults(yt.latest||[]); }catch(e){} /* close the loop: read shipped-idea videos back against your median */
+      try{ dailyPulse(yt); }catch(e){} /* since your last visit */
       var lv=(yt.latest||[])[0];
       if(lv){
         pulseCounter('lv','latest video · views',IC_YT,'var(--primary)');
@@ -2245,7 +2270,7 @@ function backgroundScan(){
     .then(function(d){
       clearTimeout(_to); hideScanning();
       if(d&&d.ai){ hydrateDeep(d.ai,d.radar_live,d.signals,d.breakout); lastFullAt=Date.now(); setTimeout(loadHistory,1200); }
-      else if(d&&d.error==='too_new'){ ordMsg('your channel needs a few more uploads', 'a real read needs at least 3 public uploads. come back after your next one and the coach reads it in full.'); restDeepTiles(); }
+      else if(d&&d.error==='too_new'){ ordMsg('you are just getting started', 'your first week is mapped in the roadmap below. knock these out and post 3 videos, then the coach reads your channel in full.'); restDeepTiles(); starterPlaybook(); }
       else if(d&&(d.error==='session expired - sign in again'||d.error==='session_expired')){ ordMsg('your session expired', 'refresh the page and sign in again to keep the coach on your channel.'); }
       else if(d&&d.error){ ordMsg('the read did not come back clean', 'tap refresh to try again. if it keeps happening, your channel may be private or too new.'); }
       else { ordMsg('the read is taking longer than usual', 'tap refresh to retry. big channels and busy niches can take a full minute.'); }
@@ -2261,6 +2286,55 @@ function restDeepTiles(){
     ['signalsBody','signals sharpen once you have a few uploads'],
     ['winBody','your posting window shows once you have a few videos up']];
   m.forEach(function(p){ var el=$(p[0]); if(el) el.innerHTML='<div class="tsub">'+p[1]+'</div>'; });
+}
+/* first-run: a real first week for a channel too new to read */
+function starterPlaybook(){
+  var el=$('roadBody'); if(!el) return;
+  var moves=[
+    ['post 3 videos this week','the coach needs at least 3 public uploads to read your channel. get them up and the full read unlocks.'],
+    ['pick one lane and stay in it','make your next 3 videos about the same topic so youtube learns exactly who to show you to.'],
+    ['study 3 channels your size that are winning','add them as competitors below and the radar starts pulling what is working in your lane.'],
+    ['make every title a promise or a number','vague titles die. say exactly what they get, or put a number on it.'],
+    ['open with the payoff','your first 5 seconds decide everything. lead with the result, not a slow intro.']
+  ];
+  el.innerHTML='<div class="tsub" style="margin-bottom:10px">You are just getting started, here is your first week. Do these and post 3 videos, then the full coach read unlocks.</div>'
+    + moves.map(function(m,i){ return '<div class="q-item"><div class="q-b"><div class="t">'+(i+1)+'. '+esc(m[0])+'</div><div class="d">'+esc(m[1])+'</div></div></div>'; }).join('');
+}
+/* creator tools home: any idea or title -> package (+ thumbnail) or full script */
+function studioGo(kind){
+  var i=$('studioIn'), v=(i&&i.value.trim())||'';
+  if(!v){ if(i){ i.focus(); i.placeholder='type an idea or title first…'; } return; }
+  if(kind==='script') buildIt(v); else openPackage(v);
+}
+/* daily hook: what changed since you were last here (once per session, only after a few hours away) */
+function dailyPulse(yt){
+  if(window._dailyPulseDone) return;
+  var _c=curCh()||{}, chId=(_c.id||_c.name||''); if(!chId) return;
+  window._dailyPulseDone=true;
+  var k='vs_lastvisit_'+_nsU()+'_'+chId, prev=null;
+  try{ prev=JSON.parse(localStorage.getItem(k)||'null'); }catch(e){}
+  var subs=(yt&&yt.subs_text)?expandCount(yt.subs_text):null;
+  var lv=(yt&&yt.latest&&yt.latest[0])?yt.latest[0]:null, now=Date.now();
+  if(prev && prev.ts && (now-prev.ts)>=1080e4){ /* 3h+ away */
+    var parts=[];
+    if(subs!=null && prev.subs!=null && subs!==prev.subs){ var ds=subs-prev.subs; parts.push('<b style="color:'+(ds>0?'var(--success)':'var(--danger)')+'">'+(ds>0?'+':'')+nfmt(ds)+' subs</b>'); }
+    if(lv){
+      if(prev.latestId && lv.id!==prev.latestId){ parts.push('you posted <b>'+esc(String(lv.title||'a new video').slice(0,54))+'</b>'); }
+      else if(prev.latestId===lv.id && prev.latestViews!=null && lv.views>prev.latestViews){ parts.push('your latest gained <b>'+nfmt(lv.views-prev.latestViews)+' views</b>'); }
+    }
+    /* what your tracked lane is doing, pulled from the last cached wire so there is no race */
+    try{ var wc=JSON.parse(localStorage.getItem('vs_wire2_'+_nsUV())||'null'); var ln=(wc&&wc.d&&wc.d.lane&&wc.d.lane.length)||0; if(ln) parts.push('<b style="color:var(--team-txt)">'+ln+' breakout'+(ln>1?'s':'')+'</b> erupting in your lane'); }catch(e){}
+    if(parts.length) showSinceCard(now-prev.ts, parts);
+  }
+  try{ localStorage.setItem(k, JSON.stringify({ts:now, subs:subs, latestId:lv?lv.id:null, latestViews:lv?lv.views:null})); }catch(e){}
+}
+function showSinceCard(elapsedMs, parts){
+  var el=$('sinceCard'); if(!el) return;
+  var days=Math.floor(elapsedMs/864e5), hrs=Math.floor(elapsedMs/36e5);
+  var when=days>=1?(days+' day'+(days>1?'s':'')+' ago'):(hrs+' hour'+(hrs>1?'s':'')+' ago');
+  el.innerHTML='<span class="sc-k">since your last visit</span><span class="sc-when">'+when+'</span> · '+parts.join(' · ')
+    +'<span class="sc-x" onclick="var s=document.getElementById(\'sinceCard\');if(s)s.style.display=\'none\'" title="dismiss">✕</span>';
+  el.style.display='';
 }
 function refreshLive(){
   liveVitals();
@@ -2313,7 +2387,7 @@ function hydrateDeep(ai, radarLive, signals, breakout){
           +(g.path?'<span class="gp">'+esc(g.path)+'</span>':'');
       } else og.classList.add('hide');
     }
-    $('ordVerdict').innerHTML = (breakout ? '<div style="background:hsl(150 60% 45% / .12);border:1px solid hsl(150 60% 45% / .4);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-weight:600;color:hsl(150 60% 60%)">🚀 breaking out now: "'+esc(breakout.title)+'" is pacing '+esc(breakout.velocity_x)+'× your normal launch speed at '+esc(breakout.age_days)+'d old. make the follow-up now.</div>' : '') + '<span>'+esc(ai.verdict||'')+'</span>';
+    $('ordVerdict').innerHTML = (breakout ? '<div style="background:hsl(150 60% 45% / .12);border:1px solid hsl(150 60% 45% / .4);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-weight:600;color:hsl(150 60% 60%)">▲ breaking out now: "'+esc(breakout.title)+'" is pacing '+esc(breakout.velocity_x)+'× your normal launch speed at '+esc(breakout.age_days)+'d old. make the follow-up now.</div>' : '') + '<span>'+esc(ai.verdict||'')+'</span>';
     $('ordCmd').innerHTML = f ? (esc(f.title||'')+(f.severity?' <span class="q-sev '+esc(String(f.severity).toLowerCase())+'">'+esc(f.severity)+'</span>':'')) : '';
     $('ordReceipt').innerHTML = f ? ('<b>the order:</b> '+esc(f['do']||'')+(f.why?' &nbsp;·&nbsp; <b>the receipt:</b> '+esc(f.why):'')) : '';
   })();
@@ -2410,7 +2484,7 @@ function renderWire(d){
       +'<span class="wl-m">'+esc(v.channel||'')+' · <b>'+esc(v.views)+'</b> views · '+esc(v.age||'')+'</span></a>';
   }).join('');
   if(laneHtml){
-    html+='<div class="wire-lane"><div class="wl-k">🔥 hot in your lane, real videos erupting this week</div>'+laneHtml+'</div>';
+    html+='<div class="wire-lane"><div class="wl-k">◗ hot in your lane, real videos erupting this week</div>'+laneHtml+'</div>';
   }
   var srch=(d.searches||[]).slice(0,8);
   if(srch.length){
@@ -2715,7 +2789,7 @@ function renderIedScript(){
   } else {
     wrap.innerHTML='<div class="tsub" style="margin-bottom:8px">No script yet. Let the coach write a shoot-ready one, or paste your own.</div>'
       +'<div style="display:flex;gap:9px;flex-wrap:wrap">'
-      +'<button class="btn btn-primary btn-sm" onclick="genIdeaScript()">✍ generate the script</button>'
+      +'<button class="btn btn-primary btn-sm" onclick="genIdeaScript()">▶ generate the script</button>'
       +'<button class="btn btn-ghost btn-sm" onclick="pasteIedScript()">paste my own</button></div>';
   }
 }
@@ -2897,7 +2971,7 @@ function openPackage(idea){
   var modal=$('pkgModal'); modal.classList.add('on');
   $('pkgIdea').textContent=idea;
   var pred=pkgPredict(), pe=$('pkgPred');
-  if(pred){ pe.style.display=''; pe.innerHTML='📈 '+esc(pred); } else pe.style.display='none';
+  if(pred){ pe.style.display=''; pe.innerHTML='◈ '+esc(pred); } else pe.style.display='none';
   $('pkgBody').innerHTML='<div class="tsub">packaging it for your channel…</div>';
   var S=window._lastSignals||{};
   var fmt=(S.formats&&(S.formats.shorts_count||0)>(S.formats.long_count||0))?'short':'longform';
@@ -2925,7 +2999,7 @@ function renderPackage(r, idea){
       +(th.text_overlay?'<div><b>text:</b> <span class="pkg-ov">'+esc(th.text_overlay)+'</span></div>':'')
       +(th.style?'<div class="mut2"><b>style:</b> '+esc(th.style)+'</div>':'')
       +'</div>'
-      +'<div class="pkg-thumbgen"><span class="mini-act p" id="genThumbBtn" onclick="genThumb()">🖼 generate this thumbnail'+(IS_PRO?'':' · Pro')+'</span></div>'
+      +'<div class="pkg-thumbgen"><span class="mini-act p" id="genThumbBtn" onclick="genThumb()">▦ generate this thumbnail'+(IS_PRO?'':' · Pro')+'</span></div>'
       +'<div id="pkgThumbImg"></div></div>';
   }
   if(r.hook){
