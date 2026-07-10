@@ -1247,6 +1247,10 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
     </div><!-- /hqWrap -->
   </section>
+</main>
+
+  <!-- modals live as direct children of <body> (portal pattern): position:fixed anchors to the
+       viewport, never to a transformed/animated ancestor like <main> -->
 
   <!-- blueprint modal (PRO): assignment -> shoot-ready plan -->
   <div class="modal" id="bpModal">
@@ -1342,8 +1346,6 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="saveConnect()">Save channels</button>
     </div>
   </div>
-
-</main>
 
 <footer role="contentinfo">
   <div class="wrap">
