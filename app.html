@@ -1448,20 +1448,29 @@ function renderViewSwitch(){
   var host=$('lensBar'); if(!host) return;
   if(!SPACE || !SPACE.workspace){ host.style.display='none'; return; } /* no team -> no lens bar */
   var ownCh = !!(IDENT.yt.id||IDENT.yt.name) && !IDENT._adopted;
-  var team = esc(SPACE.workspace.name||'team space');
   var nMem = (SPACE.members&&SPACE.members.length)||0;
   var mine = VIEW!=='space';
+  var curWs = activeWs();
+  var teams = (SPACES&&SPACES.length) ? SPACES : [{id:SPACE.workspace.id,name:SPACE.workspace.name}];
   host.className = 'lensbar ' + (mine?'lens-mine':'lens-team');
   host.style.display='';
+  var btns = '<button class="lens-btn'+(mine?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="connect your own channel first"')+'>◈ My Dashboard</button>';
+  teams.forEach(function(t){
+    var on = (!mine && t.id===curWs);
+    btns += '<button class="lens-btn'+(on?' on':'')+'" data-ws="'+esc(t.id)+'">⬡ '+esc(t.name||'team space')+'</button>';
+  });
+  var active = (teams.filter(function(t){return t.id===curWs;})[0])||{};
   host.innerHTML =
-    '<div class="lens-row"><span class="lens-k">viewing</span>'
-    + '<button class="lens-btn'+(mine?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="connect your own channel first"')+'>◈ My Dashboard</button>'
-    + '<button class="lens-btn'+(!mine?' on':'')+'" data-view="space">⬡ '+team+'</button></div>'
+    '<div class="lens-row"><span class="lens-k">viewing</span>'+btns+'</div>'
     + '<div class="lens-desc">'+(mine
         ? 'private to you, nothing here is shared with your team'
-        : 'shared team space'+(nMem?' · visible to '+nMem+' member'+(nMem>1?'s':''):''))+'</div>';
+        : esc(active.name||'this space')+' · shared'+(nMem?' · visible to '+nMem+' member'+(nMem>1?'s':''):'')+(teams.length>1?' · '+teams.length+' spaces':''))+'</div>';
   Array.prototype.forEach.call(host.querySelectorAll('.lens-btn'),function(b){
-    b.onclick=function(){ if(b.disabled)return; switchView(b.getAttribute('data-view')); };
+    b.onclick=function(){
+      if(b.disabled)return;
+      if(b.getAttribute('data-view')==='mine') switchView('mine');
+      else switchSpace(b.getAttribute('data-ws'));
+    };
   });
 }
 function switchView(v){
@@ -1480,6 +1489,20 @@ function spaceScans(){
   return { select:function(cols){ return q.select(cols).eq('user_id', USER.id).is('workspace_id', null); } };
 }
 var SPACE=null;
+var SPACES=[];  /* every workspace this user belongs to (owned + joined) */
+function activeWs(){ return (SPACE&&SPACE.workspace)?SPACE.workspace.id:null; }
+function switchSpace(wsid){
+  if(!wsid) return;
+  if(wsid===activeWs()){ if(VIEW!=='space') switchView('space'); return; }
+  try{ localStorage.setItem('vs_space',wsid); localStorage.setItem('vs_view','space'); }catch(e){}
+  VIEW='space';
+  teamsApi('my_space',{workspace_id:wsid}).then(function(d){
+    applySpace(d);
+    try{ renderIdentity(); }catch(e){}
+    try{ loadIdeas(); }catch(e){}
+    try{ renderQueue((LASTAI&&LASTAI.fixes)||[]); }catch(e){}
+  }).catch(function(){});
+}
 function teamsApi(action, extra){
   return fetch(TEAMS_API,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify(Object.assign({action:action, token:ACCESS}, extra||{}))})
@@ -1488,7 +1511,7 @@ function teamsApi(action, extra){
 function initSpace(){
   /* accept a pending invite first if we arrived via ?invite=TOKEN */
   var p=new URLSearchParams(location.search), inv=p.get('invite');
-  var go=function(){ teamsApi('my_space').then(applySpace).catch(function(){ spaceFallback(); }); };
+  var go=function(){ var w=''; try{ w=localStorage.getItem('vs_space')||''; }catch(e){} teamsApi('my_space',w?{workspace_id:w}:null).then(applySpace).catch(function(){ spaceFallback(); }); };
   if(inv){
     history.replaceState(null,'',location.pathname);
     teamsApi('accept',{invite:inv}).then(function(d){
@@ -1520,8 +1543,11 @@ function applySpace(d){
     else renderNoSpace();
     return;
   }
-  if(!d.workspace){ renderNoSpace(); return; }
+  if(!d.workspace){ SPACES=d.spaces||[]; renderNoSpace(); return; }
   SPACE=d; syncTeamPro();
+  SPACES = (d.spaces&&d.spaces.length) ? d.spaces
+    : [{id:d.workspace.id,name:d.workspace.name,plan:d.workspace.plan,role:((d.members||[]).filter(function(m){return m.user_id===USER.id;})[0]||{}).role||'owner'}];
+  try{ localStorage.setItem('vs_space', d.workspace.id); }catch(e){}
   try{ var pv=localStorage.getItem('vs_view'); if(pv==='space'||(IDENT._adopted)) VIEW='space'; else if(pv==='mine') VIEW='mine'; }catch(e){}
   if(IDENT._adopted) VIEW='space';
   renderViewSwitch();
