@@ -707,11 +707,6 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .tc-stat.hot b{color:hsl(45 95% 66%)}
 .tc-invite{margin-top:14px}
 .tc-invite .hbtn{font-size:.64rem;padding:5px 12px}
-/* teams roster under the viewing bar */
-.lens-teams{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2)}
-.lteam{font-family:var(--mono);font-size:.66rem;letter-spacing:.02em;border:1px solid hsl(45 95% 62% / .4);border-radius:8px;padding:4px 10px;color:hsl(45 95% 66%);background:transparent;cursor:pointer;transition:.15s}
-.lteam:hover{background:hsl(45 95% 62% / .1)}
-.lteam.on{background:hsl(45 95% 62% / .16);border-color:hsl(45 95% 62%);font-weight:700}
 .pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
 .pkg-sec{margin-bottom:15px}
 .pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -739,7 +734,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .lensbar.lens-mine{--lensc:hsl(260 90% 66%)}
 .lensbar.lens-team{--lensc:hsl(45 95% 62%);background:linear-gradient(100deg,hsl(45 95% 62% / .07),transparent 70%)}
 .lens-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.lens-k{font-family:var(--mono);font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);flex:0 0 auto}
+.lens-row+.lens-row{margin-top:8px}
+.lens-k{font-family:var(--mono);font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);flex:0 0 auto;min-width:54px}
 .lens-btn{font-size:.82rem;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:99px;padding:5px 13px;cursor:pointer;font-family:var(--sans);transition:all .15s}
 .lens-btn:hover:not(:disabled){border-color:var(--lensc);color:var(--fg)}
 .lens-btn.on{color:#0b0d12;background:var(--lensc);border-color:var(--lensc)}
@@ -1527,31 +1523,25 @@ function renderViewSwitch(){
   var teams = (SPACES&&SPACES.length) ? SPACES : [{id:SPACE.workspace.id,name:SPACE.workspace.name}];
   host.className = 'lensbar ' + (mine?'lens-mine':'lens-team');
   host.style.display='';
-  var btns = '<button class="lens-btn'+(mine?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="connect your own channel first"')+'>◈ My Dashboard</button>';
-  teams.forEach(function(t){
-    var on = (!mine && t.id===curWs);
-    btns += '<button class="lens-btn'+(on?' on':'')+'" data-ws="'+esc(t.id)+'">⬡ '+esc(t.name||'team space')+'</button>';
-  });
   var active = (teams.filter(function(t){return t.id===curWs;})[0])||{};
   /* is the team built on your own channel? then both lenses read the same channel,
      and only the collaboration (ideas / board / rivals) is private vs shared. say so. */
   var yt=IDENT.yt||{}, sch=(SPACE&&SPACE.channel)||{};
   var sameCh = !!((yt.id&&sch.id&&yt.id===sch.id) || (!yt.id&&!sch.id&&yt.name&&sch.name&&yt.name===sch.name));
   var tName=esc(active.name||'this space');
-  /* roster of every team this person belongs to, each a shortcut into that space */
-  var roster = '<div class="lens-teams"><span class="lens-k">Teams</span>'
-    + teams.map(function(t){
-        var on=(!mine && t.id===curWs);
-        return '<button class="lteam'+(on?' on':'')+'" data-ws="'+esc(t.id)+'">⬡ '+esc(t.name||'team')+'</button>';
-      }).join('')
-    + '</div>';
+  /* two clean rows, each option appears exactly once: your personal home, then every team you are on */
+  var personalBtn = '<button class="lens-btn'+(mine?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="connect your own channel first"')+'>◈ My Dashboard</button>';
+  var teamBtns = teams.map(function(t){
+    var on = (!mine && t.id===curWs);
+    return '<button class="lens-btn'+(on?' on':'')+'" data-ws="'+esc(t.id)+'">⬡ '+esc(t.name||'team space')+'</button>';
+  }).join('');
   host.innerHTML =
-    '<div class="lens-row"><span class="lens-k">viewing</span>'+btns+'</div>'
+      '<div class="lens-row"><span class="lens-k">Personal</span>'+personalBtn+'</div>'
+    + '<div class="lens-row"><span class="lens-k">Teams</span>'+teamBtns+'</div>'
     + '<div class="lens-desc">'+(mine
-        ? '◈ your private workspace — the ideas, board notes and rivals here are yours alone'+(sameCh?', not shared with '+tName:', not shared with any team')
-        : '⬡ '+tName+' — shared'+(nMem?' with '+nMem+' member'+(nMem>1?'s':''):'')+'. the ideas, board and rivals here are the team’s'+(sameCh?' · same channel as My Dashboard':'')+(teams.length>1?' · '+teams.length+' teams':''))+'</div>'
-    + roster;
-  Array.prototype.forEach.call(host.querySelectorAll('.lens-btn, .lteam'),function(b){
+        ? '◈ viewing your private workspace — the ideas, board notes and rivals here are yours alone'+(sameCh?', not shared with '+tName:', not shared with any team')
+        : '⬡ viewing '+tName+' — shared'+(nMem?' with '+nMem+' member'+(nMem>1?'s':''):'')+'. the ideas, board and rivals here are the team’s'+(sameCh?' · same channel as My Dashboard':''))+'</div>';
+  Array.prototype.forEach.call(host.querySelectorAll('.lens-btn'),function(b){
     b.onclick=function(){
       if(b.disabled)return;
       if(b.getAttribute('data-view')==='mine') switchView('mine');
