@@ -632,6 +632,39 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .pulse .approx{font-size:.6rem;color:var(--faint);font-family:var(--mono);letter-spacing:.05em}
 .empty-hq{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted)}
 .empty-hq h3{font-size:1.15rem;color:var(--fg);margin-bottom:6px}
+
+/* ===== CONTENT NICHE BANNER ===== */
+.nichebar{display:none;align-items:center;gap:12px;flex-wrap:wrap;margin:2px 0 6px;padding:11px 15px 11px 18px;border:1px solid var(--border);border-radius:13px;background:linear-gradient(100deg,hsl(260 90% 66% / .1),hsl(190 92% 56% / .05) 62%,transparent);position:relative;overflow:hidden}
+.nichebar::before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,var(--primary),var(--accent))}
+.nichebar .nb-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.nichebar .nb-k .i{color:var(--accent)}
+.nichebar .nb-chips{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.nb-chip{font-size:.78rem;font-weight:600;color:var(--fg);background:hsl(260 90% 66% / .12);border:1px solid hsl(260 90% 66% / .3);padding:4px 11px;border-radius:99px;white-space:nowrap}
+.nb-chip.prime{background:linear-gradient(100deg,hsl(260 90% 66% / .24),hsl(190 92% 56% / .16));border-color:hsl(190 92% 56% / .42)}
+.nb-chip.theme{background:hsl(190 92% 56% / .07);border-color:hsl(190 92% 56% / .22);color:var(--muted);font-weight:500;font-family:var(--mono);font-size:.72rem;text-transform:lowercase}
+.nichebar .nb-note{margin-left:auto;font-size:.68rem;color:var(--faint);font-family:var(--mono);letter-spacing:.04em;flex:0 0 auto}
+@media(max-width:680px){.nichebar .nb-note{display:none}}
+
+/* ===== SUBSCRIBER GOAL + LIVE PREDICTION ===== */
+.tile.goal{--tc:var(--success)}
+.goal-target{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:11px}
+.goal-target .gt-cur{font-family:var(--mono);font-weight:700;font-size:clamp(1.3rem,2.2vw,1.7rem);color:var(--fg);font-variant-numeric:tabular-nums;line-height:1}
+.goal-target .gt-of{font-size:.8rem;color:var(--faint)}
+.goal-target .gt-tgt{font-family:var(--mono);font-weight:700;color:var(--success)}
+.goal-edit{margin-left:auto;display:flex;align-items:center;gap:6px;align-self:center}
+.goal-edit input{width:100px;background:hsl(230 26% 4%);border:1px solid var(--border2);border-radius:8px;color:var(--fg);font-family:var(--mono);font-size:.8rem;padding:5px 9px}
+.goal-edit input:focus{outline:none;border-color:var(--success)}
+.goal-edit button{background:hsl(160 84% 50% / .14);border:1px solid hsl(160 84% 50% / .32);color:var(--success);border-radius:8px;padding:6px 11px;font-size:.74rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.goal-edit button:hover{background:hsl(160 84% 50% / .22)}
+.goal-bar{height:12px;border-radius:99px;background:hsl(230 26% 7%);border:1px solid var(--border);overflow:hidden}
+.goal-bar>span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--success));width:0;transition:width .7s cubic-bezier(.25,.9,.3,1);box-shadow:0 0 12px hsl(160 84% 50% / .45)}
+.goal-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.goal-eta{font-size:.95rem;font-weight:700;color:var(--fg)}
+.goal-eta b{color:var(--success)}
+.goal-togo{margin-left:auto;font-family:var(--mono);font-size:.78rem;color:var(--accent);background:hsl(190 92% 56% / .08);border:1px solid hsl(190 92% 56% / .22);padding:3px 10px;border-radius:99px;white-space:nowrap}
+.goal-sub{font-size:.72rem;color:var(--faint);font-family:var(--mono);letter-spacing:.03em;line-height:1.5}
+.goal-pred{display:inline-flex;align-items:center;gap:6px}
+.goal-pred .pdot{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:pulse 1.8s infinite}
 </style>
 </head>
 <body>
@@ -827,6 +860,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
       </div>
 
+      <!-- content niche banner -->
+      <div class="nichebar" id="nicheBar" aria-live="polite"></div>
+
       <!-- platform tabs -->
       <div class="order hide" id="orderStrip">
         <div class="ord-goal hide" id="ordGoal"></div>
@@ -846,6 +882,22 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <div class="tile pulse s6" id="tPulse" style="display:none">
           <h3><span class="acc" aria-hidden="true">⦿</span> live pulse <span class="end liveflag"><span class="dot" aria-hidden="true"></span>updating live</span></h3>
           <div class="pulse-grid" id="pulseGrid"></div>
+        </div>
+<div class="tile goal s6" id="tGoal" style="display:none">
+          <h3><span class="acc" aria-hidden="true">🎯</span> subscriber goal <span class="end goal-pred" id="goalPredWrap" style="display:none"><span class="pdot"></span>live prediction</span></h3>
+          <div class="goal-target">
+            <span class="gt-cur" id="goalCur">0</span>
+            <span class="gt-of">of</span>
+            <span class="gt-tgt" id="goalTgt">1,000</span>
+            <span class="gt-of" id="goalPct"></span>
+            <span class="goal-edit"><input id="goalIn" type="text" inputmode="numeric" autocomplete="off" aria-label="set subscriber goal" placeholder="10k" onkeydown="if(event.key==='Enter'){event.preventDefault();saveGoal();}"><button type="button" onclick="saveGoal()">set goal</button></span>
+          </div>
+          <div class="goal-bar"><span id="goalFill"></span></div>
+          <div class="goal-meta">
+            <div class="goal-eta" id="goalEta">tracking your growth…</div>
+            <div class="goal-togo" id="goalTogo" style="display:none"></div>
+          </div>
+          <div class="goal-sub" id="goalNote" style="margin-top:7px"></div>
         </div>
 </div>
 </section>
@@ -1677,7 +1729,7 @@ function renderAlt(p){
 }
 
 /* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
-function resetChannelState(){ try{ PULSE.c={}; }catch(e){} var pg=$('pulseGrid'); if(pg) pg.innerHTML=''; var tp=$('tPulse'); if(tp) tp.style.display='none'; LIVE_SIG=false; WIRE_KEY=null; window._lvCh=null; window._lvAt=0; window._liveTitles=[]; }
+function resetChannelState(){ try{ PULSE.c={}; }catch(e){} var pg=$('pulseGrid'); if(pg) pg.innerHTML=''; var tp=$('tPulse'); if(tp) tp.style.display='none'; var tg=$('tGoal'); if(tg) tg.style.display='none'; var nb=$('nicheBar'); if(nb) nb.style.display='none'; LIVE_SIG=false; WIRE_KEY=null; window._lvCh=null; window._lvAt=0; window._liveTitles=[]; }
 function goLive(){ resetChannelState(); liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals(); }
 
 /* ============ LIVE PULSE: flip odometers polling real counts ============ */
@@ -1744,8 +1796,10 @@ function pollPulse(){
       PULSE.fails=0;
       var yt=d.youtube||{};
       if(yt.subs_text){
+        var _sv=expandCount(yt.subs_text);
         pulseCounter('subs','subscribers',IC_YT,'hsl(0 84% 62%)');
-        pulseSet('subs', expandCount(yt.subs_text), '<b>'+esc(yt.name||'')+'</b> · youtube precision');
+        pulseSet('subs', _sv, '<b>'+esc(yt.name||'')+'</b> · youtube precision');
+        logSubs(_sv); renderGoal(); /* feed the live growth prediction */
       }
       try{ window._liveTitles=(yt.latest||[]).map(function(x){return x.title;}).filter(Boolean).slice(0,10); }catch(e){}
       var lv=(yt.latest||[])[0];
@@ -1815,7 +1869,7 @@ function applyLive(c,snap){
   LIVE=c;
   /* signals straight off the feed, computed seconds ago, not from a stored review */
   if(c.signals && Object.keys(c.signals).length){
-    LIVE_SIG=true; window._lastSignals=c.signals; renderSignals(c.signals);
+    LIVE_SIG=true; window._lastSignals=c.signals; renderSignals(c.signals); renderNicheBanner();
   }
   if(c.latest_vid) window._liveLatestVid=c.latest_vid;
   var sc=c.score!=null?c.score:50, g=c.grade||gradeOf(sc), col=gcolor(g);
@@ -1915,6 +1969,7 @@ function saveConnect(){
 function hydrateDeep(ai, radarLive, signals, breakout){
   ai = ai || {}; LASTAI = ai;
   if(!LIVE_SIG){ window._lastSignals = signals||{}; renderSignals(signals||null); }
+  renderNicheBanner(); renderGoal();
   loadTrends((ai&&ai.niche)||'');
   /* THE ORDER: the coach speaks first, in the open */
   (function(){
@@ -2468,6 +2523,117 @@ function drawSpark(rows){
   var fill=x.createLinearGradient(0,0,0,H); fill.addColorStop(0,'hsl(260 90% 66% / .22)'); fill.addColorStop(1,'transparent'); x.fillStyle=fill; x.fill();
   vals.forEach(function(v,i){ var px=pad+i*dx,y=py(v); x.beginPath(); x.arc(px,y,3,0,Math.PI*2); x.fillStyle=scoreColor(v); x.fill(); });
 }
+/* ---------- content niche banner (top) ---------- */
+function renderNicheBanner(){
+  var bar=$('nicheBar'); if(!bar) return;
+  var niche=(LASTAI&&LASTAI.niche)||'';
+  if(!niche){ bar.style.display='none'; return; }
+  var S=window._lastSignals||{};
+  var chips=['<span class="nb-chip prime">'+esc(niche)+'</span>'];
+  if(S.formats){
+    var f=S.formats, fl='';
+    if(f.shorts_count>=2 && f.long_count>=2) fl='shorts + long-form';
+    else if(f.shorts_count>=2) fl='shorts-first';
+    else if(f.long_count>=2) fl='long-form';
+    if(fl) chips.push('<span class="nb-chip">'+fl+'</span>');
+  }
+  if(S.title_dna){
+    if(S.title_dna.numbers) chips.push('<span class="nb-chip">number hooks</span>');
+    else if(S.title_dna.question) chips.push('<span class="nb-chip">question hooks</span>');
+  }
+  var themes=(S.power_words||[]).slice(0,3).map(function(w){ return '<span class="nb-chip theme">'+esc(w)+'</span>'; });
+  bar.innerHTML='<span class="nb-k"><span class="i" aria-hidden="true">◎</span>your lane</span>'
+    +'<span class="nb-chips">'+chips.join('')+themes.join('')+'</span>'
+    +'<span class="nb-note">every read below is tuned to this</span>';
+  bar.style.display='flex';
+}
+
+/* ---------- subscriber goal + live growth prediction ---------- */
+/* honest model: we log the REAL polled subscriber count over time (one anchor per ~3h so the
+   series spans days), fit a least-squares line to get subs/day, and project the date the goal
+   is hit. flat or too-little-data states never fabricate an ETA. */
+function _gkey(pfx){ var c=curCh()||{}; return pfx+(c.id||c.handle||c.name||'x'); }
+function goalTarget(){ try{ var g=JSON.parse(localStorage.getItem(_gkey('vs_goal_'))||'null'); if(g&&g.target>0) return g.target; }catch(e){} return null; }
+function nextMilestone(v){ var t=[1e3,2500,5e3,1e4,25e3,5e4,1e5,25e4,5e5,1e6,25e5,5e6,1e7,25e6,5e7,1e8]; for(var i=0;i<t.length;i++){ if(t[i]>v) return t[i]; } return Math.ceil((v+1)/1e6)*1e6; }
+function loadSubsSeries(){ try{ var s=JSON.parse(localStorage.getItem(_gkey('vs_subs_'))||'[]'); return Array.isArray(s)?s:[]; }catch(e){ return []; } }
+function logSubs(v){
+  v=Math.round(Number(v)||0); if(v<=0) return;
+  var s=loadSubsSeries(), now=Date.now(), last=s[s.length-1];
+  if(!last || (now-last.t)>3*3600000){ s.push({t:now,v:v}); }
+  else { last.v=v; last.t=now; } /* keep newest value fresh without spamming points */
+  if(s.length>160) s=s.slice(-160);
+  try{ localStorage.setItem(_gkey('vs_subs_'), JSON.stringify(s)); }catch(e){}
+}
+function predictSubs(cur, target){
+  var s=loadSubsSeries().slice();
+  if(!s.length || s[s.length-1].v!==cur) s=s.concat([{t:Date.now(),v:cur}]);
+  if(s.length<2) return {status:'warming', span:0};
+  var t0=s[0].t, span=(s[s.length-1].t-t0)/86400000;
+  var n=s.length, sx=0,sy=0,sxx=0,sxy=0;
+  s.forEach(function(p){ var x=(p.t-t0)/86400000, y=p.v; sx+=x; sy+=y; sxx+=x*x; sxy+=x*y; });
+  var den=n*sxx-sx*sx, slope= den!==0 ? (n*sxy-sx*sy)/den : 0;
+  var remaining=target-cur;
+  if(remaining<=0) return {status:'reached'};
+  if(span<0.4) return {status:'warming', span:span};
+  if(slope<=0.02) return {status:'flat', span:span};
+  return {status:'ok', perDay:slope, days:remaining/slope, span:span, remaining:remaining};
+}
+function fmtGoalDate(ms){ try{ return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }catch(e){ return ''; } }
+function fmtDur(days){
+  if(days<1) return 'today';
+  if(days<45) return Math.round(days)+' day'+(Math.round(days)===1?'':'s');
+  if(days<730) return Math.round(days/30.4)+' months';
+  return (days/365).toFixed(1)+' years';
+}
+function saveGoal(){
+  var el=$('goalIn'); if(!el) return;
+  var raw=(el.value||'').replace(/[,\s]/g,'').toLowerCase();
+  var mult=1; if(/k$/.test(raw)) mult=1e3; else if(/m$/.test(raw)) mult=1e6;
+  var n=Math.round(parseFloat(raw)*mult);
+  if(!n||n<=0){ el.value=''; return; }
+  try{ localStorage.setItem(_gkey('vs_goal_'), JSON.stringify({target:n})); }catch(e){}
+  el.value='';
+  renderGoal();
+}
+function curSubs(){
+  var c=(PULSE.c&&PULSE.c.subs); if(c&&c.val>0) return c.val;
+  var yt=(VIEW==='space'&&SPACE&&SPACE.channel)?SPACE.channel:IDENT.yt;
+  return expandCount(yt&&yt.subs)||0;
+}
+function renderGoal(){
+  var tile=$('tGoal'); if(!tile) return;
+  var cur=curSubs();
+  if(!cur){ tile.style.display='none'; return; }
+  tile.style.display='';
+  var target=goalTarget()||nextMilestone(cur);
+  $('goalCur').textContent=Number(cur).toLocaleString('en-US');
+  $('goalTgt').textContent=Number(target).toLocaleString('en-US');
+  var pct=Math.max(0,Math.min(100, cur/target*100));
+  $('goalPct').textContent='· '+((pct>=99.5&&cur<target)?99:Math.round(pct))+'%';
+  $('goalFill').style.width=pct+'%';
+  var p=predictSubs(cur,target), eta=$('goalEta'), togo=$('goalTogo'), note=$('goalNote'), pw=$('goalPredWrap');
+  if(p.status==='reached'){
+    pw.style.display='none'; togo.style.display='none';
+    eta.innerHTML='🎉 <b>goal reached</b> — time to raise the bar';
+    note.textContent='you passed '+Number(target).toLocaleString('en-US')+' subs. set a bigger number above.';
+    return;
+  }
+  togo.style.display=''; togo.textContent=nfmt(target-cur)+' to go';
+  if(p.status==='ok'){
+    pw.style.display='';
+    eta.innerHTML='on track for <b>'+fmtGoalDate(Date.now()+p.days*86400000)+'</b> · '+fmtDur(p.days);
+    note.textContent='+'+nfmt(Math.round(p.perDay))+'/day measured · '+(p.span<2?'early estimate, sharpens daily':'from '+Math.round(p.span)+' days of tracking');
+  } else if(p.status==='flat'){
+    pw.style.display='none';
+    eta.innerHTML='growth is flat right now';
+    note.textContent='your count is holding steady, so there is no honest ETA yet. ship an upload and the prediction moves.';
+  } else {
+    pw.style.display='none';
+    eta.innerHTML='learning your growth rate…';
+    note.textContent='I log your real count every few hours. a live ETA appears once there is enough movement to trust, usually within a day.';
+  }
+}
+
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 </script>
 </body>
