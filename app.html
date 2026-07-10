@@ -2129,7 +2129,9 @@ function backgroundScan(){
   }
   showScanning('the coach is reviewing the latest film…');
   var _ac=(window.AbortController)?new AbortController():null; var _to=_ac?setTimeout(function(){try{_ac.abort();}catch(e){}},90000):0;
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:q,email:USER.email,user_id:USER.id,token:ACCESS,workspace_id:(SPACE&&SPACE.workspace)?SPACE.workspace.id:null,website:''}),signal:_ac?_ac.signal:undefined})
+  /* stamp the scan with the team ONLY in the team lens, so a personal-lens scan of your own channel stays private (matches spaceScans on the read side) */
+  var _sws=(VIEW==='space' && SPACE && SPACE.workspace)?SPACE.workspace.id:null;
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:q,email:USER.email,user_id:USER.id,token:ACCESS,workspace_id:_sws,website:''}),signal:_ac?_ac.signal:undefined})
     .then(function(r){return r.json();})
     .then(function(d){
       clearTimeout(_to); hideScanning();
