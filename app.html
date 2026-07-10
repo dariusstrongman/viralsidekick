@@ -681,6 +681,12 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .ied-lens.mine{color:hsl(260 90% 72%);border:1px solid hsl(260 90% 66% / .5)}
 .ied-lens.team{color:hsl(45 95% 66%);border:1px solid hsl(45 95% 62% / .5)}
 .idea-note-dot{font-size:.62rem;color:var(--faint)}
+/* team switcher inside the space tile */
+.team-switch{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}
+.team-switch .tsw{font-family:var(--mono);font-size:.66rem;letter-spacing:.03em;border:1px solid var(--border2);border-radius:9px;padding:5px 11px;color:var(--muted);background:transparent;cursor:pointer;transition:.15s}
+.team-switch .tsw:hover{color:#fff;border-color:hsl(45 95% 62% / .6)}
+.team-switch .tsw.on{color:hsl(45 95% 66%);border-color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1);cursor:default}
+.board-team{font-family:var(--mono);font-size:.66rem;letter-spacing:.04em;color:hsl(45 95% 66%);margin-left:2px}
 .pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
 .pkg-sec{margin-bottom:15px}
 .pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -1081,7 +1087,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
 
 <div class="tile s6" id="tBoard" style="--tc:hsl(45 95% 62%);display:none">
-          <h3><span class="acc" aria-hidden="true">▤</span> team board <span class="shared-pill">shared</span> <span class="end" id="boardCount"></span></h3>
+          <h3><span class="acc" aria-hidden="true">▤</span> team board <span class="board-team" id="boardTeam"></span> <span class="shared-pill">shared</span> <span class="end" id="boardCount"></span></h3>
           <div class="caprow" style="margin-top:0;margin-bottom:10px">
             <select id="postKind" aria-label="post type" style="background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);padding:9px;font-family:var(--sans);font-size:.84rem">
               <option value="idea">💡 video idea</option>
@@ -1592,6 +1598,16 @@ function applySpace(d){
 function renderNoSpace(){
   SPACE=null; recomputePro(); /* dropped from the team -> lose team-granted Pro unless own plan covers it */
   var tb=$('tBoard'); if(tb) tb.style.display='none';
+  var ts=$('tSpace');
+  /* the space + board are team-only surfaces. if you are not in a team AND cannot open one,
+     hide the whole thing, the team-plan tile is the funnel. only Team-plan owners see "create". */
+  var canCreate = (typeof PROFILE!=='undefined' && PROFILE && PROFILE.plan==='team');
+  if(!canCreate){
+    if(ts) ts.style.display='none';
+    var tu0=$('tTeamUp'); if(tu0) tu0.style.display='';
+    return;
+  }
+  if(ts) ts.style.display='';
   $('spaceEnd').textContent='';
   $('spaceBody').innerHTML=
     '<div class="tsub" style="margin-bottom:12px">A space is a shared brain, invite your editor, your co-host, your team. Everyone sees the live channel, the radar, the plan.</div>'
@@ -1621,12 +1637,22 @@ function roleChip(m){
   return html+'</div>';
 }
 function renderSpace(){
+  var ts=$('tSpace'); if(ts) ts.style.display=''; /* team member -> this tile belongs on screen */
   var ws=SPACE.workspace, mem=SPACE.members||[], inv=SPACE.invites||[];
   var mine=mem.filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
   var isTeam=(ws.plan==='team');
   $('spaceEnd').innerHTML=(isTeam?'<span style="color:hsl(45 95% 62%)">TEAM · '+mem.length+'/5</span>':mem.length+'/5 seats');
-  var html='<div class="tlead" style="margin-bottom:8px">'+esc(ws.name||'your space')
+  var html='';
+  /* on more than one team -> a switcher right here, active team highlighted */
+  if(SPACES && SPACES.length>1){
+    html+='<div class="team-switch" role="tablist" aria-label="switch team">'
+      +SPACES.map(function(t){
+        var on=(t.id===ws.id);
+        return '<button class="tsw'+(on?' on':'')+'"'+(on?' aria-current="true"':' onclick="switchSpace(\''+esc(t.id)+'\')"')+'>⬡ '+esc(t.name||'team')+'</button>';
+      }).join('')+'</div>';
+  }
+  html+='<div class="tlead" style="margin-bottom:8px">'+esc(ws.name||'your space')
     +(isTeam?' <span class="q-sev" style="color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1)">team plan</span>':'')+'</div>';
   html+=mem.map(roleChip).join('');
   inv.forEach(function(i){ html+='<div class="q-item"><div class="q-b done"><div class="t">'+esc(i.email)+' <span class="q-sev med">invited · pending</span></div></div></div>'; });
@@ -1648,6 +1674,7 @@ function loadBoard(){
   var t=$('tBoard'); if(!t) return;
   if(!SPACE){ t.style.display='none'; return; }
   t.style.display='';
+  var bt=$('boardTeam'); if(bt) bt.textContent = SPACE.workspace ? ('· '+(SPACE.workspace.name||'')) : '';
   sb.from('viralsidekick_posts').select('*').eq('workspace_id',SPACE.workspace.id).order('created_at',{ascending:false}).limit(60).then(function(r){
     var rows=r.data||[];
     $('boardCount').textContent=rows.length? rows.filter(function(p){return p.status!=='done';}).length+' open':'';
