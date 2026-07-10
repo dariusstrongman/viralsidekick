@@ -686,6 +686,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .pkg-img{width:100%;border-radius:11px;border:1px solid var(--border2);margin-top:11px;display:block}
 .pkg-imgacts{display:flex;gap:9px;margin-top:9px;flex-wrap:wrap}
 .pkg-imgnote{font-size:.7rem;color:var(--faint);font-family:var(--mono);margin-top:7px;letter-spacing:.03em}
+.digest-row{margin-top:13px;border-top:1px solid var(--border);padding-top:11px}
+.digest-tog{display:inline-flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);cursor:pointer}
+.digest-tog input{width:16px;height:16px;accent-color:var(--warning);cursor:pointer;flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -929,6 +932,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <div class="tile s6" id="tWire" style="--tc:var(--warning);display:none">
           <h3><span class="acc" aria-hidden="true">⚡</span> trend wire <span class="end"><span class="live-chip"><span class="dot"></span>THE INTERNET · RIGHT NOW</span></span></h3>
           <div id="wireBody"><div class="tsub">Reading what the internet is chasing right now…</div></div>
+          <div id="digestRow" class="digest-row" style="display:none"><label class="digest-tog"><input type="checkbox" id="digestChk" onchange="toggleDigest()"><span>📬 email me the wire every morning</span></label></div>
         </div>
 
         <div class="tile radar s4" id="tRadar">
@@ -1348,6 +1352,7 @@ function showApp(){
   window._appUser=USER.id;
   try { migrateQueue(); } catch(e){}
   try { loadIdeas(); } catch(e){}
+  try { initDigest(); } catch(e){}
   bootType();
   loadProfile();
 }
@@ -2670,6 +2675,23 @@ function drawSpark(rows){
   var fill=x.createLinearGradient(0,0,0,H); fill.addColorStop(0,'hsl(260 90% 66% / .22)'); fill.addColorStop(1,'transparent'); x.fillStyle=fill; x.fill();
   vals.forEach(function(v,i){ var px=pad+i*dx,y=py(v); x.beginPath(); x.arc(px,y,3,0,Math.PI*2); x.fillStyle=scoreColor(v); x.fill(); });
 }
+/* ---------- daily radar email opt-in (profiles.daily_digest, degrades if column absent) ---------- */
+function initDigest(){
+  if(!(window.sb && typeof USER!=='undefined' && USER && USER.id)) return;
+  sb.from('viralsidekick_profiles').select('daily_digest').eq('id',USER.id).limit(1).then(function(r){
+    if(r.error) return; /* column not live yet, stay hidden */
+    var row=$('digestRow'), chk=$('digestChk');
+    if(row&&chk){ chk.checked=!!(r.data&&r.data[0]&&r.data[0].daily_digest); row.style.display=''; }
+  }).catch(function(){});
+}
+function toggleDigest(){
+  if(!(window.sb && USER && USER.id)) return;
+  var chk=$('digestChk'), on=!!(chk&&chk.checked);
+  sb.from('viralsidekick_profiles').update({daily_digest:on}).eq('id',USER.id).then(function(r){
+    if(r.error && chk) chk.checked=!on;
+  }).catch(function(){ if(chk) chk.checked=!on; });
+}
+
 /* ---------- content niche banner (top) ---------- */
 function renderNicheBanner(){
   var bar=$('nicheBar'); if(!bar) return;
