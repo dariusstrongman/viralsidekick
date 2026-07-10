@@ -1846,7 +1846,7 @@ function loadLatestFull(){
     var needScan=true;
     if(row){
       lastFullAt=Date.parse(String(row.created_at||'').replace(' ','T')); if(isNaN(lastFullAt)) lastFullAt=Date.now();
-      var stale=(Date.now()-lastFullAt)>216e5; /* 6h, the coach never coaches off old film */
+      var stale=(Date.now()-lastFullAt)>864e5; /* 24h. a new upload auto-rescans immediately (see pollPulse) and refresh is manual, so re-billing a full GPT coaching read on every idle open within a day just re-reads the same videos for the same verdict */
       var _cid=(curCh()||{}).id; var mismatch=(_cid && row.channel_id && row.channel_id!==_cid); /* compare vs the channel we will actually scan, not always the personal one */
       hydrateDeep(row.report.ai, row.report.radar_live, row.report.signals, row.report.breakout);
       needScan = stale || mismatch;
