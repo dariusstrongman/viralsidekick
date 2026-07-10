@@ -949,7 +949,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <div class="tag-you"><span class="liveflag" id="liveFlag"><span class="dot" aria-hidden="true"></span>live</span> · this is you <span id="proBadge"></span></div>
           <div class="id-name" id="hqName">your channel</div>
           <div class="id-sub">
-            <span id="idHandle"></span><span id="idSubs"></span><span id="hqDelta" class="delta flat" aria-live="polite"></span>
+            <span id="idHandle"></span><span id="idSubs"></span>
           </div>
           <div class="plat-chips" id="platChips" role="list"></div>
           <div id="viewSwitch" class="viewswitch" style="display:none"></div>
@@ -3227,14 +3227,8 @@ function renderHistory(rows){
       var delta=rows[0].score-rows[1].score;
       var dEl=$('sigDelta'); dEl.className='delta '+(delta>0?'up':delta<0?'down':'flat'); dEl.textContent=(delta>0?'▲ +':delta<0?'▼ ':'')+(delta===0?'flat':Math.abs(delta));
       drawSpark(rows.slice().reverse());
-      /* command-bar delta — this is the SCORE change, not subs. label it so it never reads as a subscriber drop */
-      var cd=$('hqDelta'); cd.className='delta '+(delta>0?'up':delta<0?'down':'flat');
-      var followed=(window._ordersShipped||0)>0;
-      cd.textContent=(delta>0?'▲ +'+delta+' score'+(followed?' · told you':''):delta<0?'▼ '+Math.abs(delta)+' score':'score · no change');
-      cd.title='your viral-readiness score '+(delta>0?'rose '+delta:delta<0?'fell '+Math.abs(delta):'held')+' point'+(Math.abs(delta)===1?'':'s')+' since your last coach review (not subscribers)';
     } else {
       $('sigEmpty').style.display='block'; $('sigNow').style.display='none'; $('spark').style.display='none';
-      $('hqDelta').className='delta flat'; $('hqDelta').textContent = rows.length? 'first review logged' : 'no reviews yet';
     }
     /* milestones */
     $('msScans').textContent=rows.length;
