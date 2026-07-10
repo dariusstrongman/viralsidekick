@@ -665,6 +665,23 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .goal-sub{font-size:.72rem;color:var(--faint);font-family:var(--mono);letter-spacing:.03em;line-height:1.5}
 .goal-pred{display:inline-flex;align-items:center;gap:6px}
 .goal-pred .pdot{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:pulse 1.8s infinite}
+
+/* ===== PACKAGE BUILDER ===== */
+.mini-act.p{border-color:hsl(190 92% 56% / .45);color:var(--accent)}
+.mini-act.p:hover{background:hsl(190 92% 56% / .12)}
+.pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
+.pkg-sec{margin-bottom:15px}
+.pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.pkg-title{display:block;margin-bottom:6px;font-weight:600}
+.pkg-thumb{font-size:.86rem;line-height:1.6;background:hsl(230 26% 5%);border:1px solid var(--border);border-radius:10px;padding:11px 13px}
+.pkg-thumb>div{margin-bottom:3px}
+.pkg-thumb b{color:var(--muted);font-weight:600}
+.pkg-thumb .mut2{color:var(--faint);font-size:.8rem}
+.pkg-ov{background:hsl(45 95% 62% / .16);border:1px solid hsl(45 95% 62% / .42);color:hsl(45 95% 72%);padding:1px 8px;border-radius:5px;font-weight:700;font-family:var(--mono);font-size:.8rem}
+.pkg-hook{display:block;font-style:italic;font-size:.92rem}
+.pkg-beats{margin:0;padding-left:20px;font-size:.86rem;line-height:1.6;color:var(--muted)}
+.pkg-beats li{margin-bottom:4px}
+.pkg-acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
 </style>
 </head>
 <body>
@@ -1118,6 +1135,17 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <h2>🎬 the script</h2>
       <p class="sm mut" id="bpIdea" style="margin-bottom:14px"></p>
       <div id="bpBody"><div class="tsub">the coach is building it…</div></div>
+    </div>
+  </div>
+
+  <!-- package builder: idea -> shoot-ready title+thumbnail+hook -->
+  <div class="modal" id="pkgModal">
+    <div class="mc" style="max-width:640px">
+      <span class="x" onclick="document.getElementById('pkgModal').classList.remove('on')">✕</span>
+      <h2>⚡ the package</h2>
+      <p class="sm mut" id="pkgIdea" style="margin-bottom:8px"></p>
+      <div id="pkgPred" class="pkg-pred" style="display:none"></div>
+      <div id="pkgBody"><div class="tsub">packaging it for your channel…</div></div>
     </div>
   </div>
 
@@ -2220,7 +2248,7 @@ function fmtHint(){
 }
 function miniActs(text, source){
   var e=encodeURIComponent(text);
-  return '<span class="mini-act b" data-bp="'+e+'">▶ build it</span><span class="mini-act" data-qadd="'+e+'" data-qsrc="'+encodeURIComponent(source||'manual')+'">★ save</span>';
+  return '<span class="mini-act p" data-pkg="'+e+'">⚡ package</span><span class="mini-act b" data-bp="'+e+'">▶ script</span><span class="mini-act" data-qadd="'+e+'" data-qsrc="'+encodeURIComponent(source||'manual')+'">★ save</span>';
 }
 function addToQueue(text){
   var m=loadQ(); m.__custom=(m.__custom||[]);
@@ -2270,7 +2298,7 @@ function renderIdeas(rows){
       +'<div style="font-size:.88rem;line-height:1.4;margin-bottom:6px">'+esc(x.text)+'</div>'
       +(x.video_url?'<a href="'+esc(x.video_url)+'" target="_blank" rel="noopener" style="font-size:.74rem;color:var(--accent)">view the video →</a>':'')
       +'<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:'+(x.video_url?'6px':'2px')+'">'
-      +(!done?'<span class="mini-act b" data-bp="'+e+'">▶ build it</span>':'')
+      +(!done?'<span class="mini-act p" data-pkg="'+e+'">⚡ package</span><span class="mini-act b" data-bp="'+e+'">▶ script</span>':'')
       +(x.status!=='shipped'?'<span class="mini-act" onclick="markIdea(\''+x.id+'\',\'shipped\')">✓ shipped</span>':'')
       +((x.status==='saved')?'<span class="mini-act" onclick="markIdea(\''+x.id+'\',\'filming\')">◐ filming</span>':'')
       +'<span class="mini-act" onclick="deleteIdea(\''+x.id+'\')" title="remove">✕</span>'
@@ -2350,11 +2378,69 @@ function buildFmt(idea, fmt){
     })
     .catch(function(){ $('bpBody').innerHTML='<div class="tsub">network hiccup, try again.</div>'; });
 }
+/* ---------- package builder: one idea -> shoot-ready title + thumbnail concept + hook, in your voice ---------- */
+function pkgPredict(){
+  var med=(LIVE&&LIVE.vitals&&LIVE.vitals.median)||0;
+  if(!med) return '';
+  var gem=(window._lastSignals&&window._lastSignals.gem&&parseFloat(window._lastSignals.gem.ratio))||0;
+  var hi=Math.max(3, Math.min(8, gem||4));
+  return '≈ '+nfmt(Math.round(med*2))+'–'+nfmt(Math.round(med*hi))+' views if it lands · your median '+nfmt(med);
+}
+function openPackage(idea){
+  idea=String(idea||'').trim(); if(!idea) return;
+  if(window._pkgBusy) return; window._pkgBusy=true;
+  var modal=$('pkgModal'); modal.classList.add('on');
+  $('pkgIdea').textContent=idea;
+  var pred=pkgPredict(), pe=$('pkgPred');
+  if(pred){ pe.style.display=''; pe.innerHTML='📈 '+esc(pred); } else pe.style.display='none';
+  $('pkgBody').innerHTML='<div class="tsub">packaging it for your channel…</div>';
+  var S=window._lastSignals||{};
+  var fmt=(S.formats&&(S.formats.shorts_count||0)>(S.formats.long_count||0))?'short':'longform';
+  var body={mode:'package', idea:idea, niche:(LASTAI&&LASTAI.niche)||'creator content', format:fmt,
+    dna:S.title_dna||null, power_words:S.power_words||null, recent_titles:(window._liveTitles||[]).slice(0,8)};
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      window._pkgBusy=false;
+      if(!d||!d.ok||!d.result){ $('pkgBody').innerHTML='<div class="tsub">'+esc((d&&d.detail)||'packaging hiccuped, try again.')+'</div>'; return; }
+      renderPackage(d.result, idea);
+    })
+    .catch(function(){ window._pkgBusy=false; $('pkgBody').innerHTML='<div class="tsub">network hiccup, try again.</div>'; });
+}
+function renderPackage(r, idea){
+  var titles=(r.titles||[]).slice(0,3), th=r.thumbnail||{}, beats=(r.first_30s||[]).slice(0,3), h='';
+  if(titles.length){
+    h+='<div class="pkg-sec"><div class="pkg-k">titles · tap to copy</div>'
+      + titles.map(function(t){ return '<div class="copychip pkg-title" data-copy="'+esc(t)+'" title="'+esc(t)+'">'+esc(t)+'</div>'; }).join('')+'</div>';
+  }
+  if(th.subject||th.text_overlay||th.style){
+    h+='<div class="pkg-sec"><div class="pkg-k">thumbnail</div><div class="pkg-thumb">'
+      +(th.subject?'<div><b>shoot:</b> '+esc(th.subject)+'</div>':'')
+      +(th.text_overlay?'<div><b>text:</b> <span class="pkg-ov">'+esc(th.text_overlay)+'</span></div>':'')
+      +(th.style?'<div class="mut2"><b>style:</b> '+esc(th.style)+'</div>':'')
+      +'</div></div>';
+  }
+  if(r.hook){
+    h+='<div class="pkg-sec"><div class="pkg-k">the hook · first line</div><div class="copychip pkg-hook" data-copy="'+esc(r.hook)+'">'+esc(r.hook)+'</div></div>';
+  }
+  if(beats.length){
+    h+='<div class="pkg-sec"><div class="pkg-k">first 30 seconds</div><ol class="pkg-beats">'+beats.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ol></div>';
+  }
+  var ie=encodeURIComponent(idea), be=encodeURIComponent(titles[0]||idea);
+  h+='<div class="pkg-acts">'
+    +'<span class="mini-act" data-qadd="'+be+'" data-qsrc="package">★ save to ideas</span>'
+    +'<span class="mini-act b" data-bp="'+ie+'">🎬 write the full script</span>'
+    +'</div>';
+  $('pkgBody').innerHTML=h;
+  bindCopies($('pkgBody'));
+}
 document.addEventListener('click',function(e){
+  var pkgb=e.target.closest('[data-pkg]');
+  if(pkgb){ openPackage(decodeURIComponent(pkgb.getAttribute('data-pkg'))); return; }
   var fmtb=e.target.closest('[data-bpfmt]');
   if(fmtb){ buildFmt(window._bpIdea||$('bpIdea').textContent, fmtb.getAttribute('data-bpfmt')); return; }
   var bpb=e.target.closest('[data-bp]');
-  if(bpb){ window._bpIdea=decodeURIComponent(bpb.getAttribute('data-bp')); buildIt(window._bpIdea); return; }
+  if(bpb){ var pm=$('pkgModal'); if(pm) pm.classList.remove('on'); window._bpIdea=decodeURIComponent(bpb.getAttribute('data-bp')); buildIt(window._bpIdea); return; }
   var qb=e.target.closest('[data-qadd]');
   if(qb){ var _t=decodeURIComponent(qb.getAttribute('data-qadd')); var _s=qb.getAttribute('data-qsrc')?decodeURIComponent(qb.getAttribute('data-qsrc')):'manual'; addToQueue(_t); saveIdea(_t,_s); qb.textContent='saved ★'; }
 });
