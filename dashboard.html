@@ -560,9 +560,9 @@ footer .fine a{color:var(--muted)}
       </div>
 
       <div class="card c12 upsell">
-        <h3>This scan is free and it is yours.</h3>
-        <p>Pro writes the full shooting script for every video, every line and every shot, re-scans you every week, and shows your score climbing as you ship. one video that hits pays for it for years.</p>
-        <a class="btn btn-primary" href="app.html">Start 7 days free, then $19/mo</a>
+        <h3 id="upH">This scan is free and it is yours.</h3>
+        <p id="upP">Pro writes the full shooting script for every video, every line and every shot, re-scans you every week, and shows your score climbing as you ship. one video that hits pays for it for years.</p>
+        <a class="btn btn-primary" id="upCta" href="app.html" onclick="if(window.abConvert)abConvert('signup_click')">Start 7 days free, then $19/mo</a>
       </div>
     </div>
   </div>
@@ -586,6 +586,7 @@ footer .fine a{color:var(--muted)}
   </div>
 </footer>
 
+<script src="ab.js"></script>
 <script>
 var API = 'https://n8n.stromation.com/webhook/viralsidekick-analyze';
 var $ = function(id){ return document.getElementById(id); };
@@ -707,9 +708,22 @@ function renderSigStrip(S){
   if(!chips.length){ el.style.display='none'; return; }
   out.innerHTML=chips.join(''); el.style.display='';
 }
+function applyAbUpsell(){
+  if(!window.abVariant) return;
+  try{
+    if(abVariant('dash_upsell')==='B'){
+      var h=document.getElementById('upH'), p=document.getElementById('upP'), c=document.getElementById('upCta');
+      if(h) h.textContent='You just saw exactly why you are stuck.';
+      if(p) p.textContent='Pro turns this scan into the fix: the full shooting script for every video, a fresh game plan every week, and your grade climbing as you ship. the creators who move fastest are the ones who stopped guessing.';
+      if(c) c.textContent='Get my game plan, 7 days free';
+    }
+    abLog('dash_upsell','exposure');
+  }catch(e){}
+}
 function renderReport(d){
   renderSigStrip(d.signals||null);
   show('report');
+  applyAbUpsell();
   $('demoBanner').style.display = d.demo ? '' : 'none';
   var ch = d.channel || {};
   $('rName').textContent = ch.name || 'your channel';

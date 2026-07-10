@@ -168,7 +168,7 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
         <button class="btn btn-fill" data-signin>Sign in <span class="arr">→</span></button>
         <a class="btn btn-line" href="film.html">Watch the film</a>
       </div>
-      <a class="tryfree" href="dashboard.html">or run a free scan first, no signup <span class="arr">→</span></a>
+      <a class="tryfree" id="scanCta" href="dashboard.html">or run a free scan first, no signup <span class="arr">→</span></a>
       <div class="proof">
         <span><b>30s</b> scan</span>
         <span><b>S→F</b> channel grade</span>
@@ -282,6 +282,20 @@ function signin(e){
 }
 document.querySelectorAll('[data-signin]').forEach(function(b){ b.addEventListener('click',signin); });
 try{ var _raw=localStorage.getItem('sb-fzlwnsoknngbdkizxpnl-auth-token'); if(_raw){ var _s=JSON.parse(_raw); var _tok=_s&&(_s.access_token||(_s.currentSession&&_s.currentSession.access_token)); if(_tok){ document.querySelectorAll('[data-signin]').forEach(function(b){ if(b.firstChild&&b.firstChild.nodeType===3) b.firstChild.textContent='My HQ '; else b.textContent='My HQ'; }); } } }catch(e){}
+</script>
+<script src="ab.js"></script>
+<script>
+(function(){
+  if(!window.abVariant) return;
+  try{
+    var a=document.getElementById('scanCta');
+    if(a){
+      if(abVariant('home_scan')==='B') a.innerHTML='grade my channel free, no signup <span class="arr">→</span>';
+      a.addEventListener('click', function(){ if(window.abConvert) abConvert('scan_click'); });
+    }
+    abLog('home_scan','exposure');
+  }catch(e){}
+})();
 </script>
 </body>
 </html>

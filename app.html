@@ -1212,6 +1212,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
   </div>
 </footer>
 
+<script src="ab.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* invited? stash the token first thing, oauth redirects and email confirms
@@ -1294,6 +1295,7 @@ function emailAuth(){
   p.then(function(r){
     $('authBtn').disabled=false;
     if(r.error) return msg(r.error.message);
+    if(mode==='signup'){ try{ if(window.abConvert) abConvert('signup'); }catch(e){} }
     if(mode==='signup' && !r.data.session) return msg('check your email to confirm your account, then log in.', true);
     /* onAuthStateChange handles the redirect into the app */
   });
@@ -1610,6 +1612,7 @@ function celebrateUpgrade(){
   var flag=null; try{ flag=localStorage.getItem('vs_upgraded'); }catch(e){}
   if(!flag) return;
   try{ localStorage.removeItem('vs_upgraded'); }catch(e){}
+  try{ if(window.abConvert) abConvert('upgrade'); }catch(e){}
   var el=document.createElement('div');
   el.id='upgToast';
   el.style.cssText='position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:95;background:linear-gradient(120deg,hsl(45 95% 62%),hsl(38 96% 55%));color:#1a1305;font-weight:800;padding:13px 26px;border-radius:99px;box-shadow:0 12px 44px hsl(45 95% 60% / .5);font-size:.95rem;max-width:calc(100vw - 32px);text-align:center';
