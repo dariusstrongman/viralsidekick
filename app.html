@@ -1509,11 +1509,16 @@ function renderViewSwitch(){
     btns += '<button class="lens-btn'+(on?' on':'')+'" data-ws="'+esc(t.id)+'">⬡ '+esc(t.name||'team space')+'</button>';
   });
   var active = (teams.filter(function(t){return t.id===curWs;})[0])||{};
+  /* is the team built on your own channel? then both lenses read the same channel,
+     and only the collaboration (ideas / board / rivals) is private vs shared. say so. */
+  var yt=IDENT.yt||{}, sch=(SPACE&&SPACE.channel)||{};
+  var sameCh = !!((yt.id&&sch.id&&yt.id===sch.id) || (!yt.id&&!sch.id&&yt.name&&sch.name&&yt.name===sch.name));
+  var tName=esc(active.name||'this space');
   host.innerHTML =
     '<div class="lens-row"><span class="lens-k">viewing</span>'+btns+'</div>'
     + '<div class="lens-desc">'+(mine
-        ? 'private to you, nothing here is shared with your team'
-        : esc(active.name||'this space')+' · shared'+(nMem?' · visible to '+nMem+' member'+(nMem>1?'s':''):'')+(teams.length>1?' · '+teams.length+' spaces':''))+'</div>';
+        ? '◈ your private workspace — the ideas, board notes and rivals here are yours alone'+(sameCh?', not shared with '+tName:', not shared with any team')
+        : '⬡ '+tName+' — shared'+(nMem?' with '+nMem+' member'+(nMem>1?'s':''):'')+'. the ideas, board and rivals here are the team’s'+(sameCh?' · same channel as My Dashboard':'')+(teams.length>1?' · '+teams.length+' teams':''))+'</div>';
   Array.prototype.forEach.call(host.querySelectorAll('.lens-btn'),function(b){
     b.onclick=function(){
       if(b.disabled)return;
