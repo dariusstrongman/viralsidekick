@@ -691,6 +691,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .lens-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.05em;padding:2px 8px;border-radius:6px;vertical-align:middle;margin-left:4px;white-space:nowrap}
 .lens-tag.mine{color:hsl(260 90% 74%);border:1px solid hsl(260 90% 66% / .45)}
 .lens-tag.team{color:hsl(45 95% 66%);border:1px solid hsl(45 95% 62% / .5);background:hsl(45 95% 62% / .08)}
+/* big centered TEAMS banner over the team section */
+.teams-banner{text-align:center;font-family:var(--mono);font-weight:800;font-size:clamp(2.1rem,6.5vw,3.6rem);letter-spacing:.26em;text-transform:uppercase;color:hsl(45 95% 66%);margin:14px 0 6px;line-height:1;text-shadow:0 0 34px hsl(45 95% 62% / .32)}
+.teams-banner .sub{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.34em;color:var(--muted);margin-top:10px;font-weight:600}
 .pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
 .pkg-sec{margin-bottom:15px}
 .pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -1073,6 +1076,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 </section>
 
 <section class="zone" style="--zc:hsl(45 95% 62%)">
+<div class="teams-banner" id="teamsBanner" style="display:none">TEAMS<span class="sub" id="teamsBannerSub"></span></div>
 <div class="zone-h"><span class="zdot"></span>your orbit · people + account</div>
 <div class="bento">
 <div class="tile s4" id="tSpace" style="--tc:hsl(45 95% 62%);display:none">
@@ -1553,6 +1557,15 @@ function applyLensChrome(){
   var name=inTeam?(SPACE.workspace.name||'team'):'';
   setLensTag('ideaLensTag', teamLens, name, hasTeams);
   setLensTag('rivalLensTag', teamLens, name, hasTeams);
+  /* big centered TEAMS banner over the team section, with the active team + member count */
+  var tban=$('teamsBanner');
+  if(tban){
+    tban.style.display = teamLens ? '' : 'none';
+    if(teamLens){
+      var nm=(SPACE.members&&SPACE.members.length)||0;
+      var sub=$('teamsBannerSub'); if(sub) sub.textContent='⬡ '+name+' · '+nm+' member'+(nm===1?'':'s');
+    }
+  }
 }
 function spaceScans(){
   /* two clean scopes: MY view = my private scans (never a workspace row); SPACE view = the team's shared record only */
