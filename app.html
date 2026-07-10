@@ -682,6 +682,10 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .pkg-beats{margin:0;padding-left:20px;font-size:.86rem;line-height:1.6;color:var(--muted)}
 .pkg-beats li{margin-bottom:4px}
 .pkg-acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.pkg-thumbgen{margin-top:10px}
+.pkg-img{width:100%;border-radius:11px;border:1px solid var(--border2);margin-top:11px;display:block}
+.pkg-imgacts{display:flex;gap:9px;margin-top:9px;flex-wrap:wrap}
+.pkg-imgnote{font-size:.7rem;color:var(--faint);font-family:var(--mono);margin-top:7px;letter-spacing:.03em}
 </style>
 </head>
 <body>
@@ -2409,6 +2413,7 @@ function openPackage(idea){
 }
 function renderPackage(r, idea){
   var titles=(r.titles||[]).slice(0,3), th=r.thumbnail||{}, beats=(r.first_30s||[]).slice(0,3), h='';
+  window._pkgThumb=th;
   if(titles.length){
     h+='<div class="pkg-sec"><div class="pkg-k">titles · tap to copy</div>'
       + titles.map(function(t){ return '<div class="copychip pkg-title" data-copy="'+esc(t)+'" title="'+esc(t)+'">'+esc(t)+'</div>'; }).join('')+'</div>';
@@ -2418,7 +2423,9 @@ function renderPackage(r, idea){
       +(th.subject?'<div><b>shoot:</b> '+esc(th.subject)+'</div>':'')
       +(th.text_overlay?'<div><b>text:</b> <span class="pkg-ov">'+esc(th.text_overlay)+'</span></div>':'')
       +(th.style?'<div class="mut2"><b>style:</b> '+esc(th.style)+'</div>':'')
-      +'</div></div>';
+      +'</div>'
+      +'<div class="pkg-thumbgen"><span class="mini-act p" id="genThumbBtn" onclick="genThumb()">🖼 generate this thumbnail'+(IS_PRO?'':' · Pro')+'</span></div>'
+      +'<div id="pkgThumbImg"></div></div>';
   }
   if(r.hook){
     h+='<div class="pkg-sec"><div class="pkg-k">the hook · first line</div><div class="copychip pkg-hook" data-copy="'+esc(r.hook)+'">'+esc(r.hook)+'</div></div>';
@@ -2433,6 +2440,34 @@ function renderPackage(r, idea){
     +'</div>';
   $('pkgBody').innerHTML=h;
   bindCopies($('pkgBody'));
+}
+function genThumb(){
+  var th=window._pkgThumb||{}; if(window._thumbBusy) return;
+  var host=$('pkgThumbImg'); if(!host) return;
+  if(!IS_PRO){
+    var proHref=($('proBtn')&&$('proBtn').href)||(typeof PRO_URL!=='undefined'?PRO_URL:'#');
+    host.innerHTML='<a class="btn btn-primary btn-sm" style="margin-top:10px" href="'+esc(proHref)+'" target="_blank" rel="noopener">Generate the thumbnail with Pro →</a>'
+      +'<div class="pkg-imgnote">7 days free, then $19/mo. one thumbnail that lands pays for months.</div>';
+    return;
+  }
+  window._thumbBusy=true;
+  var gb=$('genThumbBtn'); if(gb) gb.style.display='none';
+  host.innerHTML='<div class="tsub" style="margin-top:10px">painting your thumbnail… ~20s</div>';
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'thumbnail',token:ACCESS,thumbnail:th,idea:($('pkgIdea')&&$('pkgIdea').textContent)||''})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      window._thumbBusy=false;
+      if(d&&d.ok&&d.image){
+        host.innerHTML='<img src="'+d.image+'" class="pkg-img" alt="AI thumbnail concept">'
+          +'<div class="pkg-imgacts"><a class="mini-act" href="'+d.image+'" download="viralsidekick-thumbnail.png">⬇ download</a><span class="mini-act p" onclick="genThumb()">↻ regenerate</span></div>'
+          +'<div class="pkg-imgnote">concept mockup, drop your own face or footage in</div>';
+      } else if(d&&(d.error==='pro_required')){
+        if(gb) gb.style.display=''; IS_PRO=false; genThumb();
+      } else {
+        host.innerHTML='<div class="tsub" style="margin-top:10px">'+esc((d&&d.detail)||'thumbnail hiccuped, try again')+'</div><span class="mini-act p" style="margin-top:7px;display:inline-block" onclick="genThumb()">↻ try again</span>';
+      }
+    })
+    .catch(function(){ window._thumbBusy=false; host.innerHTML='<div class="tsub" style="margin-top:10px">network hiccup</div><span class="mini-act p" style="margin-top:7px;display:inline-block" onclick="genThumb()">↻ try again</span>'; });
 }
 document.addEventListener('click',function(e){
   var pkgb=e.target.closest('[data-pkg]');
