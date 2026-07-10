@@ -681,6 +681,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .ied-lens.mine{color:hsl(260 90% 72%);border:1px solid hsl(260 90% 66% / .5)}
 .ied-lens.team{color:hsl(45 95% 66%);border:1px solid hsl(45 95% 62% / .5)}
 .idea-note-dot{font-size:.62rem;color:var(--faint)}
+/* marching-order actions */
+.q-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.q-acts .mini-act{margin-left:0}
 /* content calendar */
 .cal-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity}
 .cal-day{flex:0 0 132px;min-height:104px;border:1px solid var(--border2);border-radius:11px;padding:9px;background:hsl(230 24% 4% / .5);scroll-snap-align:start}
@@ -2998,28 +3001,58 @@ function renderQueue(fixes){
   var done=loadQ();
   CUSTOM = done.__custom || [];
   var items=[];
-  (fixes||[]).forEach(function(f){ items.push({id:'fix:'+(f.title||''), t:f.title||'', d:f['do']||f.why||'', sev:(f.severity||'med').toLowerCase()}); });
-  CUSTOM.forEach(function(c,i){ items.push({id:'c:'+i, t:c, d:'', sev:''}); });
+  (fixes||[]).forEach(function(f){ items.push({id:'fix:'+(f.title||''), t:f.title||'', d:f['do']||f.why||'', sev:(f.severity||'med').toLowerCase(), custom:false}); });
+  CUSTOM.forEach(function(c,i){ items.push({id:'c:'+c, t:c, d:'', sev:'', custom:true, ci:i}); }); /* content-keyed id = stable across edit/delete */
   var body=$('queueBody');
-  if(!items.length){ body.innerHTML='<div class="tsub">Your fixes become a checklist here. Tick them off as you ship.</div>'; $('qCount').textContent=''; return; }
+  if(!items.length){ body.innerHTML='<div class="tsub">The coach\'s fixes become a checklist here. Tick them off as you ship, or capture your own order below and turn it into a video.</div>'; $('qCount').textContent=''; return; }
   var open=items.filter(function(it){return !done[it.id];}).length;
   var shipped=items.length-open;
   window._ordersShipped=shipped;
   $('qCount').textContent=open+' open · '+shipped+' shipped';
   body.innerHTML = items.map(function(it){
-    var d=!!done[it.id];
+    var d=!!done[it.id], e=encodeURIComponent(it.t);
+    var acts = it.custom
+      ? '<div class="q-acts"><span class="mini-act b" data-bp="'+e+'">▶ script</span>'
+        + '<span class="mini-act" data-iedit="'+e+'">✎ notes</span>'
+        + '<span class="mini-act" data-qedit="'+it.ci+'">edit</span>'
+        + '<span class="mini-act" data-qdel="'+it.ci+'" title="remove this order">✕</span></div>'
+      : '<div class="q-acts"><span class="mini-act" data-iedit="'+e+'">✎ plan it</span></div>';
     return '<div class="q-item"><div class="q-check'+(d?' done':'')+'" data-q="'+esc(it.id)+'" role="checkbox" aria-checked="'+(d?'true':'false')+'" tabindex="0">'+(d?'✓':'')+'</div>'
-      +'<div class="q-b'+(d?' done':'')+'"><div class="t">'+esc(it.t)+(it.sev?' <span class="q-sev '+esc(it.sev)+'">'+esc(it.sev)+'</span>':'')+'</div>'
-      +(it.d?'<div class="d">'+esc(it.d)+'</div>':'')+'</div></div>';
+      +'<div class="q-b'+(d?' done':'')+'"><div class="t">'+esc(it.t)+(it.sev?' <span class="q-sev '+esc(it.sev)+'">'+esc(it.sev)+'</span>':'')+(it.custom?' <span class="q-sev" style="color:var(--muted);background:transparent;border:1px solid var(--border2)">yours</span>':'')+'</div>'
+      +(it.d?'<div class="d">'+esc(it.d)+'</div>':'')
+      + acts
+      +'</div></div>';
   }).join('');
   Array.prototype.forEach.call(body.querySelectorAll('.q-check'), function(el){
     el.onclick=function(){ var m=loadQ(), k=el.getAttribute('data-q'); if(m[k]) delete m[k]; else m[k]=1; saveQ(m); renderQueue(fixes); };
     el.onkeydown=function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); el.click(); } };
   });
+  Array.prototype.forEach.call(body.querySelectorAll('[data-qdel]'), function(el){
+    el.onclick=function(ev){ ev.stopPropagation(); delOrder(parseInt(el.getAttribute('data-qdel'),10)); };
+  });
+  Array.prototype.forEach.call(body.querySelectorAll('[data-qedit]'), function(el){
+    el.onclick=function(ev){ ev.stopPropagation(); editOrder(parseInt(el.getAttribute('data-qedit'),10)); };
+  });
+}
+function delOrder(i){
+  var m=loadQ(), arr=m.__custom||[]; if(i<0||i>=arr.length) return;
+  var txt=arr[i]; arr.splice(i,1); m.__custom=arr; if(m['c:'+txt]) delete m['c:'+txt];
+  saveQ(m); renderQueue((LASTAI&&LASTAI.fixes)||[]);
+}
+function editOrder(i){
+  var m=loadQ(), arr=m.__custom||[]; if(i<0||i>=arr.length) return;
+  var cur=arr[i], nv=window.prompt('edit this order:', cur); if(nv==null) return;
+  nv=String(nv).trim(); if(!nv){ delOrder(i); return; }
+  if(nv===cur) return;
+  if(arr.indexOf(nv)>=0){ delOrder(i); renderQueue((LASTAI&&LASTAI.fixes)||[]); return; } /* would dup -> just drop the old */
+  var wasDone=!!m['c:'+cur]; if(m['c:'+cur]) delete m['c:'+cur]; if(wasDone) m['c:'+nv]=1;
+  arr[i]=nv; m.__custom=arr; saveQ(m); renderQueue((LASTAI&&LASTAI.fixes)||[]);
 }
 function captureIdea(){
   var v=$('capIn').value.trim(); if(!v) return;
-  var m=loadQ(); m.__custom=(m.__custom||[]); m.__custom.push(v); saveQ(m); $('capIn').value='';
+  var m=loadQ(); m.__custom=(m.__custom||[]);
+  if(m.__custom.indexOf(v)<0) m.__custom.push(v);
+  saveQ(m); $('capIn').value='';
   renderQueue((LASTAI&&LASTAI.fixes)||[]);
 }
 
