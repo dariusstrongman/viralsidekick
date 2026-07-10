@@ -1296,6 +1296,9 @@ var IC_YT='<svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor"><path d
 var IC_TT='<svg class="pi pi-tt" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.2 1.8 3.9 4 4.1v2.7c-1.4.1-2.7-.3-4-1v6.3a6 6 0 1 1-6-6c.3 0 .5 0 .8.1v2.9a3.1 3.1 0 1 0 2.2 3V3h3z"/></svg>';
 var IC_IG='<svg class="pi pi-ig" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3 0 4.1.1 1 0 1.6.2 2 .4.5.2.9.5 1.3.9.4.4.7.8.9 1.3.2.4.3 1 .4 2C20.9 8 21 8.3 21 11s0 3-.1 4.1c0 1-.2 1.6-.4 2a3.5 3.5 0 0 1-.9 1.3c-.4.4-.8.7-1.3.9-.4.2-1 .3-2 .4-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-1 0-1.6-.2-2-.4a3.5 3.5 0 0 1-1.3-.9 3.5 3.5 0 0 1-.9-1.3c-.2-.4-.3-1-.4-2C3 15 3 14.7 3 12s0-3 .1-4.1c0-1 .2-1.6.4-2 .2-.5.5-.9.9-1.3.4-.4.8-.7 1.3-.9.4-.2 1-.3 2-.4C8.8 3 9.1 3 12 3zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8zM17.8 6a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1z"/></svg>';
 function nfmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e3) return (n/1e3).toFixed(n>=1e4?0:1)+'K'; return String(Math.round(n)); }
+/* localStorage namespaces so caches never bleed across accounts (shared browser) or between the mine/space views */
+function _nsU(){ return (typeof USER!=='undefined'&&USER?USER.id:'x'); }
+function _nsUV(){ return _nsU()+'_'+(typeof VIEW!=='undefined'?VIEW:'mine'); }
 function gradeOf(s){ var t=[[97,'S'],[90,'A'],[80,'B'],[70,'C'],[60,'D']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
 function scoreColor(s){ if(s==null) return 'var(--faint)'; if(s>=75) return 'var(--success)'; if(s>=50) return 'var(--warning)'; return 'var(--danger)'; }
 function gcolor(g){ var c=(g||'')[0]; if(c==='S')return 'hsl(45 95% 62%)'; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
@@ -1553,8 +1556,8 @@ function postToBoard(){
     else spaceNote((r.error.message||'that did not go through').slice(0,60));
   });
 }
-function togglePost(id,status){ sb.from('viralsidekick_posts').update({status:status}).eq('id',id).then(loadBoard); }
-function deletePost(id){ sb.from('viralsidekick_posts').delete().eq('id',id).then(loadBoard); }
+function togglePost(id,status){ if(!(SPACE&&SPACE.workspace)) return; sb.from('viralsidekick_posts').update({status:status}).eq('id',id).eq('workspace_id',SPACE.workspace.id).then(loadBoard); }
+function deletePost(id){ if(!(SPACE&&SPACE.workspace)) return; sb.from('viralsidekick_posts').delete().eq('id',id).eq('workspace_id',SPACE.workspace.id).then(loadBoard); }
 
 function inviteMember(){
   var em=$('invEmail').value.trim(), role=$('invRole').value;
@@ -1812,7 +1815,7 @@ function pollPulse(){
         pulseSet('lv', lv.views, esc(lv.title||''));
         /* NEW UPLOAD = the coach reviews immediately. no stale timers. */
         if(lv.id){
-          var key='vs_reviewed_'+((curCh().id)||(curCh().handle)||(curCh().name)||'x');
+          var key='vs_reviewed_'+_nsU()+'_'+((curCh().id)||(curCh().handle)||(curCh().name)||'x');
           var seen=null; try{ seen=localStorage.getItem(key); }catch(e){}
           if(seen && seen!==lv.id && window._autoRev!==lv.id){
             window._autoRev=lv.id;
@@ -1857,7 +1860,7 @@ document.addEventListener('visibilitychange', function(){
 function liveVitals(){
   var _c=curCh()||{}; var q=_c.id||_c.name; if(!q) return;
   /* paint the last known grade INSTANTLY so a refresh never flashes an empty ring */
-  try{ var cc=JSON.parse(localStorage.getItem('vs_card_'+q)||'null'); if(cc&&cc.c) applyLive(cc.c,true); }catch(e){}
+  try{ var cc=JSON.parse(localStorage.getItem('vs_card_'+_nsUV()+'_'+q)||'null'); if(cc&&cc.c) applyLive(cc.c,true); }catch(e){}
   /* enterHQ and applySpace both call goLive on load — skip the duplicate live fetch for the same channel */
   var now=Date.now();
   if(window._lvAt && window._lvCh===q && (now-window._lvAt)<2500) return;
@@ -1894,7 +1897,7 @@ function applyLive(c,snap){
   if(!snap){
     $('hqWhen').textContent='live · data seconds old';
     /* remember this grade so the next refresh paints instantly instead of flashing */
-    try{ var _cc=curCh()||{}; localStorage.setItem('vs_card_'+(_cc.id||_cc.name||''), JSON.stringify({at:Date.now(),c:c})); }catch(e){}
+    try{ var _cc=curCh()||{}; localStorage.setItem('vs_card_'+_nsUV()+'_'+(_cc.id||_cc.name||''), JSON.stringify({at:Date.now(),c:c})); }catch(e){}
   }
 }
 function loadLatestFull(){
@@ -2056,14 +2059,14 @@ function loadTrends(niche){
   var ckey=chId+'|'+(niche||'')+'|'+rivalIds.slice().sort().join(',');
   if(WIRE_KEY===ckey) return; WIRE_KEY=ckey; /* already loaded/loading this exact channel+niche+rivals */
   try{
-    var cch=JSON.parse(localStorage.getItem('vs_wire2')||'null');
+    var cch=JSON.parse(localStorage.getItem('vs_wire2_'+_nsUV())||'null');
     if(cch && cch.key===ckey && (Date.now()-cch.at)<30*60000){ renderWire(cch.d); return; }
   }catch(e){}
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'trends',niche:niche||'',channel:chId,channel_name:chName,channel_subs:_c.subs||'',seed:seed,rivals:rivalIds})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(!d||!d.ok){ $('wireBody').innerHTML='<div class="tsub">wire is quiet, check back shortly.</div>'; return; }
-      try{ localStorage.setItem('vs_wire2',JSON.stringify({at:Date.now(),key:ckey,d:d})); }catch(e){}
+      try{ localStorage.setItem('vs_wire2_'+_nsUV(),JSON.stringify({at:Date.now(),key:ckey,d:d})); }catch(e){}
       renderWire(d);
     })
     .catch(function(){ $('wireBody').innerHTML='<div class="tsub">wire is quiet, check back shortly.</div>'; });
@@ -2129,7 +2132,7 @@ function addRival(){
       if(VIEW==='space' && SPACE && SPACE.workspace) row.workspace_id=SPACE.workspace.id;
       sb.from('viralsidekick_channels').insert(row).then(function(rr){
         if(rr.error){ $('rivalEnd').textContent=(rr.error.message||'').indexOf('policy')>=0?'viewers cannot edit':'already tracked?'; return; }
-        $('rivalIn').value=''; try{ localStorage.removeItem('vs_cmp'); }catch(e){}
+        $('rivalIn').value=''; try{ localStorage.removeItem('vs_cmp_'+_nsUV()); }catch(e){}
         loadRivals();
       });
     }).catch(function(){ $('rivalEnd').textContent='network hiccup'; });
@@ -2139,13 +2142,13 @@ function delRival(id){
   /* keep the delete inside the current scope so a stray id can never reach another space or a personal row */
   if(VIEW==='space' && SPACE && SPACE.workspace) q=q.eq('workspace_id',SPACE.workspace.id);
   else q=q.eq('user_id',USER.id).is('workspace_id',null);
-  q.then(function(){ try{ localStorage.removeItem('vs_cmp'); }catch(e){} loadRivals(); });
+  q.then(function(){ try{ localStorage.removeItem('vs_cmp_'+_nsUV()); }catch(e){} loadRivals(); });
 }
 function runCompare(){
   var me=curCh()||{};
   if(!(me.id||me.name)){ $('rivalBody').innerHTML='<div class="tsub">connect your channel first, then the coach can measure you against your rivals.</div>'; return; }
   var chans=[me.id||me.name].concat(RIVALS.map(function(r){return r.channel_id;})).filter(Boolean);
-  var ck='vs_cmp';
+  var ck='vs_cmp_'+_nsUV();
   try{
     var cach=JSON.parse(localStorage.getItem(ck)||'null');
     if(cach && cach.key===chans.join(',') && (Date.now()-cach.at)<6*3600000){ renderCompare(cach.res, me); return; }
