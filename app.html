@@ -691,9 +691,22 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .lens-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.05em;padding:2px 8px;border-radius:6px;vertical-align:middle;margin-left:4px;white-space:nowrap}
 .lens-tag.mine{color:hsl(260 90% 74%);border:1px solid hsl(260 90% 66% / .45)}
 .lens-tag.team{color:hsl(45 95% 66%);border:1px solid hsl(45 95% 62% / .5);background:hsl(45 95% 62% / .08)}
-/* big centered banner over the team section */
-.teams-banner{text-align:center;font-family:var(--mono);font-weight:800;font-size:clamp(1.5rem,4.6vw,2.6rem);letter-spacing:.16em;text-transform:uppercase;color:hsl(45 95% 66%);margin:14px 0 6px;line-height:1.1;text-wrap:balance;text-shadow:0 0 34px hsl(45 95% 62% / .32)}
-.teams-banner .sub{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.34em;color:var(--muted);margin-top:10px;font-weight:600}
+/* team collaboration header card over the team section */
+.tc-header{text-align:center;margin:14px 0 8px;padding:18px 16px;border:1px solid hsl(45 95% 62% / .24);border-radius:16px;background:radial-gradient(130% 120% at 50% 0,hsl(45 95% 62% / .08),transparent 68%)}
+.tc-eyebrow{font-family:var(--mono);font-size:.58rem;letter-spacing:.34em;text-transform:uppercase;color:hsl(45 95% 66%);font-weight:700}
+.tc-name{font-family:var(--mono);font-weight:800;font-size:clamp(1.5rem,4.6vw,2.5rem);letter-spacing:.04em;color:var(--fg);margin-top:8px;line-height:1.1;text-wrap:balance}
+.tc-avatars{display:flex;justify-content:center;margin-top:13px}
+.tc-av{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.64rem;font-weight:700;color:hsl(230 24% 6%);background:hsl(45 95% 62%);border:2px solid var(--bg);margin-left:-7px}
+.tc-av:first-child{margin-left:0}
+.tc-av.more{background:hsl(230 20% 22%);color:var(--muted)}
+.tc-av.pending{background:transparent;border:2px dashed hsl(45 95% 62% / .5);color:hsl(45 95% 66%)}
+.tc-stats{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:15px}
+.tc-stat{font-family:var(--mono);font-size:.66rem;letter-spacing:.02em;color:var(--muted);border:1px solid var(--border2);border-radius:8px;padding:5px 11px}
+.tc-stat b{color:var(--fg);font-weight:700}
+.tc-stat.hot{border-color:hsl(45 95% 62% / .5)}
+.tc-stat.hot b{color:hsl(45 95% 66%)}
+.tc-invite{margin-top:14px}
+.tc-invite .hbtn{font-size:.64rem;padding:5px 12px}
 /* teams roster under the viewing bar */
 .lens-teams{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2)}
 .lteam{font-family:var(--mono);font-size:.66rem;letter-spacing:.02em;border:1px solid hsl(45 95% 62% / .4);border-radius:8px;padding:4px 10px;color:hsl(45 95% 66%);background:transparent;cursor:pointer;transition:.15s}
@@ -1081,7 +1094,13 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 </section>
 
 <section class="zone" style="--zc:hsl(45 95% 62%)">
-<div class="teams-banner" id="teamsBanner" style="display:none">Team Collaboration<span class="sub" id="teamsBannerSub"></span></div>
+<div class="tc-header" id="teamsBanner" style="display:none">
+  <div class="tc-eyebrow">Team Collaboration</div>
+  <div class="tc-name" id="tcName"></div>
+  <div class="tc-avatars" id="tcAvatars"></div>
+  <div class="tc-stats" id="tcStats"></div>
+  <div class="tc-invite" id="tcInvite"></div>
+</div>
 <div class="zone-h"><span class="zdot"></span>your orbit · people + account</div>
 <div class="bento">
 <div class="tile s4" id="tSpace" style="--tc:hsl(45 95% 62%);display:none">
@@ -1575,14 +1594,50 @@ function applyLensChrome(){
   var name=inTeam?(SPACE.workspace.name||'team'):'';
   setLensTag('ideaLensTag', teamLens, name, hasTeams);
   setLensTag('rivalLensTag', teamLens, name, hasTeams);
-  /* big centered TEAMS banner over the team section, with the active team + member count */
+  /* team collaboration header over the team section (team lens only) */
   var tban=$('teamsBanner');
   if(tban){
-    tban.style.display = teamLens ? '' : 'none';
-    if(teamLens){
-      var nm=(SPACE.members&&SPACE.members.length)||0;
-      var sub=$('teamsBannerSub'); if(sub) sub.textContent='⬡ '+name+' · '+nm+' member'+(nm===1?'':'s');
-    }
+    tban.style.display = teamLens ? 'block' : 'none';
+    if(teamLens) renderTeamHeader();
+  }
+}
+function _tcInitials(m){
+  var s=String(m.display_name||m.email||'').trim(); if(!s) return '?';
+  var parts=s.replace(/@.*/,'').split(/[\s._-]+/).filter(Boolean);
+  if(parts.length>=2) return (parts[0][0]+parts[1][0]).toUpperCase();
+  return s.slice(0,2).toUpperCase();
+}
+/* the header earns its space: who is on the team + what is actually in flight */
+function renderTeamHeader(){
+  if(!(SPACE&&SPACE.workspace)) return;
+  var nm=$('tcName'); if(nm) nm.textContent=SPACE.workspace.name||'your team';
+  var mem=SPACE.members||[], inv=SPACE.invites||[];
+  var av=$('tcAvatars');
+  if(av){
+    var show=mem.slice(0,5);
+    var h=show.map(function(m){ return '<span class="tc-av" title="'+esc(m.display_name||m.email||'')+' · '+esc(m.role||'')+'">'+esc(_tcInitials(m))+'</span>'; }).join('');
+    if(mem.length>5) h+='<span class="tc-av more" title="'+(mem.length-5)+' more">+'+(mem.length-5)+'</span>';
+    inv.slice(0,3).forEach(function(i){ h+='<span class="tc-av pending" title="invited · '+esc(i.email||'')+'">•</span>'; });
+    av.innerHTML=h;
+  }
+  var st=$('tcStats');
+  if(st){
+    var posts=_boardCache||[];
+    var ideas=posts.filter(function(p){return p.kind==='idea';});
+    var open=ideas.filter(function(p){return p.status!=='done';}).length;
+    var done=posts.filter(function(p){return p.status==='done';}).length;
+    var last=posts.length?posts[0].created_at:null; /* board is ordered created_at desc */
+    st.innerHTML=
+      '<span class="tc-stat"><b>'+mem.length+'</b> member'+(mem.length===1?'':'s')+(inv.length?' · <b>'+inv.length+'</b> invited':'')+'</span>'
+      +'<span class="tc-stat'+(open?' hot':'')+'"><b>'+open+'</b> idea'+(open===1?'':'s')+' in play</span>'
+      +'<span class="tc-stat"><b>'+done+'</b> done</span>'
+      +(last?'<span class="tc-stat">active '+relTime(last)+'</span>':'<span class="tc-stat">no posts yet</span>');
+  }
+  var ib=$('tcInvite');
+  if(ib){
+    var meM=mem.filter(function(m){return m.user_id===USER.id;})[0];
+    var canInv=meM&&(meM.role==='owner'||meM.role==='admin');
+    ib.innerHTML = canInv ? '<button class="hbtn" onclick="document.getElementById(\'invEmail\')&&document.getElementById(\'invEmail\').focus()">+ invite a teammate</button>' : '';
   }
 }
 function spaceScans(){
@@ -1754,6 +1809,7 @@ function loadBoard(){
   var bt=$('boardTeam'); if(bt) bt.textContent = SPACE.workspace ? ('· '+(SPACE.workspace.name||'')) : '';
   sb.from('viralsidekick_posts').select('*').eq('workspace_id',SPACE.workspace.id).order('created_at',{ascending:false}).limit(60).then(function(r){
     var rows=r.data||[]; _boardCache=rows;
+    try{ renderTeamHeader(); }catch(e){} /* board just loaded -> refresh the live activity strip */
     $('boardCount').textContent=rows.length? rows.filter(function(p){return p.status!=='done';}).length+' open':'';
     if(!rows.length){ $('boardList').innerHTML='<div class="tsub">Nothing yet, hit <b style="color:hsl(45 95% 66%)">write a video idea</b> above to start the team\'s list.</div>'; return; }
     var mine=((SPACE&&SPACE.members)||[]).filter(function(m){return m.user_id===USER.id;})[0];
