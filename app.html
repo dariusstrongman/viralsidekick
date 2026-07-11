@@ -296,6 +296,13 @@ footer a:hover{color:var(--fg)}
 .idhead.prof .id-grade{display:none}
 .idhead.prof #hqWhen{display:none}
 .idhead.chan{border-color:hsl(45 90% 60% / .45)}
+/* your profile travels with you: a compact "you" bar pinned on top while inside a space */
+.youbar{display:flex;align-items:center;gap:11px;padding:9px 13px;margin-bottom:12px;border:1px solid hsl(260 90% 66% / .4);border-radius:14px;background:linear-gradient(120deg,hsl(260 90% 66% / .12),transparent 70%)}
+.yb-av{width:38px;height:38px;border-radius:50%;overflow:hidden;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;color:#fff;background:hsl(230 24% 10%)}
+.yb-av img{width:100%;height:100%;object-fit:cover}
+.yb-meta{flex:1;min-width:0}
+.yb-eyebrow{font-family:var(--mono);font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%))}
+.yb-name{font-weight:700;font-size:.95rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idhead.chan::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
 .idhead.chan .tag-you{color:var(--team-txt)}
 .perk{display:flex;gap:9px;align-items:flex-start;font-size:.86rem;padding:3px 0}
@@ -990,6 +997,16 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
     <!-- HQ (shown when a channel is bound) -->
     <div id="hqWrap" class="hide">
+
+      <!-- your profile, pinned on top and traveling with you into a space (team lens only) -->
+      <div class="youbar" id="youBar" style="display:none">
+        <div class="yb-av" id="ybAv" aria-hidden="true"></div>
+        <div class="yb-meta">
+          <div class="yb-eyebrow">◆ you</div>
+          <div class="yb-name" id="ybName">@you</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="openProfile()">Edit profile</button>
+      </div>
 
       <!-- identity header -->
       <div class="idhead" id="idhead">
@@ -1782,6 +1799,8 @@ function applyLensChrome(){
   var tb=$('tBoard'); if(tb) tb.style.display=teamLens?'':'none';
   var ts=$('tSpace');
   if(ts) ts.style.display = teamLens ? '' : 'none'; /* the space tile only shows inside a space; create lives in the top lens bar */
+  /* your profile travels with you: pin a compact "you" bar on top inside a space */
+  renderYouBar(teamLens);
   /* content calendar is a personal-dashboard thing, not part of a space */
   var cal=$('tCal'); if(cal) cal.style.display = teamLens ? 'none' : '';
   /* plan + billing are personal account concerns — never inside a space */
@@ -1796,6 +1815,21 @@ function applyLensChrome(){
   if(tban){
     tban.style.display = teamLens ? 'block' : 'none';
     if(teamLens) renderTeamHeader();
+  }
+}
+/* the "you" bar mirrors your personal profile (username + picture) so your identity
+   follows you into whichever space you are looking at. hidden in personal (the header IS you). */
+function renderYouBar(teamLens){
+  var yb=$('youBar'); if(!yb) return;
+  if(!teamLens){ yb.style.display='none'; return; }
+  yb.style.display='flex';
+  var n=$('ybName'); if(n) n.textContent='@'+acctName();
+  var el=$('ybAv'); if(el){
+    var init=(acctName()||'Y').replace(/^@/,'').charAt(0).toUpperCase();
+    var pv=(PROFILE&&PROFILE.profile_avatar)||'';
+    if(pv==='channel'){ if(IDENT.yt&&IDENT.yt.avatar){ el.style.background=''; el.innerHTML='<img src="'+esc(IDENT.yt.avatar)+'" alt="">'; } else paintAvatar(el,'preset:v1',init); }
+    else if(pv && paintAvatar(el,pv,init)){ /* preset/icon/upload */ }
+    else paintAvatar(el,'preset:v1',init);
   }
 }
 function _tcInitials(m){
@@ -2382,7 +2416,7 @@ function saveProfile(){
     if(res && res.error){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent='could not save, try again'; } return; }
     if(uname) PROFILE.username=uname;
     PROFILE.profile_banner=banner; PROFILE.profile_avatar=avatar;
-    closeProfile(); try{ renderIdentity(); renderPlatChips(); if(VIEW==='space' && typeof renderSpace==='function' && SPACE && SPACE.workspace){ renderSpace(); renderTeamHeader(); } }catch(e){}
+    closeProfile(); try{ renderIdentity(); renderPlatChips(); if(typeof applyLensChrome==='function') applyLensChrome(); if(VIEW==='space' && typeof renderSpace==='function' && SPACE && SPACE.workspace){ renderSpace(); renderTeamHeader(); } }catch(e){}
   });
 }
 /* one upsert; a duplicate username comes back as a unique violation (23505) we surface as "taken".
