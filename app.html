@@ -992,6 +992,15 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <!-- lens bar: which view am I in (private vs shared team space) -->
       <div class="lensbar" id="lensBar" aria-live="polite" style="display:none"></div>
 
+      <!-- shared-space collaboration header (top of the space, team lens only) -->
+      <div class="tc-header" id="teamsBanner" style="display:none">
+        <div class="tc-eyebrow">Shared Space</div>
+        <div class="tc-name" id="tcName"></div>
+        <div class="tc-avatars" id="tcAvatars"></div>
+        <div class="tc-stats" id="tcStats"></div>
+        <div class="tc-invite" id="tcInvite"></div>
+      </div>
+
       <!-- content niche banner -->
       <div class="nichebar" id="nicheBar" aria-live="polite"></div>
 
@@ -1165,13 +1174,6 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 </section>
 
 <section class="zone" style="--zc:hsl(45 95% 62%)">
-<div class="tc-header" id="teamsBanner" style="display:none">
-  <div class="tc-eyebrow">Shared Space</div>
-  <div class="tc-name" id="tcName"></div>
-  <div class="tc-avatars" id="tcAvatars"></div>
-  <div class="tc-stats" id="tcStats"></div>
-  <div class="tc-invite" id="tcInvite"></div>
-</div>
 <div class="zone-h"><span class="zdot"></span>your orbit · people + account</div>
 <div class="bento">
 <div class="tile s4" id="tSpace" style="--tc:hsl(45 95% 62%);display:none">
@@ -1723,6 +1725,9 @@ function applyLensChrome(){
   var tb=$('tBoard'); if(tb) tb.style.display=teamLens?'':'none';
   var ts=$('tSpace');
   if(ts) ts.style.display = teamLens ? '' : 'none'; /* the space tile only shows inside a space; create lives in the top lens bar */
+  /* plan + billing are personal account concerns — never inside a space */
+  var pc=$('proCard'); if(pc) pc.style.display = teamLens ? 'none' : '';
+  if(teamLens){ var tup=$('tTeamUp'); if(tup) tup.style.display='none'; }
   /* only tag scoped tiles when the user actually has both lenses to confuse */
   var name=inTeam?(SPACE.workspace.name||'space'):'';
   setLensTag('ideaLensTag', teamLens, name, hasTeams);
