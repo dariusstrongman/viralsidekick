@@ -2348,6 +2348,11 @@ var CHAR_AVATARS=[
   {id:'astro',uri:_charAv('#3b82f6','#8b5cf6','<circle cx="50" cy="53" r="23" fill="#eef2f7"/><rect x="34" y="45" width="32" height="20" rx="10" fill="#0b1220"/><rect x="37" y="48" width="11" height="6" rx="3" fill="#60a5fa"/><circle cx="50" cy="53" r="23" fill="none" stroke="#cbd5e1" stroke-width="2.5"/><rect x="46" y="27" width="8" height="5" rx="2" fill="#dbe2ea"/>')}
 ];
 function charUri(id){ for(var i=0;i<CHAR_AVATARS.length;i++){ if(CHAR_AVATARS[i].id===id) return CHAR_AVATARS[i].uri; } return ''; }
+/* a channel gets its OWN banner, picked deterministically from its id so it stays
+   the same for that channel but differs across the channels/spaces you switch between */
+function _hashStr(s){ var h=0; s=String(s||''); for(var i=0;i<s.length;i++){ h=((h<<5)-h+s.charCodeAt(i))|0; } return Math.abs(h); }
+function chanBannerId(ch){ ch=ch||{}; var key=ch.id||ch.handle||ch.name||''; if(!key) return 'aurora'; return BANNER_PRESETS[_hashStr(key)%BANNER_PRESETS.length].id; }
+function chanBanner(ch){ return bannerBg('preset:'+chanBannerId(ch)); }
 /* a username is a handle: lowercase letters, numbers, underscores, unique per account */
 function _slugHandle(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20); }
 /* your account handle = your unique username, never the youtube channel name.
@@ -2507,12 +2512,16 @@ function renderIdentity(){
       if(canEditSpace()){ ecb.style.display=''; ecb.textContent = spCh ? 'Edit channels' : 'Set up channels'; } else { ecb.style.display='none'; }
     } else { ecb.style.display=''; ecb.textContent='Edit channels'; }
   }
-  /* lens-aware chrome: My Dashboard reads as YOUR profile, a Space stays branded to its channel */
+  /* lens-aware chrome: My Dashboard reads as YOUR profile, a Space stays branded to its channel.
+     the banner (and the order block above it) is per-channel, so switching channels visibly changes it */
+  var chBn = (inSpace && spCh) ? chanBanner(yt) : '';                       /* this space's channel */
+  var myBn = bannerBg((PROFILE&&PROFILE.profile_banner)||'') || bannerBg('preset:aurora'); /* your profile */
   var head=$('idhead');
   if(head){
     head.classList.toggle('prof', !inSpace); head.classList.toggle('chan', inSpace);
-    head.style.background = inSpace ? '' : (bannerBg((PROFILE&&PROFILE.profile_banner)||'') || bannerBg('preset:aurora')); /* personal banner, real default */
+    head.style.background = inSpace ? chBn : myBn;
   }
+  var ordS=$('orderStrip'); if(ordS) ordS.style.background = inSpace ? (chBn||'') : ''; /* order block matches the channel */
   var epb=$('editProfBtn'); if(epb) epb.style.display = inSpace ? 'none' : ''; /* profile editing is a personal thing */
   var ty=document.querySelector('.tag-you');
   if(ty){
