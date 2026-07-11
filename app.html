@@ -792,6 +792,23 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .cs-step{display:flex;align-items:center;gap:11px;font-size:.9rem;color:var(--muted)}
 .cs-n{flex:0 0 auto;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.78rem;font-weight:700;color:var(--mine-txt);background:hsl(260 90% 66% / .14);border:1px solid hsl(260 90% 66% / .4)}
 .cs-cap{margin-top:10px;font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+/* personal profile editor */
+.pf-mc{max-width:540px}
+.pf-preview{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border2);height:118px}
+.pf-prev-banner{position:absolute;inset:0;background:linear-gradient(120deg,#6d28d9,#0b0d12);background-size:cover;background-position:center}
+.pf-prev-av{position:absolute;left:16px;bottom:12px;width:58px;height:58px;border-radius:50%;border:3px solid hsl(230 24% 6%);background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.4rem;color:#fff;overflow:hidden;box-shadow:0 6px 20px hsl(230 24% 2% / .5)}
+.pf-prev-av img{width:100%;height:100%;object-fit:cover}
+.pf-prev-name{position:absolute;left:86px;bottom:22px;font-weight:800;font-size:1.05rem;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.65);max-width:58%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.pf-sec{margin-top:15px}
+.pf-lab{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.pf-up{background:transparent;border:1px solid var(--border2);border-radius:7px;color:var(--muted);font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;cursor:pointer}
+.pf-up:hover{color:var(--fg);border-color:var(--primary)}
+.pf-grid{display:flex;gap:8px;flex-wrap:wrap}
+.pf-swatch{width:66px;height:38px;border-radius:9px;cursor:pointer;border:2px solid transparent;background-size:cover;background-position:center;flex:0 0 auto}
+.pf-grid-av .pf-swatch{width:44px;height:44px;border-radius:50%}
+.pf-swatch.on{border-color:#fff;box-shadow:0 0 0 2px var(--primary)}
+.pf-swatch img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.pf-swatch.chan{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.48rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:hsl(230 24% 6%);border:1px dashed var(--border2);text-align:center;line-height:1.2}
 .lens-desc{font-size:.74rem;color:var(--faint);margin-top:7px;font-family:var(--mono);letter-spacing:.02em}
 .shared-pill{font-family:var(--mono);font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;color:hsl(45 95% 62%);background:hsl(45 95% 62% / .12);border:1px solid hsl(45 95% 62% / .35);padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle}
 </style>
@@ -984,6 +1001,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="id-actions">
           <span class="sm mut" id="hqWhen" style="font-size:.74rem" aria-live="polite"></span>
           <button id="refreshBtn" class="btn btn-ghost btn-sm" onclick="refreshLive()">↻ Refresh</button>
+          <button id="editProfBtn" class="btn btn-ghost btn-sm" style="display:none" onclick="openProfile()">Edit profile</button>
           <button id="editChBtn" class="btn btn-ghost btn-sm" onclick="openConnect()">Edit channels</button>
           <div id="scanRun" class="scanline" aria-live="polite"><span class="spin" aria-hidden="true"></span><span id="scanRunTxt">refreshing…</span></div>
         </div>
@@ -1381,6 +1399,33 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       </div>
       <div id="cmMsg" class="sm mut" aria-live="polite" style="margin:2px 0 10px"></div>
       <button class="btn btn-primary btn-block" style="margin-top:2px" onclick="saveConnect()" id="cmSave">Save channels</button>
+    </div>
+  </div>
+
+  <!-- personal profile: banner + picture + name (My Dashboard) -->
+  <div class="modal" id="profileModal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+    <div class="mc pf-mc">
+      <button class="x" onclick="closeProfile()" aria-label="close">✕</button>
+      <h2 id="pfTitle">Your profile</h2>
+      <p class="sm mut" style="margin-bottom:14px">Make My Dashboard yours. Pick a banner and picture, or upload your own.</p>
+      <div class="pf-preview">
+        <div class="pf-prev-banner" id="pfPrevBanner"></div>
+        <div class="pf-prev-av" id="pfPrevAv"></div>
+        <div class="pf-prev-name" id="pfPrevName"></div>
+      </div>
+      <div class="ied-field" style="margin-top:14px"><label for="pfName">Display name</label>
+        <input id="pfName" type="text" maxlength="40" autocomplete="off" placeholder="what you go by" oninput="pfOnName()"></div>
+      <div class="pf-sec">
+        <div class="pf-lab">Banner <button class="pf-up" onclick="pfUpload('banner')">⤒ upload</button></div>
+        <div class="pf-grid" id="pfBannerGrid"></div>
+      </div>
+      <div class="pf-sec">
+        <div class="pf-lab">Profile picture <button class="pf-up" onclick="pfUpload('avatar')">⤒ upload</button></div>
+        <div class="pf-grid pf-grid-av" id="pfAvGrid"></div>
+      </div>
+      <input type="file" id="pfFile" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="pfFilePicked(event)">
+      <div id="pfMsg" class="sm mut" aria-live="polite" style="margin:6px 0"></div>
+      <button class="btn btn-primary btn-block" id="pfSave" onclick="saveProfile()">Save profile</button>
     </div>
   </div>
 
@@ -2166,15 +2211,122 @@ function saveProfileFields(f){
 
 /* ---------- identity header ---------- */
 function looksRaw(s){ return !s || /^https?:|youtube\.com|^UC[0-9A-Za-z_-]{22}$/.test(String(s)); }
+/* ---------- personal profile: banner + picture + name ---------- */
+var BANNER_PRESETS=[
+  {id:'aurora',css:'linear-gradient(120deg,#7c3aed,#06b6d4)'},
+  {id:'grape',css:'linear-gradient(120deg,#8b5cf6,#ec4899)'},
+  {id:'sunset',css:'linear-gradient(120deg,#f59e0b,#ef4444)'},
+  {id:'mint',css:'linear-gradient(120deg,#10b981,#3b82f6)'},
+  {id:'ember',css:'linear-gradient(120deg,#f97316,#7c2d12)'},
+  {id:'violet',css:'linear-gradient(120deg,#6d28d9,#0b0d12)'},
+  {id:'gold',css:'linear-gradient(120deg,#fbbf24,#b45309)'},
+  {id:'mono',css:'linear-gradient(120deg,#334155,#0b0d12)'}
+];
+var AV_PRESETS=[
+  {id:'v1',css:'linear-gradient(135deg,#8b5cf6,#06b6d4)'},
+  {id:'v2',css:'linear-gradient(135deg,#f59e0b,#ef4444)'},
+  {id:'v3',css:'linear-gradient(135deg,#10b981,#3b82f6)'},
+  {id:'v4',css:'linear-gradient(135deg,#ec4899,#8b5cf6)'},
+  {id:'v5',css:'linear-gradient(135deg,#22d3ee,#3b82f6)'}
+];
+function presetCss(list,id){ var p=list.filter(function(x){return x.id===id;})[0]; return p?p.css:list[0].css; }
+function bannerBg(val){
+  var img;
+  if(val && val.indexOf('data:')===0) img='url('+val+') center/cover';
+  else if(val && val.indexOf('preset:')===0) img=presetCss(BANNER_PRESETS, val.slice(7));
+  else return ''; /* no custom banner -> CSS default */
+  return 'linear-gradient(90deg,hsl(230 30% 4% / .82),hsl(230 30% 4% / .32)),'+img;
+}
+function paintAvatar(av, val, initial){
+  if(val && val.indexOf('data:')===0){ av.style.background=''; av.innerHTML='<img src="'+val+'" alt="" loading="lazy">'; return true; }
+  if(val && val.indexOf('preset:')===0){ av.innerHTML=''; av.style.background=presetCss(AV_PRESETS, val.slice(7)); av.textContent=(initial||'Y'); return true; }
+  return false;
+}
+var _pfBanner='', _pfAvatar='', _pfName='';
+function openProfile(){
+  PROFILE=PROFILE||{};
+  _pfBanner=PROFILE.profile_banner||''; _pfAvatar=PROFILE.profile_avatar||''; _pfName=PROFILE.display_name||'';
+  $('pfName').value=_pfName;
+  var m=$('pfMsg'); if(m){ m.textContent=''; m.style.color=''; }
+  var bs=$('pfSave'); if(bs) bs.disabled=false;
+  renderPfGrids(); renderPfPreview();
+  $('profileModal').classList.add('on');
+  setTimeout(function(){ var i=$('pfName'); if(i) i.focus(); },40);
+}
+function closeProfile(){ $('profileModal').classList.remove('on'); }
+function renderPfGrids(){
+  var bg=$('pfBannerGrid');
+  bg.innerHTML=BANNER_PRESETS.map(function(p){
+    return '<div class="pf-swatch'+(_pfBanner==='preset:'+p.id?' on':'')+'" style="background:'+p.css+'" data-b="'+p.id+'" title="'+p.id+'"></div>';
+  }).join('')+((_pfBanner&&_pfBanner.indexOf('data:')===0)?'<div class="pf-swatch on" data-bcustom style="background:url('+_pfBanner+') center/cover"></div>':'');
+  Array.prototype.forEach.call(bg.querySelectorAll('[data-b]'),function(el){ el.onclick=function(){ _pfBanner='preset:'+el.getAttribute('data-b'); renderPfGrids(); renderPfPreview(); }; });
+  var ag=$('pfAvGrid');
+  var chOn=(!_pfAvatar||_pfAvatar==='channel');
+  ag.innerHTML='<div class="pf-swatch chan'+(chOn?' on':'')+'" data-a="channel">my<br>channel</div>'
+    +AV_PRESETS.map(function(p){ return '<div class="pf-swatch'+(_pfAvatar==='preset:'+p.id?' on':'')+'" style="background:'+p.css+'" data-a="'+p.id+'"></div>'; }).join('')
+    +((_pfAvatar&&_pfAvatar.indexOf('data:')===0)?'<div class="pf-swatch on" data-acustom style="background:url('+_pfAvatar+') center/cover"></div>':'');
+  Array.prototype.forEach.call(ag.querySelectorAll('[data-a]'),function(el){ el.onclick=function(){ var a=el.getAttribute('data-a'); _pfAvatar=(a==='channel')?'channel':'preset:'+a; renderPfGrids(); renderPfPreview(); }; });
+}
+function renderPfPreview(){
+  var pb=$('pfPrevBanner'); if(pb) pb.style.background = bannerBg(_pfBanner) || 'linear-gradient(120deg,#6d28d9,#0b0d12)';
+  var init=(_pfName||IDENT.yt.name||IDENT.yt.handle||'Y').replace(/^@/,'').charAt(0).toUpperCase();
+  var pa=$('pfPrevAv');
+  if(pa && !paintAvatar(pa,_pfAvatar,init)){ pa.style.background=''; if(IDENT.yt.avatar){ pa.innerHTML='<img src="'+esc(IDENT.yt.avatar)+'" alt="">'; } else { pa.innerHTML=''; pa.textContent=init; } }
+  var pn=$('pfPrevName'); if(pn) pn.textContent=_pfName||IDENT.yt.name||'your name';
+}
+function pfOnName(){ _pfName=$('pfName').value; renderPfPreview(); }
+function pfUpload(kind){ window._pfKind=kind; var f=$('pfFile'); if(f){ f.value=''; f.click(); } }
+function pfFilePicked(e){
+  var file=e.target.files&&e.target.files[0]; if(!file) return;
+  var kind=window._pfKind||'avatar', msg=$('pfMsg');
+  if(msg){ msg.style.color=''; msg.textContent='processing image…'; }
+  compressImage(file, kind==='banner'?{w:1200,h:360,q:.72}:{w:320,h:320,q:.78}).then(function(uri){
+    if(uri.length>230000){ if(msg){ msg.style.color='var(--danger)'; msg.textContent='that image is too large even after shrinking, try a smaller one'; } return; }
+    if(kind==='banner') _pfBanner=uri; else _pfAvatar=uri;
+    if(msg) msg.textContent='';
+    renderPfGrids(); renderPfPreview();
+  }).catch(function(){ if(msg){ msg.style.color='var(--danger)'; msg.textContent='could not read that image'; } });
+}
+function compressImage(file, opt){
+  return new Promise(function(resolve,reject){
+    var img=new Image();
+    img.onload=function(){
+      try{
+        var cw=opt.w, ch=opt.h, canvas=document.createElement('canvas'); canvas.width=cw; canvas.height=ch;
+        var ctx=canvas.getContext('2d'), ar=img.width/img.height, tr=cw/ch, sw,sh,sx,sy;
+        if(ar>tr){ sh=img.height; sw=sh*tr; sx=(img.width-sw)/2; sy=0; } else { sw=img.width; sh=sw/tr; sx=0; sy=(img.height-sh)/2; }
+        ctx.drawImage(img, sx,sy,sw,sh, 0,0, cw,ch);
+        resolve(canvas.toDataURL('image/jpeg', opt.q));
+      }catch(err){ reject(err); }
+    };
+    img.onerror=reject;
+    var fr=new FileReader(); fr.onload=function(){ img.src=fr.result; }; fr.onerror=reject; fr.readAsDataURL(file);
+  });
+}
+function saveProfile(){
+  PROFILE=PROFILE||{};
+  PROFILE.display_name=($('pfName').value||'').trim()||PROFILE.display_name||'';
+  PROFILE.profile_banner=_pfBanner||''; PROFILE.profile_avatar=_pfAvatar||'';
+  var bs=$('pfSave'); if(bs) bs.disabled=true;
+  var msg=$('pfMsg'); if(msg){ msg.style.color=''; msg.textContent='saving…'; }
+  saveProfileFields({ display_name:PROFILE.display_name?String(PROFILE.display_name).slice(0,40):null, profile_banner:PROFILE.profile_banner||null, profile_avatar:PROFILE.profile_avatar||null }).then(function(){
+    closeProfile(); try{ renderIdentity(); renderPlatChips(); }catch(e){}
+  }).catch(function(){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent='could not save, try again'; } });
+}
 function renderIdentity(){
   var inSpace=(VIEW==='space' && SPACE && SPACE.workspace);
   var spCh=inSpace && SPACE.channel && (SPACE.channel.id||SPACE.channel.name);
   var emptySpace=inSpace && !spCh;                 /* a space with no channels linked yet */
   var yt = spCh ? SPACE.channel : (inSpace ? {} : IDENT.yt);
   var av=$('idAvatar');
-  if(yt.avatar){ av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="" loading="lazy">'; }
-  else { av.textContent=(String(emptySpace?(SPACE.workspace.name||'S'):(yt.handle||yt.name||'Y')).replace(/^@/,'').charAt(0)||'Y').toUpperCase(); }
-  var display = emptySpace ? (SPACE.workspace.name||'your space') : (looksRaw(yt.name) ? (yt.handle || 'your channel') : yt.name);
+  var display = emptySpace ? (SPACE.workspace.name||'your space')
+              : (!inSpace && PROFILE && PROFILE.display_name) ? PROFILE.display_name  /* personal: your chosen name */
+              : (looksRaw(yt.name) ? (yt.handle || 'your channel') : yt.name);
+  var idInit=(String(emptySpace?(SPACE.workspace.name||'S'):(display||yt.handle||yt.name||'Y')).replace(/^@/,'').charAt(0)||'Y').toUpperCase();
+  var pAv=(!inSpace && PROFILE)?(PROFILE.profile_avatar||''):''; /* personal profile picture overrides the channel avatar */
+  if(pAv && pAv!=='channel' && paintAvatar(av,pAv,idInit)){ /* painted a preset or uploaded picture */ }
+  else if(yt.avatar){ av.style.background=''; av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="" loading="lazy">'; }
+  else { av.style.background=''; av.innerHTML=''; av.textContent=idInit; }
   $('hqName').textContent = display;
   if(av) av.setAttribute('aria-label',(display||'your channel')+' avatar');
   $('idHandle').innerHTML = (!emptySpace && yt.handle)? '<b>'+esc(yt.handle)+'</b>' : '';
@@ -2188,7 +2340,11 @@ function renderIdentity(){
   }
   /* lens-aware chrome: My Dashboard reads as YOUR profile, a Space stays branded to its channel */
   var head=$('idhead');
-  if(head){ head.classList.toggle('prof', !inSpace); head.classList.toggle('chan', inSpace); }
+  if(head){
+    head.classList.toggle('prof', !inSpace); head.classList.toggle('chan', inSpace);
+    head.style.background = inSpace ? '' : (bannerBg((PROFILE&&PROFILE.profile_banner)||'')||''); /* personal banner */
+  }
+  var epb=$('editProfBtn'); if(epb) epb.style.display = inSpace ? 'none' : ''; /* profile editing is a personal thing */
   var ty=document.querySelector('.tag-you');
   if(ty){
     var lf=ty.querySelector('#liveFlag');
