@@ -2750,11 +2750,15 @@ function pollPulse(){
       if(!d||!d.ok){ PULSE.fails=(PULSE.fails||0)+1; return; }
       PULSE.fails=0;
       var yt=d.youtube||{};
-      if(yt.subs_text){
-        var _sv=expandCount(yt.subs_text);
+      if(yt.subs_text || (yt.subs_exact!=null && yt.subs_exact>0)){
+        var _sv=(yt.subs_exact!=null && yt.subs_exact>0)?yt.subs_exact:expandCount(yt.subs_text);
         pulseCounter('subs','subscribers',IC_YT,'hsl(0 84% 62%)');
         pulseSet('subs', _sv, '<b>'+esc(yt.name||'')+'</b> · youtube precision');
         logSubs(_sv); renderGoal(); /* feed the live growth prediction */
+      }
+      if(yt.total_views!=null && yt.total_views>0){
+        pulseCounter('tv','lifetime views',IC_YT,'var(--primary)');
+        pulseSet('tv', yt.total_views, (yt.videos_text?'<b>'+esc(String(yt.videos_text))+'</b> videos · ':'')+'exact');
       }
       try{ window._liveTitles=(yt.latest||[]).map(function(x){return x.title;}).filter(Boolean).slice(0,10); }catch(e){}
       try{ syncShipResults(yt.latest||[]); }catch(e){} /* close the loop: read shipped-idea videos back against your median */
