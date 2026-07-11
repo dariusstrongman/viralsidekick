@@ -286,6 +286,15 @@ footer a:hover{color:var(--fg)}
 .pro-badge{font-family:var(--mono);font-weight:700;letter-spacing:.14em;color:#1a1305;background:linear-gradient(120deg,hsl(45 95% 62%),hsl(38 96% 55%));padding:2px 9px;border-radius:6px;box-shadow:0 0 14px hsl(45 95% 60% / .5)}
 .idhead.pro{border-color:hsl(45 90% 60% / .45)}
 .idhead.pro::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
+/* lens-aware identity: My Dashboard = your PROFILE (violet, circular avatar);
+   a Space = the CHANNEL brand (gold). these follow .pro so they win the tie. */
+.idhead.prof{border-color:hsl(260 90% 66% / .5)}
+.idhead.prof::before{background:radial-gradient(240px 170px at 0% 50%,hsl(260 90% 66%),transparent 70%);opacity:.14}
+.idhead.prof .avatar{border-radius:50%}
+.idhead.prof .tag-you{color:var(--mine-txt)}
+.idhead.chan{border-color:hsl(45 90% 60% / .45)}
+.idhead.chan::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
+.idhead.chan .tag-you{color:var(--team-txt)}
 .perk{display:flex;gap:9px;align-items:flex-start;font-size:.86rem;padding:3px 0}
 .perk .ck{color:hsl(45 95% 62%);font-weight:800;flex:0 0 auto}
 .id-name{font-size:clamp(1.3rem,3vw,1.75rem);font-weight:800;letter-spacing:-.02em;line-height:1.1;overflow-wrap:anywhere}
@@ -2139,8 +2148,15 @@ function renderIdentity(){
       if(canEditSpace()){ ecb.style.display=''; ecb.textContent = spCh ? 'Edit channels' : 'Set up channels'; } else { ecb.style.display='none'; }
     } else { ecb.style.display=''; ecb.textContent='Edit channels'; }
   }
+  /* lens-aware chrome: My Dashboard reads as YOUR profile, a Space stays branded to its channel */
+  var head=$('idhead');
+  if(head){ head.classList.toggle('prof', !inSpace); head.classList.toggle('chan', inSpace); }
   var ty=document.querySelector('.tag-you');
-  if(ty){ var lf=ty.querySelector('#liveFlag'); if(lf){ ty.childNodes.forEach(function(n){ if(n.nodeType===3) n.textContent = inSpace ? (spCh?' · this space’s channel ':' · this space ') : ' · this is you '; }); } }
+  if(ty){
+    var lf=ty.querySelector('#liveFlag');
+    if(lf) lf.style.display = inSpace ? '' : 'none'; /* the live pulse is a channel-data cue, hide it on the profile */
+    ty.childNodes.forEach(function(n){ if(n.nodeType===3) n.textContent = inSpace ? (spCh?' · this space’s channel ':' · this space ') : '◆ your profile '; });
+  }
   /* self-heal: stored channel is a raw URL/id or missing avatar+subs, resolve the real identity live */
   if(!IDENT._adopted && VIEW!=='space' && (looksRaw(yt.name) || !yt.avatar || !yt.subs) && (yt.id||yt.name) && !IDENT._healing){
     IDENT._healing = true;
