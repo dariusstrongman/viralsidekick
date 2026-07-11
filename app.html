@@ -1949,7 +1949,7 @@ function renderTeamHeader(){
     var m='';
     if(canMod){
       m+='<div class="caprow">'
-        +'<input id="invEmail" type="email" placeholder="invite a teammate by email…" onkeydown="if(event.key===\'Enter\')inviteMember()">'
+        +'<input id="invEmail" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="invite by email or @username…" onkeydown="if(event.key===\'Enter\')inviteMember()">'
         +'<select id="invRole"><option value="viewer">viewer</option><option value="admin">admin</option></select>'
         +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="inviteMember()">Invite</button>'
         +'</div>';
