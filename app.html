@@ -711,6 +711,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .team-switch .tsw{font-family:var(--mono);font-size:.66rem;letter-spacing:.03em;border:1px solid var(--border2);border-radius:9px;padding:5px 11px;color:var(--muted);background:transparent;cursor:pointer;transition:.15s}
 .team-switch .tsw:hover{color:#fff;border-color:hsl(45 95% 62% / .6)}
 .team-switch .tsw.on{color:hsl(45 95% 66%);border-color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1);cursor:default}
+.team-switch .tsw.new{border-style:dashed;color:var(--faint)}
+.team-switch .tsw.new:hover{color:hsl(45 95% 66%)}
 .board-team{font-family:var(--mono);font-size:.66rem;letter-spacing:.04em;color:hsl(45 95% 66%);margin-left:2px}
 /* lens tag: is this tile showing your private data or the team's shared data */
 .lens-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.05em;padding:2px 8px;border-radius:6px;vertical-align:middle;margin-left:4px;white-space:nowrap}
@@ -765,6 +767,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .lens-btn:hover:not(:disabled){border-color:var(--lensc);color:var(--fg)}
 .lens-btn.on{color:#0b0d12;background:var(--lensc);border-color:var(--lensc)}
 .lens-btn:disabled{opacity:.4;cursor:not-allowed}
+.lens-btn.ghost{border-style:dashed;color:var(--faint)}
+.lens-btn.ghost:hover:not(:disabled){color:var(--fg);border-color:hsl(45 95% 62% / .6)}
 .lens-desc{font-size:.74rem;color:var(--faint);margin-top:7px;font-family:var(--mono);letter-spacing:.02em}
 .shared-pill{font-family:var(--mono);font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;color:hsl(45 95% 62%);background:hsl(45 95% 62% / .12);border:1px solid hsl(45 95% 62% / .35);padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle}
 </style>
@@ -898,7 +902,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <p class="osub">ViralSidekick becomes your creator command center. Start with YouTube, it goes live instantly.</p>
         <div class="conn-row">
           <label for="obName">Your display name</label>
-          <div class="rr"><input id="obName" type="text" maxlength="40" placeholder="what your team sees (e.g. Darius)"></div>
+          <div class="rr"><input id="obName" type="text" maxlength="40" placeholder="what teammates see (e.g. Darius)"></div>
         </div>
         <div class="conn-row">
           <label for="obYt">
@@ -1139,7 +1143,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
 <section class="zone" style="--zc:hsl(45 95% 62%)">
 <div class="tc-header" id="teamsBanner" style="display:none">
-  <div class="tc-eyebrow">Team Collaboration</div>
+  <div class="tc-eyebrow">Shared Space</div>
   <div class="tc-name" id="tcName"></div>
   <div class="tc-avatars" id="tcAvatars"></div>
   <div class="tc-stats" id="tcStats"></div>
@@ -1163,7 +1167,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
 
 <div class="tile s6" id="tBoard" style="--tc:hsl(45 95% 62%);display:none">
-          <h3><span class="acc" aria-hidden="true">▤</span> team board <span class="board-team" id="boardTeam"></span> <span class="shared-pill">shared</span> <span class="end" id="boardCount"></span></h3>
+          <h3><span class="acc" aria-hidden="true">▤</span> space board <span class="board-team" id="boardTeam"></span> <span class="shared-pill">shared</span> <span class="end" id="boardCount"></span></h3>
           <div class="caprow" style="margin-top:0;margin-bottom:10px">
             <select id="postKind" aria-label="post type" onchange="onBoardKind()" style="background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);padding:9px;font-family:var(--sans);font-size:.84rem">
               <option value="idea">◆ video idea</option>
@@ -1171,7 +1175,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
               <option value="win">✦ win</option>
               <option value="question">? question</option>
             </select>
-            <input id="postBody" type="text" placeholder="a quick note for the team…" style="flex:1;display:none;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')postToBoard()">
+            <input id="postBody" type="text" placeholder="a quick note for the space…" style="flex:1;display:none;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')postToBoard()">
             <button id="postQuickBtn" class="btn btn-ghost" style="flex:0 0 auto;display:none" onclick="postToBoard()">Post</button>
             <button id="postIdeaBtn" class="btn btn-primary" style="flex:1" onclick="openIdeaEditor(null,'',{target:'board'})">✎ write a video idea: title, notes + script</button>
           </div>
@@ -1181,7 +1185,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="tile s4 sell" id="tTeamUp" style="border-color:hsl(45 90% 60% / .35);--tc:hsl(45 95% 62%)">
           <h3><span class="acc" aria-hidden="true">⬡</span> team plan</h3>
           <div class="tbig" style="color:hsl(45 95% 62%)">$39.99<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
-          <div class="tsub" style="margin:8px 0 12px">One shared space, up to 5 seats, that is under $8 a seat. Everything in Pro for the whole team, live data, radar, grades, the plan, roles and a shared board. 7 days free, cancel anytime.</div>
+          <div class="tsub" style="margin:8px 0 12px">Create up to 3 shared spaces, 5 seats each, under $8 a seat. Each space gets its own channels plus everything in Pro, live data, radar, grades, the plan, roles and a shared board. 7 days free, cancel anytime.</div>
           <a id="teamBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/cNi8wRgkM1mh4Xe7ru5wI0u" target="_blank" rel="noopener">Start 7-day free trial</a>
         </div>
 
@@ -1316,7 +1320,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <p class="sm mut" id="cmHint" style="margin-bottom:18px">Update your identity and the channels bound to your account.</p>
       <div class="conn-row" id="cmNameRow">
         <label>Display name</label>
-        <div class="rr"><input id="cmName" type="text" maxlength="40" placeholder="what your team sees"></div>
+        <div class="rr"><input id="cmName" type="text" maxlength="40" placeholder="what teammates see"></div>
       </div>
       <div class="conn-row">
         <label for="cmYt">
@@ -1392,7 +1396,7 @@ try{
   if(localStorage.getItem('vs_pending_invite')){
     var _at=document.getElementById('authTitle'), _as=document.getElementById('authSub');
     if(_at) _at.textContent='youre invited to a space';
-    if(_as) _as.textContent='One free account and you’re in, no channel setup, no forms. You’ll land straight in your team’s dashboard.';
+    if(_as) _as.textContent='One free account and you’re in, no channel setup, no forms. You’ll land straight in the space’s dashboard.';
   }
 }catch(e){}
 var RECOVERY=false;
@@ -1570,21 +1574,26 @@ function enterHQ(){
 var TEAMS_API='https://n8n.stromation.com/webhook/viralsidekick-teams';
 var VIEW = 'mine';  /* 'mine' = your channel+data, 'space' = the team's shared brain */
 function curCh(){
-  if(VIEW==='space' && SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)) return SPACE.channel;
+  /* a space uses its OWN channel only, never the personal one. empty {} until it is set up */
+  if(VIEW==='space' && SPACE && SPACE.workspace) return (SPACE.channel && (SPACE.channel.id||SPACE.channel.name)) ? SPACE.channel : {};
   return IDENT.yt;
 }
+function spaceHasChannel(){ return !!(SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)); }
 /* the active identity for the current lens: the team channel (incl its TikTok/Instagram)
    in a team lens, your own connected platforms in the personal lens. keeps every platform
    in lockstep with YouTube so a teammate sees the team's socials, not their own */
 function actIdent(){
-  if(VIEW==='space' && SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)){
-    var c=SPACE.channel; return { yt:c, tiktok:c.tiktok||'', instagram:c.instagram||'', facebook:c.facebook||'', team:true };
+  if(VIEW==='space' && SPACE && SPACE.workspace){
+    var c=(SPACE.channel&&(SPACE.channel.id||SPACE.channel.name))?SPACE.channel:{};
+    return { yt:c, tiktok:c.tiktok||'', instagram:c.instagram||'', facebook:c.facebook||'', team:true };
   }
   return { yt:IDENT.yt, tiktok:IDENT.tiktok||'', instagram:IDENT.instagram||'', facebook:IDENT.facebook||'', team:false };
 }
-var _connTarget='mine'; /* which record the connect modal edits: 'mine' = your profile, 'space' = the team channel */
+var _connTarget='mine'; /* which record the connect modal edits: 'mine' = your profile, 'space' = the space channel */
 function myRole(){ if(!(SPACE&&SPACE.members&&USER)) return ''; var m=SPACE.members.filter(function(x){return x.user_id===USER.id;})[0]; return m?m.role:''; }
 function canEditSpace(){ if(!(VIEW==='space'&&SPACE&&SPACE.workspace)) return false; var r=myRole(); return r==='owner'||r==='admin'; }
+function ownedSpaceCount(){ return (SPACES||[]).filter(function(t){return t.role==='owner';}).length; }
+function canCreateMoreSpaces(){ return (typeof PROFILE!=='undefined'&&PROFILE&&PROFILE.plan==='team') && ownedSpaceCount()<3; }
 function renderViewSwitch(){
   var old=$('viewSwitch'); if(old) old.style.display='none'; /* superseded by the lens bar */
   var host=$('lensBar'); if(!host) return;
@@ -1597,26 +1606,24 @@ function renderViewSwitch(){
   host.className = 'lensbar ' + (mine?'lens-mine':'lens-team');
   host.style.display='';
   var active = (teams.filter(function(t){return t.id===curWs;})[0])||{};
-  /* is the team built on your own channel? then both lenses read the same channel,
-     and only the collaboration (ideas / board / rivals) is private vs shared. say so. */
-  var yt=IDENT.yt||{}, sch=(SPACE&&SPACE.channel)||{};
-  var sameCh = !!((yt.id&&sch.id&&yt.id===sch.id) || (!yt.id&&!sch.id&&yt.name&&sch.name&&yt.name===sch.name));
   var tName=esc(active.name||'this space');
-  /* two clean rows, each option appears exactly once: your personal home, then every team you are on */
-  var personalBtn = '<button class="lens-btn'+(mine?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="connect your own channel first"')+'>◈ My Dashboard</button>';
+  /* two clean rows: your personal home, then every space you are in. spaces are fully separate. */
+  var personalBtn = '<button class="lens-btn'+(mine?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="link your personal channel first"')+'>◈ My Dashboard</button>';
   var teamBtns = teams.map(function(t){
     var on = (!mine && t.id===curWs);
-    return '<button class="lens-btn'+(on?' on':'')+'" data-ws="'+esc(t.id)+'">⬡ '+esc(t.name||'team space')+'</button>';
+    return '<button class="lens-btn'+(on?' on':'')+'" data-ws="'+esc(t.id)+'">⬡ '+esc(t.name||'space')+'</button>';
   }).join('');
+  var newBtn = canCreateMoreSpaces() ? '<button class="lens-btn ghost" data-newspace title="create a new space">+ new space</button>' : '';
   host.innerHTML =
       '<div class="lens-row"><span class="lens-k">Personal</span>'+personalBtn+'</div>'
-    + '<div class="lens-row"><span class="lens-k">Teams</span>'+teamBtns+'</div>'
+    + '<div class="lens-row"><span class="lens-k">Spaces</span>'+teamBtns+newBtn+'</div>'
     + '<div class="lens-desc">'+(mine
-        ? '◈ viewing your private workspace, the ideas, board notes and rivals here are yours alone'+(sameCh?', not shared with '+tName:', not shared with any team')
-        : '⬡ viewing '+tName+', shared'+(nMem?' with '+nMem+' member'+(nMem>1?'s':''):'')+'. the ideas, board and rivals here are the team\'s'+(sameCh?' · same channel as My Dashboard':''))+'</div>';
+        ? '◈ My Dashboard is your personal channels, the ideas, notes and rivals here are yours alone'
+        : '⬡ '+tName+' is a shared space'+(nMem?' with '+nMem+' member'+(nMem>1?'s':''):'')+', its channels, ideas and board are kept separate from your personal dashboard')+'</div>';
   Array.prototype.forEach.call(host.querySelectorAll('.lens-btn'),function(b){
     b.onclick=function(){
       if(b.disabled)return;
+      if(b.hasAttribute('data-newspace')){ switchToNewSpace(); return; }
       if(b.getAttribute('data-view')==='mine') switchView('mine');
       else switchSpace(b.getAttribute('data-ws'));
     };
@@ -1655,7 +1662,7 @@ function applyLensChrome(){
   var ts=$('tSpace');
   if(ts) ts.style.display = teamLens ? '' : ((!hasTeams&&canCreate)?'':'none');
   /* only tag scoped tiles when the user actually has both lenses to confuse */
-  var name=inTeam?(SPACE.workspace.name||'team'):'';
+  var name=inTeam?(SPACE.workspace.name||'space'):'';
   setLensTag('ideaLensTag', teamLens, name, hasTeams);
   setLensTag('rivalLensTag', teamLens, name, hasTeams);
   /* team collaboration header over the team section (team lens only) */
@@ -1674,7 +1681,7 @@ function _tcInitials(m){
 /* the header earns its space: who is on the team + what is actually in flight */
 function renderTeamHeader(){
   if(!(SPACE&&SPACE.workspace)) return;
-  var nm=$('tcName'); if(nm) nm.textContent=SPACE.workspace.name||'your team';
+  var nm=$('tcName'); if(nm) nm.textContent=SPACE.workspace.name||'your space';
   var mem=SPACE.members||[], inv=SPACE.invites||[];
   var av=$('tcAvatars');
   if(av){
@@ -1759,7 +1766,7 @@ function spaceFallback(){ $('spaceBody').innerHTML='<div class="tsub">Spaces are
 function ownPro(){ return (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROFILE.plan_status==null || PROFILE.plan_status==='active' || PROFILE.plan_status==='trialing'); }
 function recomputePro(){ var was=IS_PRO; IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); if(IS_PRO!==was){ try{ renderPro(); }catch(e){} } }
 function syncTeamPro(){ recomputePro(); }
-function seatLabel(){ if(!(SPACE&&SPACE.workspace)) return ''; var n=(SPACE.members&&SPACE.members.length)||0; return (SPACE.workspace.plan==='team')?'<span style="color:hsl(45 95% 62%)">TEAM · '+n+'/5</span>':n+'/5 seats'; }
+function seatLabel(){ if(!(SPACE&&SPACE.workspace)) return ''; var n=(SPACE.members&&SPACE.members.length)||0; return (SPACE.workspace.plan==='team')?'<span style="color:hsl(45 95% 62%)">'+n+'/5 seats</span>':n+'/5 seats'; }
 function spaceNote(t){ var e=$('spaceEnd'); if(e){ e.textContent=t; setTimeout(function(){ e.innerHTML=seatLabel(); },4000); } }
 function applySpace(d){
   if(!d || d.error){
@@ -1786,23 +1793,44 @@ function renderNoSpace(){
   /* the space + board are team-only surfaces. only a Team-plan owner with no space
      yet gets the create box, the team-plan tile is the funnel for everyone else. */
   var canCreate = (typeof PROFILE!=='undefined' && PROFILE && PROFILE.plan==='team');
-  if(canCreate){
-    $('spaceEnd').textContent='';
-    $('spaceBody').innerHTML=
-      '<div class="tsub" style="margin-bottom:12px">A space is a shared brain, invite your editor, your co-host, your team. Everyone sees the live channel, the radar, the plan.</div>'
-      +'<div class="caprow" style="margin-top:4px">'
-      +'<input id="spName" type="text" placeholder="name your space (e.g. DMGDaily)" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key===\'Enter\')createSpace()">'
-      +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="createSpace()">Create space</button>'
-      +'</div>';
-  }
+  if(canCreate){ showCreateSpace(); }
   var tu0=$('tTeamUp'); if(tu0) tu0.style.display = canCreate ? 'none' : '';
   applyLensChrome();
 }
 function createSpace(){
-  var name=$('spName').value.trim()||'my space';
-  $('spaceBody').innerHTML='<div class="tsub">forging your space…</div>';
-  teamsApi('create_space',{name:name}).then(applySpace).catch(spaceFallback);
+  var inp=$('spName'); var name=(inp&&inp.value.trim())||'my space';
+  if($('spaceBody')) $('spaceBody').innerHTML='<div class="tsub">creating your space…</div>';
+  teamsApi('create_space',{name:name}).then(function(d){
+    if(d&&d.error){
+      if(SPACE&&SPACE.workspace){ renderSpace(); } else { renderNoSpace(); }
+      var end=$('spaceEnd'); if(end) end.innerHTML='<span style="color:var(--danger)">'+esc(d.error)+'</span>';
+      return;
+    }
+    /* land straight in the brand-new space so the owner can link channels + invite */
+    try{ localStorage.setItem('vs_view','space'); if(d&&d.workspace) localStorage.setItem('vs_space',d.workspace.id); }catch(e){}
+    VIEW='space';
+    applySpace(d); /* new space becomes active; owner then links its channels + invites */
+  }).catch(spaceFallback);
 }
+/* create an ADDITIONAL space (team plan, up to 3 owned). reveals the name box in the space tile. */
+function switchToNewSpace(){
+  if(!canCreateMoreSpaces()) return;
+  var ts=$('tSpace'); if(ts) ts.style.display='';
+  showCreateSpace();
+  if(ts&&ts.scrollIntoView){ try{ ts.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
+}
+function showCreateSpace(){
+  var end=$('spaceEnd'); if(end) end.textContent='';
+  $('spaceBody').innerHTML=
+    '<div class="tsub" style="margin-bottom:12px">Name your new space. It gets its own channels and members, kept completely separate from your personal dashboard and your other spaces.</div>'
+    +'<div class="caprow" style="margin-top:4px">'
+    +'<input id="spName" type="text" placeholder="name your space (e.g. DMGDaily)" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key===\'Enter\')createSpace()">'
+    +'<button class="btn btn-primary" style="flex:0 0 auto" onclick="createSpace()">Create space</button>'
+    +((SPACE&&SPACE.workspace)?'<button class="btn btn-ghost btn-sm" style="flex:0 0 auto" onclick="cancelCreateSpace()">cancel</button>':'')
+    +'</div>';
+  setTimeout(function(){ var i=$('spName'); if(i) i.focus(); },40);
+}
+function cancelCreateSpace(){ if(SPACE&&SPACE.workspace){ renderSpace(); } applyLensChrome(); }
 function roleChip(m){
   var me=(m.user_id===USER.id), mine=SPACE&&(SPACE.members||[]).filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
@@ -1827,15 +1855,20 @@ function renderSpace(){
   $('spaceEnd').innerHTML=seatLabel();
   var html='';
   /* on more than one team -> a switcher right here, active team highlighted */
-  if(SPACES && SPACES.length>1){
-    html+='<div class="team-switch" role="tablist" aria-label="switch team">'
-      +SPACES.map(function(t){
+  if((SPACES && SPACES.length>1) || canCreateMoreSpaces()){
+    html+='<div class="team-switch" role="tablist" aria-label="switch space">'
+      +(SPACES||[]).map(function(t){
         var on=(t.id===ws.id);
-        return '<button class="tsw'+(on?' on':'')+'"'+(on?' aria-current="true"':' onclick="switchSpace(\''+esc(t.id)+'\')"')+'>⬡ '+esc(t.name||'team')+'</button>';
-      }).join('')+'</div>';
+        return '<button class="tsw'+(on?' on':'')+'"'+(on?' aria-current="true"':' onclick="switchSpace(\''+esc(t.id)+'\')"')+'>⬡ '+esc(t.name||'space')+'</button>';
+      }).join('')
+      +(canCreateMoreSpaces()?'<button class="tsw new" onclick="switchToNewSpace()" title="create a new space">+ new space</button>':'')
+      +'</div>';
   }
   html+='<div class="tlead" style="margin-bottom:8px">'+esc(ws.name||'your space')
     +(isTeam?' <span class="q-sev" style="color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1)">team plan</span>':'')+'</div>';
+  if(!spaceHasChannel() && (myRole==='owner'||myRole==='admin')){
+    html+='<div class="tsub" style="margin:2px 0 10px">Next: <a href="#" onclick="openConnect();return false" style="color:hsl(45 95% 62%)">link this space’s channels</a>, then invite your team below.</div>';
+  }
   html+=mem.map(roleChip).join('');
   inv.forEach(function(i){ html+='<div class="q-item"><div class="q-b done"><div class="t">'+esc(i.email)+' <span class="q-sev med">invited · pending</span></div></div></div>'; });
   if(myRole==='owner'||myRole==='admin'){
@@ -1877,7 +1910,7 @@ function loadBoard(){
     var rows=r.data||[]; _boardCache=rows;
     try{ renderTeamHeader(); }catch(e){} /* board just loaded -> refresh the live activity strip */
     $('boardCount').textContent=rows.length? rows.filter(function(p){return p.status!=='done';}).length+' open':'';
-    if(!rows.length){ $('boardList').innerHTML='<div class="tsub">Nothing yet, hit <b style="color:hsl(45 95% 66%)">write a video idea</b> above to start the team\'s list.</div>'; return; }
+    if(!rows.length){ $('boardList').innerHTML='<div class="tsub">Nothing yet, hit <b style="color:hsl(45 95% 66%)">write a video idea</b> above to start the space\'s list.</div>'; return; }
     var mine=((SPACE&&SPACE.members)||[]).filter(function(m){return m.user_id===USER.id;})[0];
     var canMod=mine&&(mine.role==='owner'||mine.role==='admin');
     $('boardList').innerHTML=rows.map(function(p){
@@ -2038,24 +2071,27 @@ function saveProfileFields(f){
 /* ---------- identity header ---------- */
 function looksRaw(s){ return !s || /^https?:|youtube\.com|^UC[0-9A-Za-z_-]{22}$/.test(String(s)); }
 function renderIdentity(){
-  var yt=(VIEW==='space' && SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)) ? SPACE.channel : IDENT.yt;
+  var inSpace=(VIEW==='space' && SPACE && SPACE.workspace);
+  var spCh=inSpace && SPACE.channel && (SPACE.channel.id||SPACE.channel.name);
+  var emptySpace=inSpace && !spCh;                 /* a space with no channels linked yet */
+  var yt = spCh ? SPACE.channel : (inSpace ? {} : IDENT.yt);
   var av=$('idAvatar');
   if(yt.avatar){ av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="" loading="lazy">'; }
-  else { av.textContent=(String(yt.handle||yt.name||'Y').replace(/^@/,'').charAt(0)||'Y').toUpperCase(); }
-  var display = looksRaw(yt.name) ? (yt.handle || 'your channel') : yt.name;
+  else { av.textContent=(String(emptySpace?(SPACE.workspace.name||'S'):(yt.handle||yt.name||'Y')).replace(/^@/,'').charAt(0)||'Y').toUpperCase(); }
+  var display = emptySpace ? (SPACE.workspace.name||'your space') : (looksRaw(yt.name) ? (yt.handle || 'your channel') : yt.name);
   $('hqName').textContent = display;
   if(av) av.setAttribute('aria-label',(display||'your channel')+' avatar');
-  $('idHandle').innerHTML = yt.handle? '<b>'+esc(yt.handle)+'</b>' : '';
-  $('idSubs').textContent = yt.subs? ('· '+String(yt.subs).replace(' subscribers',' subs')) : '';
+  $('idHandle').innerHTML = (!emptySpace && yt.handle)? '<b>'+esc(yt.handle)+'</b>' : '';
+  $('idSubs').textContent = emptySpace ? (canEditSpace()?'no channels linked yet — set up channels →':'no channels linked yet') : (yt.subs? ('· '+String(yt.subs).replace(' subscribers',' subs')) : '');
   updateCardLinks();
   var ecb=$('editChBtn');
   if(ecb){
-    if(VIEW==='space' && SPACE && SPACE.workspace){ /* team lens: only owner/admin can set the space channels */
-      if(canEditSpace()){ ecb.style.display=''; ecb.textContent='Set up channels'; } else { ecb.style.display='none'; }
+    if(inSpace){ /* space lens: only owner/admin can set the space channels */
+      if(canEditSpace()){ ecb.style.display=''; ecb.textContent = spCh ? 'Edit channels' : 'Set up channels'; } else { ecb.style.display='none'; }
     } else { ecb.style.display=''; ecb.textContent='Edit channels'; }
   }
   var ty=document.querySelector('.tag-you');
-  if(ty){ var lf=ty.querySelector('#liveFlag'); if(lf){ ty.childNodes.forEach(function(n){ if(n.nodeType===3) n.textContent = (IDENT._adopted||VIEW==='space') ? ' · your team’s channel ' : ' · this is you '; }); } }
+  if(ty){ var lf=ty.querySelector('#liveFlag'); if(lf){ ty.childNodes.forEach(function(n){ if(n.nodeType===3) n.textContent = inSpace ? (spCh?' · this space’s channel ':' · this space ') : ' · this is you '; }); } }
   /* self-heal: stored channel is a raw URL/id or missing avatar+subs, resolve the real identity live */
   if(!IDENT._adopted && VIEW!=='space' && (looksRaw(yt.name) || !yt.avatar || !yt.subs) && (yt.id||yt.name) && !IDENT._healing){
     IDENT._healing = true;
@@ -2110,7 +2146,18 @@ function renderAlt(p){
 
 /* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
 function resetChannelState(){ try{ PULSE.c={}; }catch(e){} var pg=$('pulseGrid'); if(pg) pg.innerHTML=''; var tp=$('tPulse'); if(tp) tp.style.display='none'; var tg=$('tGoal'); if(tg) tg.style.display='none'; var nb=$('nicheBar'); if(nb) nb.style.display='none'; LIVE_SIG=false; WIRE_KEY=null; window._lvCh=null; window._lvAt=0; window._liveTitles=[]; }
-function goLive(){ resetChannelState(); liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals(); }
+function goLive(){
+  resetChannelState();
+  /* an unconfigured space must NOT scan the personal channel — prompt setup and stop */
+  if(VIEW==='space' && SPACE && SPACE.workspace && !spaceHasChannel()){
+    var msg = canEditSpace()
+      ? 'link this space’s channels (Set up channels, above) and the live read, radar and plan appear here'
+      : 'this space has no channels linked yet — an owner or admin sets them up';
+    ['radarBody','nextBody','roadBody','signalsBody','winBody'].forEach(function(id){ var el=$(id); if(el) el.innerHTML='<div class="tsub">'+msg+'</div>'; });
+    return;
+  }
+  liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals();
+}
 
 /* ============ LIVE PULSE: flip odometers polling real counts ============ */
 var PULSE={ poll:null, anim:null, c:{} }; /* c[key]={val,rate,lastVal,lastTs,el} */
@@ -2752,7 +2799,7 @@ function renderCalendar(){
   var hint=$('calHint');
   if(hint){
     if(!rows.length) hint.innerHTML='Open any idea and set a <b style="color:var(--accent)">publish date</b> to drop it here, your next two weeks planned at a glance.';
-    else hint.innerHTML = (overdue.length?'<span style="color:var(--warning)">'+overdue.length+' past due</span> · ':'')+rows.length+' scheduled'+(teamLens?' · shared with your team':'');
+    else hint.innerHTML = (overdue.length?'<span style="color:var(--warning)">'+overdue.length+' past due</span> · ':'')+rows.length+' scheduled'+(teamLens?' · shared with your space':'');
   }
 }
 function renderIdeas(rows){
@@ -2835,12 +2882,12 @@ function openIdeaEditor(id, seedText, opts){
   var toBoard = _iedTarget==='board';
   /* a board idea is always the active team; the swipe file follows the lens */
   var teamView = toBoard || !!(VIEW==='space' && SPACE && SPACE.workspace);
-  var teamName = (SPACE&&SPACE.workspace&&SPACE.workspace.name)||'team';
+  var teamName = (SPACE&&SPACE.workspace&&SPACE.workspace.name)||'space';
   var lens=$('iedLens'); if(lens){ lens.className='ied-lens '+(teamView?'team':'mine'); lens.textContent = teamView ? ('⬡ '+esc(teamName)) : '◈ personal'; }
   var where=$('iedWhere'); if(where){ where.innerHTML = toBoard
-    ? 'posted to the <b style="color:hsl(45 95% 66%)">'+esc(teamName)+'</b> team board, everyone in the space sees it.'
+    ? 'posted to the <b style="color:hsl(45 95% 66%)">'+esc(teamName)+'</b> space board, everyone in the space sees it.'
     : (teamView
-      ? 'saved to your <b style="color:hsl(45 95% 66%)">shared team</b> idea bank, everyone in the space sees it.'
+      ? 'saved to the <b style="color:hsl(45 95% 66%)">'+esc(teamName)+'</b> shared idea bank, everyone in the space sees it.'
       : 'saved to your <b style="color:hsl(260 90% 72%)">personal</b> idea bank, only you see it.'); }
   $('iedTitle').value = editing ? (toBoard?(_iedRow.body||''):(_iedRow.text||'')) : (seedText||'');
   $('iedFmt').value = (_iedRow.format)||'';
@@ -2924,7 +2971,7 @@ function saveIdeaEditor(){
   }
   /* ---- team board post ---- */
   if(toBoard){
-    if(!(SPACE&&SPACE.workspace)){ $('iedSave').disabled=false; $('iedMsg').textContent='open a team first'; return; }
+    if(!(SPACE&&SPACE.workspace)){ $('iedSave').disabled=false; $('iedMsg').textContent='open a space first'; return; }
     var bFull={ body:title, kind:'idea', notes:notes, script:script };
     var bLean={ body:title, kind:'idea' };
     var runB=function(patch, isRetry){
