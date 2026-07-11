@@ -1801,6 +1801,13 @@ function applyLensChrome(){
   if(ts) ts.style.display = teamLens ? '' : 'none'; /* the space tile only shows inside a space; create lives in the top lens bar */
   /* your profile travels with you: pin a compact "you" bar on top inside a space */
   renderYouBar(teamLens);
+  /* the space's channel header belongs down with the analysis, not on top.
+     in a space, move it above the platform selector; on My Dashboard it stays on top. */
+  var ih=$('idhead');
+  if(ih && ih.parentNode){
+    if(teamLens){ var anchor=$('ptabs'); if(anchor && anchor.parentNode===ih.parentNode && ih.nextSibling!==anchor) ih.parentNode.insertBefore(ih, anchor); }
+    else { var yb=$('youBar'); if(yb && yb.parentNode===ih.parentNode && ih.previousSibling!==yb) ih.parentNode.insertBefore(ih, yb.nextSibling); }
+  }
   /* content calendar is a personal-dashboard thing, not part of a space */
   var cal=$('tCal'); if(cal) cal.style.display = teamLens ? 'none' : '';
   /* plan + billing are personal account concerns — never inside a space */
