@@ -2289,18 +2289,9 @@ function persistIdentity(cb){
     } else if(cb) cb();
   });
 }
-function saveProfileFields(f){
-  var base={ id:USER.id, email:USER.email, updated_at:new Date().toISOString() };
-  return sb.from('viralsidekick_profiles').upsert(Object.assign({},base,f)).then(function(r){
-    if(r.error){ /* extended columns may not exist yet, persist the essentials */
-      var safe={ id:USER.id, email:USER.email, updated_at:base.updated_at };
-      if(f.primary_channel_id!=null) safe.primary_channel_id=f.primary_channel_id;
-      if(f.primary_channel_name!=null) safe.primary_channel_name=f.primary_channel_name;
-      return sb.from('viralsidekick_profiles').upsert(safe);
-    }
-    return r;
-  });
-}
+/* profile writes go through the server (Teams workflow, service key) - the profiles
+   table blocks direct client writes by design, so this is the reliable path. */
+function saveProfileFields(f){ return teamsApi('save_profile', f).then(function(d){ return d||{}; }).catch(function(){ return {}; }); }
 
 /* ---------- identity header ---------- */
 function looksRaw(s){ return !s || /^https?:|youtube\.com|^UC[0-9A-Za-z_-]{22}$/.test(String(s)); }
@@ -2475,19 +2466,16 @@ function saveProfile(){
     closeProfile(); try{ renderIdentity(); renderPlatChips(); if(typeof applyLensChrome==='function') applyLensChrome(); if(VIEW==='space' && typeof renderSpace==='function' && SPACE && SPACE.workspace){ renderSpace(); renderTeamHeader(); } }catch(e){}
   });
 }
-/* one upsert; a duplicate username comes back as a unique violation (23505) we surface as "taken".
-   if the username column isnt live yet, save the rest so banner/picture still stick. */
+/* save via the server (Teams workflow, service key). the profiles table blocks direct
+   client writes, so this is the reliable path. server checks username uniqueness and
+   only writes whitelisted fields (plan/billing stay server-only). */
 function saveUsernameProfile(uname, fields){
-  var base={ id:USER.id, email:USER.email, updated_at:new Date().toISOString() };
-  return sb.from('viralsidekick_profiles').upsert(Object.assign({},base,fields)).then(function(r){
-    if(r.error){
-      var c=(r.error.code||'')+'', m=(r.error.message||'')+'';
-      if(c==='23505' || /duplicate key|unique/i.test(m)) return {taken:true};
-      var f2={}; for(var k in fields){ if(k!=='username') f2[k]=fields[k]; } /* column missing etc: drop username, keep the rest */
-      return sb.from('viralsidekick_profiles').upsert(Object.assign({},base,f2)).then(function(r2){ return r2.error?{error:true,msg:(r2.error.message||m)}:{ok:true}; });
-    }
+  return teamsApi('save_profile', fields).then(function(d){
+    if(!d) return {error:true,msg:'no response from server'};
+    if(d.taken) return {taken:true};
+    if(d.error) return {error:true,msg:d.error};
     return {ok:true};
-  }).catch(function(e){ return {error:true,msg:(e&&e.message)||''}; });
+  }).catch(function(e){ return {error:true,msg:(e&&e.message)||'network'}; });
 }
 function renderIdentity(){
   var inSpace=(VIEW==='space' && SPACE && SPACE.workspace);
