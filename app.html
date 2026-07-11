@@ -732,22 +732,27 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .lens-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.05em;padding:2px 8px;border-radius:6px;vertical-align:middle;margin-left:4px;white-space:nowrap}
 .lens-tag.mine{color:var(--mine-txt);border:1px solid hsl(260 90% 66% / .45)}
 .lens-tag.team{color:var(--team-txt);border:1px solid hsl(45 95% 62% / .5);background:hsl(45 95% 62% / .08)}
-/* team collaboration header card over the team section */
-.tc-header{text-align:center;margin:14px 0 8px;padding:18px 16px;border:1px solid hsl(45 95% 62% / .24);border-radius:16px;background:radial-gradient(130% 120% at 50% 0,hsl(45 95% 62% / .08),transparent 68%)}
+/* team collaboration header + management surface over the team section */
+.tc-header{text-align:left;margin:14px 0 8px;padding:18px 18px 16px;border:1px solid hsl(45 95% 62% / .24);border-radius:16px;background:radial-gradient(130% 120% at 0 0,hsl(45 95% 62% / .08),transparent 68%)}
+.tc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .tc-eyebrow{font-family:var(--mono);font-size:.58rem;letter-spacing:.34em;text-transform:uppercase;color:hsl(45 95% 66%);font-weight:700}
-.tc-name{font-family:var(--mono);font-weight:800;font-size:clamp(1.5rem,4.6vw,2.5rem);letter-spacing:.04em;color:var(--fg);margin-top:8px;line-height:1.1;text-wrap:balance}
-.tc-avatars{display:flex;justify-content:center;margin-top:13px}
-.tc-av{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.64rem;font-weight:700;color:hsl(230 24% 6%);background:hsl(45 95% 62%);border:2px solid var(--bg);margin-left:-7px}
-.tc-av:first-child{margin-left:0}
-.tc-av.more{background:hsl(230 20% 22%);color:var(--muted)}
-.tc-av.pending{background:transparent;border:2px dashed hsl(45 95% 62% / .5);color:hsl(45 95% 66%)}
-.tc-stats{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:15px}
+.tc-name{font-family:var(--mono);font-weight:800;font-size:clamp(1.3rem,3.6vw,2rem);letter-spacing:.03em;color:var(--fg);margin-top:6px;line-height:1.1;text-wrap:balance;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tc-plan{font-family:var(--sans);font-size:.58rem;font-weight:700;letter-spacing:.04em;color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1);border-radius:6px;padding:3px 8px;text-transform:uppercase}
+.tc-seats{font-family:var(--mono);font-size:.72rem;color:var(--muted);flex:0 0 auto;padding-top:5px;white-space:nowrap}
+.tc-stats{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:8px;margin-top:15px}
 .tc-stat{font-family:var(--mono);font-size:.66rem;letter-spacing:.02em;color:var(--muted);border:1px solid var(--border2);border-radius:8px;padding:5px 11px}
 .tc-stat b{color:var(--fg);font-weight:700}
 .tc-stat.hot{border-color:hsl(45 95% 62% / .5)}
 .tc-stat.hot b{color:hsl(45 95% 66%)}
-.tc-invite{margin-top:14px}
-.tc-invite .hbtn{font-size:.64rem;padding:5px 12px}
+.tc-hint{margin-top:12px;font-size:.82rem;color:var(--muted)}
+.tc-hint a{color:hsl(45 95% 62%)}
+.tc-members{margin-top:14px;display:flex;flex-direction:column;gap:7px}
+.tc-members:empty{display:none}
+.tc-manage .caprow{margin-top:12px}
+.tc-manage .caprow input,.tc-manage .caprow select{background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);padding:9px 12px}
+.tc-manage .caprow input{flex:1;font-size:.86rem}
+.tc-manage .caprow select{font-size:.84rem;padding:9px}
+.tc-danger{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
 .pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
 .pkg-sec{margin-bottom:15px}
 .pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -1039,13 +1044,19 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <!-- lens bar: which view am I in (private vs shared team space) -->
       <div class="lensbar" id="lensBar" aria-live="polite" style="display:none"></div>
 
-      <!-- shared-space collaboration header (top of the space, team lens only) -->
+      <!-- shared-space header + management (top of the space, team lens only) -->
       <div class="tc-header" id="teamsBanner" style="display:none">
-        <div class="tc-eyebrow">Shared Space</div>
-        <div class="tc-name" id="tcName"></div>
-        <div class="tc-avatars" id="tcAvatars"></div>
+        <div class="tc-top">
+          <div class="tc-id">
+            <div class="tc-eyebrow">◇ Shared Space</div>
+            <div class="tc-name" id="tcName"></div>
+          </div>
+          <div class="tc-seats" id="tcSeats"></div>
+        </div>
         <div class="tc-stats" id="tcStats"></div>
-        <div class="tc-invite" id="tcInvite"></div>
+        <div class="tc-hint" id="tcHint" style="display:none"></div>
+        <div class="tc-members" id="tcMembers"></div>
+        <div class="tc-manage" id="tcManage"></div>
       </div>
 
       <!-- content niche banner -->
@@ -1218,11 +1229,6 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <section class="zone" style="--zc:hsl(45 95% 62%)">
 <div class="zone-h"><span class="zdot"></span>your orbit · people + account</div>
 <div class="bento">
-<div class="tile s4" id="tSpace" style="--tc:hsl(45 95% 62%);display:none">
-          <h3><span class="acc" aria-hidden="true">⬡</span> your space <span class="end" id="spaceEnd"></span></h3>
-          <div id="spaceBody"><div class="tsub">Loading your space…</div></div>
-        </div>
-
 <div class="tile s2 quiet" id="tMiles">
           <h3><span class="acc" aria-hidden="true">✦</span> milestones</h3>
           <div class="ms" id="milesBody">
@@ -1787,8 +1793,7 @@ function applyLensChrome(){
   /* team board + your space are team data, they only belong in the team lens
      (the one exception: a Team-plan owner with no space yet needs the create box) */
   var tb=$('tBoard'); if(tb) tb.style.display=teamLens?'':'none';
-  var ts=$('tSpace');
-  if(ts) ts.style.display = teamLens ? '' : 'none'; /* the space tile only shows inside a space; create lives in the top lens bar */
+  /* space management now lives entirely in the top collaboration banner (teamsBanner) */
   /* your profile travels with you: pin a compact "you" bar on top inside a space */
   renderYouBar(teamLens);
   /* the space's channel header belongs down with the analysis, not on top.
@@ -1828,25 +1833,17 @@ function renderYouBar(teamLens){
     else paintAvatar(el,'preset:v1',init);
   }
 }
-function _tcInitials(m){
-  var s=String((typeof memberName==='function'?memberName(m):(m.display_name||m.email))||'').trim(); if(!s) return '?';
-  var parts=s.replace(/@.*/,'').split(/[\s._-]+/).filter(Boolean);
-  if(parts.length>=2) return (parts[0][0]+parts[1][0]).toUpperCase();
-  return s.slice(0,2).toUpperCase();
-}
-/* the header earns its space: who is on the team + what is actually in flight */
+/* the top banner is the whole team surface: identity, live activity, roster with
+   role controls, invites, plan + delete. one place, no redundant second tile. */
 function renderTeamHeader(){
   if(!(SPACE&&SPACE.workspace)) return;
-  var nm=$('tcName'); if(nm) nm.textContent=SPACE.workspace.name||'your space';
-  var mem=SPACE.members||[], inv=SPACE.invites||[];
-  var av=$('tcAvatars');
-  if(av){
-    var show=mem.slice(0,5);
-    var h=show.map(function(m){ return '<span class="tc-av" title="@'+esc(memberName(m))+' · '+esc(m.role||'')+'">'+esc(_tcInitials(m))+'</span>'; }).join('');
-    if(mem.length>5) h+='<span class="tc-av more" title="'+(mem.length-5)+' more">+'+(mem.length-5)+'</span>';
-    inv.slice(0,3).forEach(function(i){ h+='<span class="tc-av pending" title="invited · '+esc(i.email||'')+'">•</span>'; });
-    av.innerHTML=h;
-  }
+  var ws=SPACE.workspace, mem=SPACE.members||[], inv=SPACE.invites||[];
+  var mine=mem.filter(function(x){return x.user_id===USER.id;})[0];
+  var role=mine?mine.role:'viewer';
+  var isTeam=(ws.plan==='team');
+  var canMod=(role==='owner'||role==='admin');
+  var nm=$('tcName'); if(nm) nm.innerHTML=esc(ws.name||'your space')+(isTeam?' <span class="tc-plan">team plan</span>':'');
+  var se=$('tcSeats'); if(se) se.innerHTML=seatLabel();
   var st=$('tcStats');
   if(st){
     var posts=_boardCache||[];
@@ -1860,12 +1857,38 @@ function renderTeamHeader(){
       +'<span class="tc-stat"><b>'+done+'</b> done</span>'
       +(last?'<span class="tc-stat">active '+relTime(last)+'</span>':'<span class="tc-stat">no posts yet</span>');
   }
-  var ib=$('tcInvite');
-  if(ib){
-    var meM=mem.filter(function(m){return m.user_id===USER.id;})[0];
-    var canInv=meM&&(meM.role==='owner'||meM.role==='admin');
-    ib.innerHTML = canInv ? '<button class="hbtn" onclick="document.getElementById(\'invEmail\')&&document.getElementById(\'invEmail\').focus()">+ invite a teammate</button>' : '';
+  var hint=$('tcHint');
+  if(hint){
+    if(!spaceHasChannel() && canMod){
+      hint.style.display='';
+      hint.innerHTML='Next: <a href="#" onclick="openConnect();return false">link this space’s channels</a>, then invite your team below.';
+    } else hint.style.display='none';
   }
+  var mb=$('tcMembers');
+  if(mb){
+    var h=mem.map(roleChip).join('');
+    inv.forEach(function(i){ h+='<div class="q-item"><div class="q-b done"><div class="t">'+esc(i.email)+' <span class="q-sev med">invited · pending</span></div></div></div>'; });
+    mb.innerHTML=h;
+  }
+  var mg=$('tcManage');
+  if(mg){
+    var m='';
+    if(canMod){
+      m+='<div class="caprow">'
+        +'<input id="invEmail" type="email" placeholder="invite by email…" onkeydown="if(event.key===\'Enter\')inviteMember()">'
+        +'<select id="invRole"><option value="viewer">viewer</option><option value="admin">admin</option></select>'
+        +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="inviteMember()">Invite</button>'
+        +'</div>';
+    }
+    if(!isTeam){
+      m+='<div class="tsub" style="margin-top:12px">This space is on the free plan, <a href="#" onclick="document.getElementById(\'teamBtn\').click();return false" style="color:hsl(45 95% 62%)">upgrade to Team</a> to open Pro for every member.</div>';
+    }
+    if(role==='owner'){
+      m+='<div class="tc-danger"><button class="btn btn-ghost btn-sm" style="color:var(--danger);border-color:hsl(0 84% 60% / .4)" onclick="openDeleteSpace()">Delete this space</button></div>';
+    }
+    mg.innerHTML=m;
+  }
+  var tu=$('tTeamUp'); if(tu) tu.style.display = isTeam ? 'none' : '';
 }
 function spaceScans(){
   /* two clean scopes: MY view = my private scans (never a workspace row); SPACE view = the team's shared record only */
@@ -1915,7 +1938,7 @@ function openBilling(btn){
     else { btn.textContent=(d&&d.error)||'try again'; setTimeout(function(){btn.textContent=orig;},2500); }
   }).catch(function(){ btn.textContent='try again'; btn.disabled=false; setTimeout(function(){btn.textContent=orig;},2500); });
 }
-function spaceFallback(){ $('spaceBody').innerHTML='<div class="tsub">Spaces are warming up, check back shortly.</div>'; }
+function spaceFallback(){ var e=$('tcMembers'); if(e) e.innerHTML='<div class="tsub">Spaces are warming up, check back shortly.</div>'; }
 /* team plan lives on the WORKSPACE, a member's own profile stays free. reflect the
    team's paid plan so invited members get the Pro tools their team paid for. */
 /* single source of truth for entitlement. own paid plan (with a live status) OR a team-plan workspace.
@@ -1924,7 +1947,7 @@ function ownPro(){ return (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROF
 function recomputePro(){ IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); try{ renderPro(); }catch(e){} }
 function syncTeamPro(){ recomputePro(); }
 function seatLabel(){ if(!(SPACE&&SPACE.workspace)) return ''; var n=(SPACE.members&&SPACE.members.length)||0; return (SPACE.workspace.plan==='team')?'<span style="color:hsl(45 95% 62%)">'+n+'/5 seats</span>':n+'/5 seats'; }
-function spaceNote(t){ var e=$('spaceEnd'); if(e){ e.textContent=t; setTimeout(function(){ e.innerHTML=seatLabel(); },4000); } }
+function spaceNote(t){ var e=$('tcSeats'); if(e){ e.textContent=t; setTimeout(function(){ e.innerHTML=seatLabel(); },4000); } }
 function applySpace(d){
   if(!d || d.error){
     if(d && /not signed in/.test(d.error||'')) spaceFallback();
@@ -1939,7 +1962,7 @@ function applySpace(d){
   try{ var pv=localStorage.getItem('vs_view'); if(pv==='space'||(IDENT._adopted)) VIEW='space'; else if(pv==='mine') VIEW='mine'; }catch(e){}
   if(IDENT._adopted) VIEW='space';
   renderViewSwitch();
-  renderSpace();
+  renderTeamHeader();
   loadBoard();
   applyLensChrome();
   try{ renderIdentity(); renderPlatChips(); renderTabs(); }catch(e){} /* header + platforms reflect the applied lens */
@@ -2033,47 +2056,6 @@ function roleChip(m){
     html+='<button class="btn btn-ghost btn-sm" onclick="rmMember(\''+m.user_id+'\')" aria-label="remove member">✕</button>';
   }
   return html+'</div>';
-}
-function renderSpace(){
-  /* visibility of this tile is owned by applyLensChrome (team lens only) */
-  var ws=SPACE.workspace, mem=SPACE.members||[], inv=SPACE.invites||[];
-  var mine=mem.filter(function(x){return x.user_id===USER.id;})[0];
-  var myRole=mine?mine.role:'viewer';
-  var isTeam=(ws.plan==='team');
-  $('spaceEnd').innerHTML=seatLabel();
-  var html='';
-  /* on more than one team -> a switcher right here, active team highlighted */
-  if(SPACES && SPACES.length>1){
-    html+='<div class="team-switch" role="tablist" aria-label="switch space">'
-      +(SPACES||[]).map(function(t){
-        var on=(t.id===ws.id);
-        return '<button class="tsw'+(on?' on':'')+'"'+(on?' aria-current="true"':' onclick="switchSpace(\''+esc(t.id)+'\')"')+'>⬡ '+esc(t.name||'space')+'</button>';
-      }).join('')
-      +'</div>';
-  }
-  html+='<div class="tlead" style="margin-bottom:8px">'+esc(ws.name||'your space')
-    +(isTeam?' <span class="q-sev" style="color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1)">team plan</span>':'')+'</div>';
-  if(!spaceHasChannel() && (myRole==='owner'||myRole==='admin')){
-    html+='<div class="tsub" style="margin:2px 0 10px">Next: <a href="#" onclick="openConnect();return false" style="color:hsl(45 95% 62%)">link this space’s channels</a>, then invite your team below.</div>';
-  }
-  html+=mem.map(roleChip).join('');
-  inv.forEach(function(i){ html+='<div class="q-item"><div class="q-b done"><div class="t">'+esc(i.email)+' <span class="q-sev med">invited · pending</span></div></div></div>'; });
-  if(myRole==='owner'||myRole==='admin'){
-    html+='<div class="caprow" style="margin-top:12px">'
-      +'<input id="invEmail" type="email" placeholder="invite by email…" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key===\'Enter\')inviteMember()">'
-      +'<select id="invRole" style="background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);padding:9px;font-family:var(--sans);font-size:.84rem"><option value="viewer">viewer</option><option value="admin">admin</option></select>'
-      +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="inviteMember()">Invite</button>'
-      +'</div>';
-  }
-  if(!isTeam){
-    html+='<div class="tsub" style="margin-top:12px">This space is on the free plan, <a href="#" onclick="document.getElementById(\'teamBtn\').click();return false" style="color:hsl(45 95% 62%)">upgrade to Team</a> to open Pro for every member.</div>';
-  }
-  if(myRole==='owner'){
-    html+='<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">'
-      +'<button class="btn btn-ghost btn-sm" style="color:var(--danger);border-color:hsl(0 84% 60% / .4)" onclick="openDeleteSpace()">Delete this space</button></div>';
-  }
-  $('spaceBody').innerHTML=html;
-  var tu=$('tTeamUp'); if(tu) tu.style.display = isTeam ? 'none' : '';
 }
 /* ---------- team board: the space's shared scratchpad ---------- */
 var _boardCache=[];
@@ -2467,7 +2449,7 @@ function saveProfile(){
     if(res && res.error){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent=(res.msg? ('could not save: '+res.msg) : 'could not save, try again'); } return; }
     if(uname) PROFILE.username=uname;
     PROFILE.profile_banner=banner; PROFILE.profile_avatar=avatar;
-    closeProfile(); try{ renderIdentity(); renderPlatChips(); if(typeof applyLensChrome==='function') applyLensChrome(); if(VIEW==='space' && typeof renderSpace==='function' && SPACE && SPACE.workspace){ renderSpace(); renderTeamHeader(); } }catch(e){}
+    closeProfile(); try{ renderIdentity(); renderPlatChips(); if(typeof applyLensChrome==='function') applyLensChrome(); if(VIEW==='space' && typeof renderTeamHeader==='function' && SPACE && SPACE.workspace){ renderTeamHeader(); } }catch(e){}
   });
 }
 /* save via the server (Teams workflow, service key). the profiles table blocks direct
