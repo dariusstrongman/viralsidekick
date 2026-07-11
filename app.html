@@ -1722,7 +1722,7 @@ function applyLensChrome(){
      (the one exception: a Team-plan owner with no space yet needs the create box) */
   var tb=$('tBoard'); if(tb) tb.style.display=teamLens?'':'none';
   var ts=$('tSpace');
-  if(ts) ts.style.display = teamLens ? '' : ((!hasTeams&&canCreate)?'':'none');
+  if(ts) ts.style.display = teamLens ? '' : 'none'; /* the space tile only shows inside a space; create lives in the top lens bar */
   /* only tag scoped tiles when the user actually has both lenses to confuse */
   var name=inTeam?(SPACE.workspace.name||'space'):'';
   setLensTag('ideaLensTag', teamLens, name, hasTeams);
@@ -1855,13 +1855,8 @@ function renderNoSpace(){
   SPACE=null; VIEW='mine'; recomputePro(); /* dropped from the space -> back to personal, lose team-granted Pro unless own plan covers it */
   try{ localStorage.setItem('vs_view','mine'); localStorage.removeItem('vs_space'); }catch(e){}
   var canCreate = (typeof PROFILE!=='undefined' && PROFILE && PROFILE.plan==='team');
-  if(canCreate){
-    var end=$('spaceEnd'); if(end) end.textContent='';
-    $('spaceBody').innerHTML='<div class="tsub" style="margin-bottom:12px">You have no spaces yet. A space is a shared workspace with its own channels and team, separate from your personal dashboard.</div>'
-      +'<button class="btn btn-primary" onclick="openCreateSpace()">＋ Create a space</button>';
-  }
   var tu0=$('tTeamUp'); if(tu0) tu0.style.display = canCreate ? 'none' : '';
-  renderViewSwitch();  /* surface the Create button up top even with zero spaces */
+  renderViewSwitch();  /* the Create button lives up top in the lens bar, not in a bottom tile */
   applyLensChrome();
 }
 /* create a space via the setup modal (works from 0 spaces up to the 3-owned cap) */
@@ -1948,13 +1943,12 @@ function renderSpace(){
   $('spaceEnd').innerHTML=seatLabel();
   var html='';
   /* on more than one team -> a switcher right here, active team highlighted */
-  if((SPACES && SPACES.length>1) || canCreateMoreSpaces()){
+  if(SPACES && SPACES.length>1){
     html+='<div class="team-switch" role="tablist" aria-label="switch space">'
       +(SPACES||[]).map(function(t){
         var on=(t.id===ws.id);
         return '<button class="tsw'+(on?' on':'')+'"'+(on?' aria-current="true"':' onclick="switchSpace(\''+esc(t.id)+'\')"')+'>⬡ '+esc(t.name||'space')+'</button>';
       }).join('')
-      +(canCreateMoreSpaces()?'<button class="tsw new" onclick="switchToNewSpace()" title="create a new space">+ new space</button>':'')
       +'</div>';
   }
   html+='<div class="tlead" style="margin-bottom:8px">'+esc(ws.name||'your space')
