@@ -1655,8 +1655,14 @@ function gradeOf(s){ var t=[[97,'S'],[90,'A'],[80,'B'],[70,'C'],[60,'D']]; for(v
 function scoreColor(s){ if(s==null) return 'var(--faint)'; if(s>=75) return 'var(--success)'; if(s>=50) return 'var(--warning)'; return 'var(--danger)'; }
 function gcolor(g){ var c=(g||'')[0]; if(c==='S')return 'hsl(45 95% 62%)'; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
 
+/* the top-right account handle. rendered on load AND after a username change so
+   the topbar never lags behind the profile the user just saved. */
+function renderNav(){
+  var nr=$('navRight'); if(!nr) return;
+  nr.innerHTML = '<span>@'+esc(acctName())+'</span><button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>';
+}
 function showApp(){
-  $('navRight').innerHTML = '<span>@'+esc(acctName())+'</span><button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>';
+  renderNav();
   setBilling(BILLING);
   var tb = $('teamBtn');
   if (tb) tb.href = _withRef(TEAM_LINK);
@@ -1725,6 +1731,7 @@ function loadProfile(){
 function showOnboard(){ $('hqWrap').classList.add('hide'); $('onboard').classList.remove('hide'); renderObProfile(); }
 function enterHQ(){
   $('onboard').classList.add('hide'); $('hqWrap').classList.remove('hide');
+  renderNav(); /* topbar handle reflects the username just claimed in onboarding */
   renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube');
   renderPro(); goLive(); initSpace();
   celebrateUpgrade();
@@ -2498,7 +2505,7 @@ function saveProfile(){
     if(res && res.error){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent=(res.msg? ('could not save: '+res.msg) : 'could not save, try again'); } return; }
     if(uname) PROFILE.username=uname;
     PROFILE.profile_banner=banner; PROFILE.profile_avatar=avatar;
-    closeProfile(); try{ renderIdentity(); renderPlatChips(); if(typeof applyLensChrome==='function') applyLensChrome(); if(VIEW==='space' && typeof renderTeamHeader==='function' && SPACE && SPACE.workspace){ renderTeamHeader(); } }catch(e){}
+    closeProfile(); try{ renderNav(); renderIdentity(); renderPlatChips(); if(typeof applyLensChrome==='function') applyLensChrome(); if(VIEW==='space' && typeof renderTeamHeader==='function' && SPACE && SPACE.workspace){ renderTeamHeader(); } }catch(e){}
   });
 }
 /* save via the server (Teams workflow, service key). the profiles table blocks direct
