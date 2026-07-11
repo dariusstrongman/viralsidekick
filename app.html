@@ -406,6 +406,15 @@ footer a:hover{color:var(--fg)}
 }
 .tile h3 .acc{color:var(--tc,var(--primary))}
 .tile h3 .end{margin-left:auto;letter-spacing:.05em;color:var(--faint)}
+/* marching-orders header: count + last-read + the read/refresh control, right-aligned.
+   this is where the coach re-read lives now (off the profile identity header). */
+.tile h3:has(.q-head-r){flex-wrap:wrap;row-gap:8px}
+.q-head-r{margin-left:auto;display:flex;align-items:center;gap:11px;text-transform:none;letter-spacing:0}
+.q-head-r .q-count{font-family:var(--mono);font-size:.6rem;letter-spacing:.05em;color:var(--faint);text-transform:uppercase}
+.q-head-r .q-when{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.q-head-r .q-refresh{text-transform:none;letter-spacing:0}
+.q-head-r .scanline{font-size:.72rem}
+@media (max-width:520px){.q-head-r .q-when{display:none}}
 .tile.radar{--tc:var(--accent)}
 .tile.play{--tc:var(--warning)}
 /* HERO tile: the radar is the moat - let it glow */
@@ -1062,11 +1071,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <div id="viewSwitch" class="viewswitch" style="display:none"></div>
         </div>
         <div class="id-actions">
-          <span class="sm mut" id="hqWhen" style="font-size:.74rem" aria-live="polite"></span>
-          <button id="refreshBtn" class="btn btn-ghost btn-sm" onclick="refreshLive()">↻ Refresh</button>
           <button id="editProfBtn" class="btn btn-ghost btn-sm" style="display:none" onclick="openProfile()">Edit profile</button>
           <button id="editChBtn" class="btn btn-ghost btn-sm" onclick="openConnect()">Edit channels</button>
-          <div id="scanRun" class="scanline" aria-live="polite"><span class="spin" aria-hidden="true"></span><span id="scanRunTxt">refreshing…</span></div>
         </div>
       </div>
 
@@ -1199,7 +1205,14 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <div class="zone-h"><span class="zdot"></span>the plan · what you do next</div>
 <div class="bento">
 <div class="tile s3" id="tQueue">
-          <h3><span class="acc" aria-hidden="true">☑</span> marching orders <span class="end" id="qCount"></span></h3>
+          <h3><span class="acc" aria-hidden="true">☑</span> marching orders
+            <span class="q-head-r">
+              <span class="q-count" id="qCount"></span>
+              <span class="q-when" id="hqWhen" aria-live="polite"></span>
+              <span id="scanRun" class="scanline" aria-live="polite"><span class="spin" aria-hidden="true"></span><span id="scanRunTxt">reading…</span></span>
+              <button id="refreshBtn" class="btn btn-ghost btn-sm q-refresh" onclick="refreshLive()">↻ Refresh</button>
+            </span>
+          </h3>
           <div id="queueBody"><div class="tsub">Every order lands here. Ship it, check it, watch the score move.</div></div>
           <div class="caprow">
             <input id="capIn" type="text" placeholder="capture your own idea…"
