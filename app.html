@@ -2469,7 +2469,7 @@ function saveProfile(){
   if(uname) fields.username=uname;
   saveUsernameProfile(uname, fields).then(function(res){
     if(res && res.taken){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent='@'+uname+' is taken, try another'; } return; }
-    if(res && res.error){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent='could not save, try again'; } return; }
+    if(res && res.error){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent=(res.msg? ('could not save: '+res.msg) : 'could not save, try again'); } return; }
     if(uname) PROFILE.username=uname;
     PROFILE.profile_banner=banner; PROFILE.profile_avatar=avatar;
     closeProfile(); try{ renderIdentity(); renderPlatChips(); if(typeof applyLensChrome==='function') applyLensChrome(); if(VIEW==='space' && typeof renderSpace==='function' && SPACE && SPACE.workspace){ renderSpace(); renderTeamHeader(); } }catch(e){}
@@ -2484,10 +2484,10 @@ function saveUsernameProfile(uname, fields){
       var c=(r.error.code||'')+'', m=(r.error.message||'')+'';
       if(c==='23505' || /duplicate key|unique/i.test(m)) return {taken:true};
       var f2={}; for(var k in fields){ if(k!=='username') f2[k]=fields[k]; } /* column missing etc: drop username, keep the rest */
-      return sb.from('viralsidekick_profiles').upsert(Object.assign({},base,f2)).then(function(r2){ return r2.error?{error:true}:{ok:true}; });
+      return sb.from('viralsidekick_profiles').upsert(Object.assign({},base,f2)).then(function(r2){ return r2.error?{error:true,msg:(r2.error.message||m)}:{ok:true}; });
     }
     return {ok:true};
-  }).catch(function(){ return {error:true}; });
+  }).catch(function(e){ return {error:true,msg:(e&&e.message)||''}; });
 }
 function renderIdentity(){
   var inSpace=(VIEW==='space' && SPACE && SPACE.workspace);
