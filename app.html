@@ -1650,17 +1650,22 @@ function verifyYouTube(){
   /* the OAuth redirect leaves the page - stash the onboarding picks so they survive the round-trip */
   try{ if($('onboard') && !$('onboard').classList.contains('hide')){ localStorage.setItem('vs_ob_draft', JSON.stringify({ u:($('obName')&&$('obName').value)||'', a:_obAvatar||'', b:_obBanner||'' })); } }catch(e){}
   try{ var m=$('cmMsg'); if(m){ m.style.color=''; m.textContent='opening google…'; } }catch(e){}
-  var doOAuth=function(){ return sb.auth.signInWithOAuth({ provider:'google', options:opts }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
-  /* logged-in email account -> LINK google to it (keeps their account) */
+  /* logged-in on an email account -> LINK google to it (keeps their account).
+     NEVER fall back to signInWithOAuth here: that would create/switch to a separate
+     google-based account instead of attaching youtube to the account they are on. */
   if(USER && sb.auth.linkIdentity){
     sb.auth.linkIdentity({ provider:'google', options:opts }).then(function(r){
       if(r && r.error){
         var em=String(r.error.message||'');
-        if(/already|linked|exist|manual linking/i.test(em)){ doOAuth(); return; } /* google already linked -> just re-auth to refresh the token */
-        try{ toast(em||'could not open google, try again','err'); }catch(e){}
+        if(/manual linking/i.test(em)) toast('youtube connect needs one setting enabled on the server, hang tight','err');
+        else if(/already|linked|identity.*exist/i.test(em)) toast('that google account is already connected to a different ViralSidekick login','err');
+        else toast(em||'could not open google, try again','err');
       }
     });
-  } else { doOAuth(); }
+  } else {
+    /* brand-new visitor with no account yet -> google sign-in IS their account (no linking needed) */
+    sb.auth.signInWithOAuth({ provider:'google', options:opts }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } });
+  }
 }
 function claimYouTube(session){
   if(!session || !session.provider_token || window._ytClaimed===session.provider_token) return;
