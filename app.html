@@ -1799,7 +1799,7 @@ function applyLensChrome(){
   }
 }
 function _tcInitials(m){
-  var s=String(m.display_name||m.email||'').trim(); if(!s) return '?';
+  var s=String((typeof memberName==='function'?memberName(m):(m.display_name||m.email))||'').trim(); if(!s) return '?';
   var parts=s.replace(/@.*/,'').split(/[\s._-]+/).filter(Boolean);
   if(parts.length>=2) return (parts[0][0]+parts[1][0]).toUpperCase();
   return s.slice(0,2).toUpperCase();
@@ -1812,7 +1812,7 @@ function renderTeamHeader(){
   var av=$('tcAvatars');
   if(av){
     var show=mem.slice(0,5);
-    var h=show.map(function(m){ return '<span class="tc-av" title="'+esc(m.display_name||m.email||'')+' · '+esc(m.role||'')+'">'+esc(_tcInitials(m))+'</span>'; }).join('');
+    var h=show.map(function(m){ return '<span class="tc-av" title="'+esc(memberName(m))+' · '+esc(m.role||'')+'">'+esc(_tcInitials(m))+'</span>'; }).join('');
     if(mem.length>5) h+='<span class="tc-av more" title="'+(mem.length-5)+' more">+'+(mem.length-5)+'</span>';
     inv.slice(0,3).forEach(function(i){ h+='<span class="tc-av pending" title="invited · '+esc(i.email||'')+'">•</span>'; });
     av.innerHTML=h;
@@ -1983,11 +1983,17 @@ function confirmDeleteSpace(){
     teamsApi('my_space').then(applySpace).catch(spaceFallback);
   }).catch(function(){ if(m){ m.style.color='var(--danger)'; m.textContent='network hiccup, try again'; } if(b) b.disabled=false; });
 }
+/* a member's shown name = their profile display name. for yourself, fall back to
+   your account name so it always matches My Dashboard even before a name is saved. */
+function memberName(m){
+  if(m.user_id===USER.id) return acctName();
+  return m.display_name || (m.email||'').split('@')[0] || (m.user_id||'').slice(0,8);
+}
 function roleChip(m){
   var me=(m.user_id===USER.id), mine=SPACE&&(SPACE.members||[]).filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
   var col=m.role==='owner'?'hsl(45 95% 62%)':(m.role==='admin'?'var(--accent)':'var(--muted)');
-  var html='<div class="q-item"><div class="q-b"><div class="t">'+esc(m.display_name||(m.email||'').split('@')[0]||m.user_id.slice(0,8))
+  var html='<div class="q-item"><div class="q-b"><div class="t">'+esc(memberName(m))
     +(me?' <span class="q-sev med">you</span>':'')
     +' <span class="q-sev" style="color:'+col+';background:transparent;border:1px solid '+col+'">'+esc(m.role)+'</span></div></div>';
   if(myRole==='owner' && m.role!=='owner'){
