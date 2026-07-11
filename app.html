@@ -2226,15 +2226,16 @@ function saveProfileFields(f){
 /* ---------- identity header ---------- */
 function looksRaw(s){ return !s || /^https?:|youtube\.com|^UC[0-9A-Za-z_-]{22}$/.test(String(s)); }
 /* ---------- personal profile: banner + picture + name ---------- */
+/* real default banners: layered mesh gradients that read like designed art, not a flat 2-stop fade */
 var BANNER_PRESETS=[
-  {id:'aurora',css:'linear-gradient(120deg,#7c3aed,#06b6d4)'},
-  {id:'grape',css:'linear-gradient(120deg,#8b5cf6,#ec4899)'},
-  {id:'sunset',css:'linear-gradient(120deg,#f59e0b,#ef4444)'},
-  {id:'mint',css:'linear-gradient(120deg,#10b981,#3b82f6)'},
-  {id:'ember',css:'linear-gradient(120deg,#f97316,#7c2d12)'},
-  {id:'violet',css:'linear-gradient(120deg,#6d28d9,#0b0d12)'},
-  {id:'gold',css:'linear-gradient(120deg,#fbbf24,#b45309)'},
-  {id:'mono',css:'linear-gradient(120deg,#334155,#0b0d12)'}
+  {id:'aurora',css:'radial-gradient(60% 130% at 12% 20%,#7c3aedcc,transparent 60%),radial-gradient(55% 130% at 82% 30%,#06b6d4bb,transparent 55%),radial-gradient(80% 150% at 60% 105%,#ec489988,transparent 60%),linear-gradient(120deg,#1e1b4b,#0b0d12)'},
+  {id:'sunset',css:'radial-gradient(60% 130% at 18% 22%,#f59e0bcc,transparent 55%),radial-gradient(58% 130% at 85% 38%,#ef4444bb,transparent 55%),radial-gradient(85% 150% at 52% 105%,#db277799,transparent 60%),linear-gradient(120deg,#3b0764,#0b0d12)'},
+  {id:'ocean',css:'radial-gradient(60% 130% at 14% 24%,#3b82f6cc,transparent 55%),radial-gradient(55% 130% at 84% 34%,#22d3eebb,transparent 55%),radial-gradient(85% 150% at 55% 105%,#0ea5e988,transparent 60%),linear-gradient(120deg,#0c1e3a,#0b0d12)'},
+  {id:'forest',css:'radial-gradient(60% 130% at 16% 24%,#10b981cc,transparent 55%),radial-gradient(55% 130% at 82% 34%,#84cc16aa,transparent 55%),radial-gradient(85% 150% at 55% 105%,#059669aa,transparent 60%),linear-gradient(120deg,#052e2b,#0b0d12)'},
+  {id:'berry',css:'radial-gradient(60% 130% at 16% 22%,#ec4899cc,transparent 55%),radial-gradient(55% 130% at 84% 34%,#a855f7bb,transparent 55%),radial-gradient(85% 150% at 52% 105%,#6d28d999,transparent 60%),linear-gradient(120deg,#3b0764,#0b0d12)'},
+  {id:'gold',css:'radial-gradient(60% 130% at 18% 22%,#fbbf24cc,transparent 55%),radial-gradient(55% 130% at 84% 36%,#f97316bb,transparent 55%),radial-gradient(85% 150% at 55% 105%,#b4530999,transparent 60%),linear-gradient(120deg,#451a03,#0b0d12)'},
+  {id:'ember',css:'radial-gradient(60% 130% at 16% 24%,#ef4444cc,transparent 55%),radial-gradient(55% 130% at 84% 34%,#f9731699,transparent 55%),radial-gradient(85% 150% at 55% 105%,#7c2d1288,transparent 60%),linear-gradient(120deg,#1c0a06,#0b0d12)'},
+  {id:'mono',css:'radial-gradient(60% 130% at 18% 24%,#475569cc,transparent 55%),radial-gradient(55% 130% at 84% 36%,#334155bb,transparent 55%),radial-gradient(85% 150% at 55% 105%,#1e293b99,transparent 60%),linear-gradient(120deg,#1e293b,#0b0d12)'}
 ];
 var AV_PRESETS=[
   {id:'v1',css:'linear-gradient(135deg,#8b5cf6,#06b6d4)'},
@@ -2243,6 +2244,29 @@ var AV_PRESETS=[
   {id:'v4',css:'linear-gradient(135deg,#ec4899,#8b5cf6)'},
   {id:'v5',css:'linear-gradient(135deg,#22d3ee,#3b82f6)'}
 ];
+/* real default profile pictures: inline SVG symbol icons on brand gradients (self-contained data URIs) */
+function _iconAv(path,c1,c2){
+  var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+    +'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs>'
+    +'<rect width="100" height="100" fill="url(#g)"/>'
+    +'<path transform="translate(26 26) scale(2)" fill="#fff" d="'+path+'"/></svg>';
+  return 'data:image/svg+xml,'+encodeURIComponent(s);
+}
+var ICON_AVATARS=[
+  {id:'bolt', uri:_iconAv('M13 2L3 14h6l-1 8 10-12h-7z','#8b5cf6','#06b6d4')},
+  {id:'star', uri:_iconAv('M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z','#f59e0b','#ef4444')},
+  {id:'play', uri:_iconAv('M8 5v14l11-7z','#10b981','#3b82f6')},
+  {id:'heart',uri:_iconAv('M12 21l-1.5-1.4C5 14.6 2 11.9 2 8.5 2 6 4 4 6.5 4c1.6 0 3.1.8 4 2 .9-1.2 2.4-2 4-2C19 4 21 6 21 8.5c0 3.4-3 6.1-8.5 11.1z','#ec4899','#8b5cf6')},
+  {id:'crown',uri:_iconAv('M3 7l4 4 5-7 5 7 4-4-2 12H5z','#22d3ee','#3b82f6')},
+  {id:'spark',uri:_iconAv('M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z','#a855f7','#ec4899')}
+];
+function avUri(id){ for(var i=0;i<ICON_AVATARS.length;i++){ if(ICON_AVATARS[i].id===id) return ICON_AVATARS[i].uri; } return ''; }
+/* account name = what THEY go by, never the youtube channel name */
+function acctName(){
+  if(PROFILE && PROFILE.display_name) return PROFILE.display_name;
+  var u=(typeof USER!=='undefined')?USER:null;
+  return (u&&u.user_metadata&&u.user_metadata.full_name) || ((u&&u.email||'').split('@')[0]) || 'you';
+}
 function presetCss(list,id){ var p=list.filter(function(x){return x.id===id;})[0]; return p?p.css:list[0].css; }
 function bannerBg(val){
   var img;
@@ -2253,6 +2277,7 @@ function bannerBg(val){
 }
 function paintAvatar(av, val, initial){
   if(val && val.indexOf('data:')===0){ av.style.background=''; av.innerHTML='<img src="'+val+'" alt="" loading="lazy">'; return true; }
+  if(val && val.indexOf('preset:icon-')===0){ var u=avUri(val.slice(12)); if(u){ av.style.background=''; av.innerHTML='<img src="'+u+'" alt="" loading="lazy">'; return true; } }
   if(val && val.indexOf('preset:')===0){ av.innerHTML=''; av.style.background=presetCss(AV_PRESETS, val.slice(7)); av.textContent=(initial||'Y'); return true; }
   return false;
 }
@@ -2260,7 +2285,7 @@ var _pfBanner='', _pfAvatar='', _pfName='';
 function openProfile(){
   PROFILE=PROFILE||{};
   _pfBanner=PROFILE.profile_banner||''; _pfAvatar=PROFILE.profile_avatar||''; _pfName=PROFILE.display_name||'';
-  $('pfName').value=_pfName;
+  $('pfName').value=_pfName; $('pfName').setAttribute('placeholder', acctName()||'what you go by');
   var m=$('pfMsg'); if(m){ m.textContent=''; m.style.color=''; }
   var bs=$('pfSave'); if(bs) bs.disabled=false;
   renderPfGrids(); renderPfPreview();
@@ -2275,18 +2300,22 @@ function renderPfGrids(){
   }).join('')+((_pfBanner&&_pfBanner.indexOf('data:')===0)?'<div class="pf-swatch on" data-bcustom style="background:url('+_pfBanner+') center/cover"></div>':'');
   Array.prototype.forEach.call(bg.querySelectorAll('[data-b]'),function(el){ el.onclick=function(){ _pfBanner='preset:'+el.getAttribute('data-b'); renderPfGrids(); renderPfPreview(); }; });
   var ag=$('pfAvGrid');
-  var chOn=(!_pfAvatar||_pfAvatar==='channel');
+  var chOn=(_pfAvatar==='channel');
   ag.innerHTML='<div class="pf-swatch chan'+(chOn?' on':'')+'" data-a="channel">my<br>channel</div>'
+    +ICON_AVATARS.map(function(ic){ return '<div class="pf-swatch'+(_pfAvatar==='preset:icon-'+ic.id?' on':'')+'" style="background:url('+ic.uri+') center/cover" data-a="icon-'+ic.id+'"></div>'; }).join('')
     +AV_PRESETS.map(function(p){ return '<div class="pf-swatch'+(_pfAvatar==='preset:'+p.id?' on':'')+'" style="background:'+p.css+'" data-a="'+p.id+'"></div>'; }).join('')
     +((_pfAvatar&&_pfAvatar.indexOf('data:')===0)?'<div class="pf-swatch on" data-acustom style="background:url('+_pfAvatar+') center/cover"></div>':'');
   Array.prototype.forEach.call(ag.querySelectorAll('[data-a]'),function(el){ el.onclick=function(){ var a=el.getAttribute('data-a'); _pfAvatar=(a==='channel')?'channel':'preset:'+a; renderPfGrids(); renderPfPreview(); }; });
 }
 function renderPfPreview(){
-  var pb=$('pfPrevBanner'); if(pb) pb.style.background = bannerBg(_pfBanner) || 'linear-gradient(120deg,#6d28d9,#0b0d12)';
-  var init=(_pfName||IDENT.yt.name||IDENT.yt.handle||'Y').replace(/^@/,'').charAt(0).toUpperCase();
+  var pb=$('pfPrevBanner'); if(pb) pb.style.background = bannerBg(_pfBanner) || bannerBg('preset:aurora');
+  var init=(_pfName||acctName()||'Y').replace(/^@/,'').charAt(0).toUpperCase();
   var pa=$('pfPrevAv');
-  if(pa && !paintAvatar(pa,_pfAvatar,init)){ pa.style.background=''; if(IDENT.yt.avatar){ pa.innerHTML='<img src="'+esc(IDENT.yt.avatar)+'" alt="">'; } else { pa.innerHTML=''; pa.textContent=init; } }
-  var pn=$('pfPrevName'); if(pn) pn.textContent=_pfName||IDENT.yt.name||'your name';
+  if(pa){
+    if(_pfAvatar==='channel' && IDENT.yt.avatar){ pa.style.background=''; pa.innerHTML='<img src="'+esc(IDENT.yt.avatar)+'" alt="">'; }
+    else if(!paintAvatar(pa,_pfAvatar,init)){ paintAvatar(pa,'preset:v1',init); } /* default = generated initial, not the channel logo */
+  }
+  var pn=$('pfPrevName'); if(pn) pn.textContent=_pfName||acctName()||'your name';
 }
 function pfOnName(){ _pfName=$('pfName').value; renderPfPreview(); }
 function pfUpload(kind){ window._pfKind=kind; var f=$('pfFile'); if(f){ f.value=''; f.click(); } }
@@ -2334,19 +2363,22 @@ function renderIdentity(){
   var yt = spCh ? SPACE.channel : (inSpace ? {} : IDENT.yt);
   var av=$('idAvatar');
   var display = emptySpace ? (SPACE.workspace.name||'your space')
-              : (!inSpace && PROFILE && PROFILE.display_name) ? PROFILE.display_name  /* personal: your chosen name */
+              : (!inSpace) ? acctName()  /* personal: your account name, never the youtube channel name */
               : (looksRaw(yt.name) ? (yt.handle || 'your channel') : yt.name);
-  var idInit=(String(emptySpace?(SPACE.workspace.name||'S'):(display||yt.handle||yt.name||'Y')).replace(/^@/,'').charAt(0)||'Y').toUpperCase();
-  var pAv=(!inSpace && PROFILE)?(PROFILE.profile_avatar||''):''; /* personal profile picture overrides the channel avatar */
-  if(pAv && pAv!=='channel' && paintAvatar(av,pAv,idInit)){ /* painted a preset or uploaded picture */ }
-  else if(yt.avatar){ av.style.background=''; av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="" loading="lazy">'; }
+  var idInit=(String(emptySpace?(SPACE.workspace.name||'S'):(display||'Y')).replace(/^@/,'').charAt(0)||'Y').toUpperCase();
+  if(!inSpace){ /* personal: your own picture, default to a generated avatar not the channel logo */
+    var pAv=(PROFILE&&PROFILE.profile_avatar)||'';
+    if(pAv==='channel'){ if(yt.avatar){ av.style.background=''; av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="" loading="lazy">'; } else paintAvatar(av,'preset:v1',idInit); }
+    else if(pAv && paintAvatar(av,pAv,idInit)){ /* preset, icon or uploaded picture */ }
+    else paintAvatar(av,'preset:v1',idInit); /* default personal avatar = initial on a brand gradient */
+  } else if(yt.avatar){ av.style.background=''; av.innerHTML='<img src="'+esc(yt.avatar)+'" alt="" loading="lazy">'; }
   else { av.style.background=''; av.innerHTML=''; av.textContent=idInit; }
   $('hqName').textContent = display;
   if(av) av.setAttribute('aria-label',(display||'your channel')+' avatar');
   $('idHandle').innerHTML = (inSpace && !emptySpace && yt.handle)? '<b>'+esc(yt.handle)+'</b>' : ''; /* personal: channel handle lives on the YouTube chip, not under your name */
   $('idSubs').textContent = emptySpace ? (canEditSpace()?'no channels linked yet — set up channels →':'no channels linked yet')
     : inSpace ? (yt.subs? ('· '+String(yt.subs).replace(' subscribers',' subs')) : '')
-    : ((PROFILE&&(PROFILE.display_name||PROFILE.profile_avatar||PROFILE.profile_banner)) ? '' : '· personalize with Edit profile →'); /* personal = name + handle, not channel metrics */
+    : ''; /* personal = your name, Edit profile handles the rest (not channel metrics) */
   updateCardLinks();
   var ecb=$('editChBtn');
   if(ecb){
@@ -2358,7 +2390,7 @@ function renderIdentity(){
   var head=$('idhead');
   if(head){
     head.classList.toggle('prof', !inSpace); head.classList.toggle('chan', inSpace);
-    head.style.background = inSpace ? '' : (bannerBg((PROFILE&&PROFILE.profile_banner)||'')||''); /* personal banner */
+    head.style.background = inSpace ? '' : (bannerBg((PROFILE&&PROFILE.profile_banner)||'') || bannerBg('preset:aurora')); /* personal banner, real default */
   }
   var epb=$('editProfBtn'); if(epb) epb.style.display = inSpace ? 'none' : ''; /* profile editing is a personal thing */
   var ty=document.querySelector('.tag-you');
