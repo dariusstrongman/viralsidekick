@@ -1782,6 +1782,8 @@ function applyLensChrome(){
   var tb=$('tBoard'); if(tb) tb.style.display=teamLens?'':'none';
   var ts=$('tSpace');
   if(ts) ts.style.display = teamLens ? '' : 'none'; /* the space tile only shows inside a space; create lives in the top lens bar */
+  /* content calendar is a personal-dashboard thing, not part of a space */
+  var cal=$('tCal'); if(cal) cal.style.display = teamLens ? 'none' : '';
   /* plan + billing are personal account concerns — never inside a space */
   var pc=$('proCard'); if(pc) pc.style.display = teamLens ? 'none' : '';
   if(teamLens){ var tup=$('tTeamUp'); if(tup) tup.style.display='none'; }
@@ -3247,7 +3249,7 @@ function openIdeaEditor(id, seedText, opts){
   $('iedFmt').value = (_iedRow.format)||'';
   var ff=$('iedFmtField'); if(ff) ff.style.display = toBoard ? 'none' : ''; /* board posts have no format column */
   var dt=$('iedDate'); if(dt) dt.value = (_iedRow.scheduled_for)||'';
-  var df=$('iedDateField'); if(df) df.style.display = toBoard ? 'none' : ''; /* calendar is the idea bank, not the board */
+  var df=$('iedDateField'); if(df) df.style.display = (toBoard || (VIEW==='space' && SPACE && SPACE.workspace)) ? 'none' : ''; /* no content calendar in a space, so no publish date there */
   $('iedNotes').value = (_iedRow.notes)||'';
   $('iedMsg').textContent='';
   $('iedDelete').style.display = editing ? '' : 'none';
