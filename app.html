@@ -2259,7 +2259,8 @@ function renderObProfile(){
   if(!_obBanner) _obBanner=(PROFILE&&PROFILE.profile_banner)||'';
   var ag=$('obAvGrid');
   if(ag){
-    ag.innerHTML=ICON_AVATARS.map(function(ic){ return '<div class="pf-swatch'+(_obAvatar==='preset:icon-'+ic.id?' on':'')+'" style="background:url(\''+ic.uri+'\') center/cover" data-a="icon-'+ic.id+'"></div>'; }).join('');
+    ag.innerHTML=CHAR_AVATARS.map(function(c){ return '<div class="pf-swatch'+(_obAvatar==='preset:char-'+c.id?' on':'')+'" style="background:url(\''+c.uri+'\') center/cover" data-a="char-'+c.id+'"></div>'; }).join('')
+      +ICON_AVATARS.map(function(ic){ return '<div class="pf-swatch'+(_obAvatar==='preset:icon-'+ic.id?' on':'')+'" style="background:url(\''+ic.uri+'\') center/cover" data-a="icon-'+ic.id+'"></div>'; }).join('');
     Array.prototype.forEach.call(ag.querySelectorAll('[data-a]'),function(el){ el.onclick=function(){ _obAvatar='preset:'+el.getAttribute('data-a'); renderObProfile(); }; });
   }
   var bg=$('obBannerGrid');
@@ -2338,6 +2339,24 @@ var ICON_AVATARS=[
   {id:'target', uri:_iconAv('M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4z','#818cf8','#7c3aed')}
 ];
 function avUri(id){ for(var i=0;i<ICON_AVATARS.length;i++){ if(ICON_AVATARS[i].id===id) return ICON_AVATARS[i].uri; } return ''; }
+/* real profile-picture characters: flat illustrated mascots (self-contained SVG data URIs) */
+function _charAv(c1,c2,inner){
+  var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+    +'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs>'
+    +'<rect width="100" height="100" fill="url(#g)"/>'+inner+'</svg>';
+  return 'data:image/svg+xml,'+encodeURIComponent(s);
+}
+var CHAR_AVATARS=[
+  {id:'cool',uri:_charAv('#6d28d9','#db2777','<path d="M30 50c0-14 40-14 40 0v6c0 13-9 22-20 22S30 69 30 56z" fill="#f1c8a0"/><path d="M28 52c0-18 44-18 44 0 1-9-4-24-22-24S27 43 28 52z" fill="#241a12"/><rect x="33" y="52" width="34" height="10" rx="5" fill="#0b0b0f"/><rect x="34.5" y="53" width="14" height="8" rx="4" fill="#22303f"/><rect x="51.5" y="53" width="14" height="8" rx="4" fill="#22303f"/><path d="M44 70q6 4 12 0" stroke="#c98a63" stroke-width="3" fill="none" stroke-linecap="round"/>')},
+  {id:'robot',uri:_charAv('#0ea5e9','#6366f1','<rect x="47" y="22" width="6" height="9" rx="3" fill="#cbd5e1"/><circle cx="50" cy="20" r="4" fill="#f43f5e"/><rect x="30" y="32" width="40" height="36" rx="10" fill="#e2e8f0"/><rect x="24" y="46" width="6" height="12" rx="3" fill="#94a3b8"/><rect x="70" y="46" width="6" height="12" rx="3" fill="#94a3b8"/><circle cx="41" cy="48" r="5.5" fill="#0ea5e9"/><circle cx="59" cy="48" r="5.5" fill="#0ea5e9"/><circle cx="41" cy="48" r="2" fill="#fff"/><circle cx="59" cy="48" r="2" fill="#fff"/><rect x="40" y="59" width="20" height="5" rx="2.5" fill="#64748b"/>')},
+  {id:'alien',uri:_charAv('#10b981','#a3e635','<path d="M50 28c15 0 21 13 21 26 0 15-10 24-21 24S29 69 29 54c0-13 6-26 21-26z" fill="#bef264"/><ellipse cx="40" cy="54" rx="6" ry="10" fill="#0b0f0a"/><ellipse cx="60" cy="54" rx="6" ry="10" fill="#0b0f0a"/><circle cx="42" cy="50" r="1.6" fill="#fff"/><circle cx="62" cy="50" r="1.6" fill="#fff"/><path d="M45 70q5 3 10 0" stroke="#3f6212" stroke-width="2.5" fill="none" stroke-linecap="round"/>')},
+  {id:'cat',uri:_charAv('#f59e0b','#ef4444','<path d="M31 42l3-16 13 9z" fill="#fbbf24"/><path d="M69 42l-3-16-13 9z" fill="#fbbf24"/><circle cx="50" cy="55" r="22" fill="#fcd34d"/><circle cx="42" cy="53" r="3.5" fill="#1c1917"/><circle cx="58" cy="53" r="3.5" fill="#1c1917"/><path d="M47 60h6l-3 4z" fill="#f97316"/><path d="M28 55h13M28 60h13M59 55h13M59 60h13" stroke="#78350f" stroke-width="1.2"/>')},
+  {id:'ghost',uri:_charAv('#8b5cf6','#22d3ee','<path d="M31 50a19 19 0 0 1 38 0v25l-6-5-6 5-7-5-6 5-7-5z" fill="#f8fafc"/><circle cx="43" cy="50" r="3.5" fill="#4c1d95"/><circle cx="57" cy="50" r="3.5" fill="#4c1d95"/><ellipse cx="50" cy="60" rx="3.5" ry="5" fill="#4c1d95"/>')},
+  {id:'ninja',uri:_charAv('#1f2937','#0ea5e9','<circle cx="50" cy="52" r="24" fill="#111827"/><path d="M70 42l16-5-13 9z" fill="#ef4444"/><rect x="28" y="47" width="44" height="11" rx="5.5" fill="#0b0f17"/><rect x="31" y="49" width="38" height="7" rx="3.5" fill="#f8fafc"/><circle cx="43" cy="52.5" r="2.6" fill="#0b0f17"/><circle cx="57" cy="52.5" r="2.6" fill="#0b0f17"/>')},
+  {id:'bear',uri:_charAv('#b45309','#f59e0b','<circle cx="33" cy="35" r="9" fill="#7c4a1e"/><circle cx="67" cy="35" r="9" fill="#7c4a1e"/><circle cx="33" cy="35" r="4" fill="#a06a34"/><circle cx="67" cy="35" r="4" fill="#a06a34"/><circle cx="50" cy="55" r="23" fill="#8a5a2b"/><circle cx="42" cy="51" r="3" fill="#241304"/><circle cx="58" cy="51" r="3" fill="#241304"/><ellipse cx="50" cy="61" rx="9" ry="7" fill="#d9b48a"/><ellipse cx="50" cy="59" rx="3" ry="2.2" fill="#241304"/>')},
+  {id:'astro',uri:_charAv('#3b82f6','#8b5cf6','<circle cx="50" cy="53" r="23" fill="#eef2f7"/><rect x="34" y="45" width="32" height="20" rx="10" fill="#0b1220"/><rect x="37" y="48" width="11" height="6" rx="3" fill="#60a5fa"/><circle cx="50" cy="53" r="23" fill="none" stroke="#cbd5e1" stroke-width="2.5"/><rect x="46" y="27" width="8" height="5" rx="2" fill="#dbe2ea"/>')}
+];
+function charUri(id){ for(var i=0;i<CHAR_AVATARS.length;i++){ if(CHAR_AVATARS[i].id===id) return CHAR_AVATARS[i].uri; } return ''; }
 /* a username is a handle: lowercase letters, numbers, underscores, unique per account */
 function _slugHandle(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20); }
 /* your account handle = your unique username, never the youtube channel name.
@@ -2358,6 +2377,7 @@ function bannerBg(val){
 }
 function paintAvatar(av, val, initial){
   if(val && val.indexOf('data:')===0){ av.style.background=''; av.innerHTML='<img src="'+val+'" alt="" loading="lazy">'; return true; }
+  if(val && val.indexOf('preset:char-')===0){ var uc=charUri(val.slice(12)); if(uc){ av.style.background=''; av.innerHTML='<img src="'+uc+'" alt="" loading="lazy">'; return true; } }
   if(val && val.indexOf('preset:icon-')===0){ var u=avUri(val.slice(12)); if(u){ av.style.background=''; av.innerHTML='<img src="'+u+'" alt="" loading="lazy">'; return true; } }
   if(val && val.indexOf('preset:')===0){ av.innerHTML=''; av.style.background=presetCss(AV_PRESETS, val.slice(7)); av.textContent=(initial||'Y'); return true; }
   return false;
@@ -2383,6 +2403,7 @@ function renderPfGrids(){
   var ag=$('pfAvGrid');
   var chOn=(_pfAvatar==='channel');
   ag.innerHTML='<div class="pf-swatch chan'+(chOn?' on':'')+'" data-a="channel">my<br>channel</div>'
+    +CHAR_AVATARS.map(function(c){ return '<div class="pf-swatch'+(_pfAvatar==='preset:char-'+c.id?' on':'')+'" style="background:url(\''+c.uri+'\') center/cover" data-a="char-'+c.id+'"></div>'; }).join('')
     +ICON_AVATARS.map(function(ic){ return '<div class="pf-swatch'+(_pfAvatar==='preset:icon-'+ic.id?' on':'')+'" style="background:url(\''+ic.uri+'\') center/cover" data-a="icon-'+ic.id+'"></div>'; }).join('')
     +((_pfAvatar&&_pfAvatar.indexOf('data:')===0)?'<div class="pf-swatch on" data-acustom style="background:url(\''+_pfAvatar+'\') center/cover"></div>':'');
   Array.prototype.forEach.call(ag.querySelectorAll('[data-a]'),function(el){ el.onclick=function(){ var a=el.getAttribute('data-a'); _pfAvatar=(a==='channel')?'channel':'preset:'+a; renderPfGrids(); renderPfPreview(); }; });
@@ -2403,23 +2424,33 @@ function pfFilePicked(e){
   var file=e.target.files&&e.target.files[0]; if(!file) return;
   var kind=window._pfKind||'avatar', msg=$('pfMsg');
   if(msg){ msg.style.color=''; msg.textContent='processing image…'; }
-  compressImage(file, kind==='banner'?{w:1200,h:360,q:.72}:{w:320,h:320,q:.78}).then(function(uri){
-    if(uri.length>230000){ if(msg){ msg.style.color='var(--danger)'; msg.textContent='that image is too large even after shrinking, try a smaller one'; } return; }
+  /* your upload is stored on YOUR account only and shown just to you - teammates never see it */
+  compressImage(file, kind==='banner'?{w:1000,h:300,q:.72,max:170000}:{w:288,h:288,q:.82,max:90000}).then(function(uri){
+    if(uri.length>260000){ if(msg){ msg.style.color='var(--danger)'; msg.textContent='that image is too large even after shrinking, try a smaller one'; } return; }
     if(kind==='banner') _pfBanner=uri; else _pfAvatar=uri;
     if(msg) msg.textContent='';
     renderPfGrids(); renderPfPreview();
   }).catch(function(){ if(msg){ msg.style.color='var(--danger)'; msg.textContent='could not read that image'; } });
 }
+/* shrink to fit a byte budget so the save never fails: drop quality first, then dimensions */
 function compressImage(file, opt){
+  var maxLen=opt.max||170000;
   return new Promise(function(resolve,reject){
     var img=new Image();
     img.onload=function(){
       try{
-        var cw=opt.w, ch=opt.h, canvas=document.createElement('canvas'); canvas.width=cw; canvas.height=ch;
-        var ctx=canvas.getContext('2d'), ar=img.width/img.height, tr=cw/ch, sw,sh,sx,sy;
-        if(ar>tr){ sh=img.height; sw=sh*tr; sx=(img.width-sw)/2; sy=0; } else { sw=img.width; sh=sw/tr; sx=0; sy=(img.height-sh)/2; }
-        ctx.drawImage(img, sx,sy,sw,sh, 0,0, cw,ch);
-        resolve(canvas.toDataURL('image/jpeg', opt.q));
+        function render(cw,ch,q){
+          var canvas=document.createElement('canvas'); canvas.width=cw; canvas.height=ch;
+          var ctx=canvas.getContext('2d'), ar=img.width/img.height, tr=cw/ch, sw,sh,sx,sy;
+          if(ar>tr){ sh=img.height; sw=sh*tr; sx=(img.width-sw)/2; sy=0; } else { sw=img.width; sh=sw/tr; sx=0; sy=(img.height-sh)/2; }
+          ctx.drawImage(img, sx,sy,sw,sh, 0,0, cw,ch);
+          return canvas.toDataURL('image/jpeg', q);
+        }
+        var cw=opt.w, ch=opt.h, q=opt.q, uri=render(cw,ch,q);
+        while(uri.length>maxLen && q>0.35){ q-=0.08; uri=render(cw,ch,q); }
+        var guard=0;
+        while(uri.length>maxLen && guard<4){ cw=Math.round(cw*0.8); ch=Math.round(ch*0.8); uri=render(cw,ch,Math.max(q,0.5)); guard++; }
+        resolve(uri);
       }catch(err){ reject(err); }
     };
     img.onerror=reject;
