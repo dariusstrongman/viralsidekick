@@ -87,10 +87,16 @@ footer a:hover{color:var(--fg);text-decoration:none}
   </header>
 
   <h2>What we collect</h2>
-  <p>Your email address (to associate your scans with you) and the channel identifier you submit. Channel analysis uses publicly available YouTube data only, we do not access your account, private analytics, or anything requiring a login unless you explicitly connect a channel via OAuth (a feature that will ask separately and clearly).</p>
+  <p>Your email address (to associate your scans with you) and the channel identifier you submit. A free channel analysis uses publicly available YouTube data only, we do not access your account or private analytics unless you explicitly connect your own channel with Google (see YouTube data below).</p>
 
   <h2>Accounts</h2>
   <p>If you create an account (email + password or Google sign-in), we store your login email, your connected channel identifiers (YouTube channel, and any TikTok or Instagram handles you add), and your scan history so your dashboard works. Authentication is handled by Supabase; Google sign-in shares only your name, email, and profile photo with us. Passwords are hashed, we never see them.</p>
+
+  <h2>YouTube data and the YouTube API Services</h2>
+  <p>ViralSidekick uses the <b>YouTube API Services</b>. Connecting your channel is optional; if you choose to, you sign in with Google and grant read-only access. By connecting, you agree to the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener">YouTube Terms of Service</a>, and your use of Google data is subject to the <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.</p>
+  <p><b>What we access</b> (read-only, and only after you connect): your YouTube channel details and statistics, your list of videos, and your YouTube Analytics reports such as views, watch time, audience retention, impressions, click-through rate, traffic sources, and demographics. We request read-only scopes only. We never post, edit, or delete anything on your channel.</p>
+  <p><b>How we use it</b>: solely to generate your coaching, grade, trends, and analytics inside your own dashboard. We do not sell it, we do not use it for advertising, and we do not share it with anyone except the AI provider that produces your analysis, which receives only the metrics needed and never your login or token. ViralSidekick's use of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>, including its Limited Use requirements.</p>
+  <p><b>Storage and revoking</b>: we store your channel identity, the analytics that power your dashboard, and a Google authorization token so we can refresh your numbers, the token is kept server-side and never exposed to your browser or any third party. You can revoke ViralSidekick's access at any time in your Google Account at <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">myaccount.google.com/permissions</a>, or email us to delete your stored Google data and token. Revoking stops all future access immediately.</p>
 
   <h2>What we do with it</h2>
   <p>We generate your report, store the scan so you can get it again, and may email you about your report or the product. No spam. We never sell your data.</p>
