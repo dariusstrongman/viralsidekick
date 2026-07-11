@@ -300,6 +300,8 @@ footer a:hover{color:var(--fg)}
 .yb-av{width:76px;height:76px;border-radius:50%;overflow:hidden;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem;color:#fff;background:linear-gradient(135deg,var(--primary),var(--accent));border:2px solid var(--border2);box-shadow:0 0 0 1px hsl(230 24% 5%),0 10px 34px hsl(260 90% 66% / .25)}
 .yb-av img{width:100%;height:100%;object-fit:cover}
 .yb-meta{flex:1;min-width:0}
+.yb-actions{display:flex;gap:8px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
+.yb-plan{font-family:var(--mono);font-weight:700;font-size:.54rem;letter-spacing:.12em;color:#1a1305;background:linear-gradient(120deg,hsl(45 95% 62%),hsl(38 96% 55%));padding:2px 7px;border-radius:5px;vertical-align:middle;box-shadow:0 0 12px hsl(45 95% 60% / .4)}
 .yb-eyebrow{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%));margin-bottom:5px}
 .yb-name{font-weight:800;font-size:clamp(1.3rem,3vw,1.75rem);letter-spacing:-.02em;line-height:1.1;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idhead.chan::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
@@ -785,6 +787,12 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .tc-del{font-family:var(--sans);font-size:.76rem;font-weight:600;color:var(--faint);background:transparent;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;cursor:pointer;margin-left:auto;transition:all .15s}
 .tc-del:hover{color:var(--danger);border-color:hsl(0 84% 60% / .45)}
 .tc-msg{margin-top:11px;font-family:var(--mono);font-size:.74rem;color:hsl(45 95% 66%);background:hsl(45 95% 62% / .08);border:1px solid hsl(45 95% 62% / .22);border-radius:9px;padding:8px 12px}
+/* app-wide toasts (portal, fixed) */
+.toast-host{position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:130;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;max-width:calc(100vw - 24px)}
+.toast{pointer-events:auto;font-family:var(--sans);font-size:.86rem;font-weight:600;padding:11px 18px;border-radius:99px;box-shadow:0 14px 44px hsl(230 40% 2% / .5);border:1px solid var(--border2);background:var(--card2);color:var(--fg);opacity:0;transform:translateY(-8px);transition:opacity .2s,transform .2s;max-width:100%;text-align:center}
+.toast.in{opacity:1;transform:none}
+.toast.ok{border-color:hsl(160 84% 50% / .5);color:hsl(160 84% 72%);background:hsl(160 60% 10%)}
+.toast.err{border-color:hsl(0 84% 60% / .5);color:hsl(0 84% 80%);background:hsl(0 50% 12%)}
 .pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
 .pkg-sec{margin-bottom:15px}
 .pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -858,6 +866,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 <body>
 <div class="bg-app" aria-hidden="true"></div>
 <div class="bg-grid" aria-hidden="true"></div>
+<!-- app-wide transient notices (fixed, portal) -->
+<div id="toastHost" class="toast-host" aria-live="polite"></div>
 
 <!-- ===== NAV ===== -->
 <nav class="top" role="navigation" aria-label="main navigation">
@@ -1037,10 +1047,13 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <div class="youbar" id="youBar" style="display:none">
         <div class="yb-av" id="ybAv" aria-hidden="true"></div>
         <div class="yb-meta">
-          <div class="yb-eyebrow">◆ you</div>
+          <div class="yb-eyebrow" id="ybEyebrow">◆ your profile</div>
           <div class="yb-name" id="ybName">@you</div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="openProfile()">Edit profile</button>
+        <div class="yb-actions">
+          <button class="btn btn-ghost btn-sm" id="ybEditCh" onclick="openConnect()" style="display:none">Edit channels</button>
+          <button class="btn btn-ghost btn-sm" onclick="openProfile()">Edit profile</button>
+        </div>
       </div>
 
       <!-- identity header -->
@@ -1842,15 +1855,13 @@ function applyLensChrome(){
      (the one exception: a Team-plan owner with no space yet needs the create box) */
   var tb=$('tBoard'); if(tb) tb.style.display=teamLens?'':'none';
   /* space management now lives entirely in the top collaboration banner (teamsBanner) */
-  /* your profile travels with you: pin a compact "you" bar on top inside a space */
-  renderYouBar(teamLens);
-  /* the space's channel header belongs down with the analysis, not on top.
-     in a space, move it above the platform selector; on My Dashboard it stays on top. */
+  /* the you-bar (your profile) is the top of every lens */
+  renderYouBar();
+  /* the space's channel header belongs down with the analysis, not on top: in a
+     space, move idhead above the platform selector. on My Dashboard idhead is
+     hidden entirely (the you-bar is your profile), so nothing to place there. */
   var ih=$('idhead');
-  if(ih && ih.parentNode){
-    if(teamLens){ var anchor=$('ptabs'); if(anchor && anchor.parentNode===ih.parentNode && ih.nextSibling!==anchor) ih.parentNode.insertBefore(ih, anchor); }
-    else { var yb=$('youBar'); if(yb && yb.parentNode===ih.parentNode && ih.previousSibling!==yb) ih.parentNode.insertBefore(ih, yb.nextSibling); }
-  }
+  if(ih && ih.parentNode && teamLens){ var anchor=$('ptabs'); if(anchor && anchor.parentNode===ih.parentNode && ih.nextSibling!==anchor) ih.parentNode.insertBefore(ih, anchor); }
   /* plan + billing are personal account concerns — never inside a space */
   var pc=$('proCard'); if(pc) pc.style.display = teamLens ? 'none' : '';
   if(teamLens){ var tup=$('tTeamUp'); if(tup) tup.style.display='none'; }
@@ -1865,14 +1876,22 @@ function applyLensChrome(){
     if(teamLens) renderTeamHeader();
   }
 }
-/* the "you" bar mirrors your personal profile (username + picture) so your identity
-   follows you into whichever space you are looking at. hidden in personal (the header IS you). */
-function renderYouBar(teamLens){
+/* the "you" bar IS your profile card, and it is the same component in both lenses:
+   the top of My Dashboard AND the "this is you" reminder that travels into a space.
+   one component = the profile section looks identical everywhere. */
+function renderYouBar(){
   var yb=$('youBar'); if(!yb) return;
-  if(!teamLens){ yb.style.display='none'; return; }
+  var teamLens=(VIEW==='space' && SPACE && SPACE.workspace);
   yb.style.display='flex';
-  yb.style.background = bannerBg((PROFILE&&PROFILE.profile_banner)||'') || bannerBg('preset:aurora'); /* full banner, same as My Dashboard */
+  yb.style.background = bannerBg((PROFILE&&PROFILE.profile_banner)||'') || bannerBg('preset:aurora');
   var n=$('ybName'); if(n) n.textContent='@'+acctName();
+  var eb=$('ybEyebrow'); if(eb){
+    var isTeamPlan=(typeof PROFILE!=='undefined'&&PROFILE&&PROFILE.plan==='team');
+    var pill=(typeof IS_PRO!=='undefined'&&IS_PRO)?' <span class="yb-plan">'+(isTeamPlan?'TEAM':'PRO')+'</span>':'';
+    eb.innerHTML=(teamLens?'◆ you':'◆ your profile')+pill;
+  }
+  /* channel management is a personal-lens action; in a space it lives on the channel header below */
+  var ec=$('ybEditCh'); if(ec) ec.style.display = teamLens ? 'none' : '';
   var el=$('ybAv'); if(el){
     var init=(acctName()||'Y').replace(/^@/,'').charAt(0).toUpperCase();
     var pv=(PROFILE&&PROFILE.profile_avatar)||'';
@@ -1982,9 +2001,9 @@ function initSpace(){
   if(inv){
     history.replaceState(null,'',location.pathname);
     teamsApi('accept',{invite:inv}).then(function(d){
-      if(d&&d.ok){ applySpace(d); }
-      else { spaceNote(d&&d.error?d.error:'invite failed'); go(); }
-    }).catch(function(){ go(); });
+      if(d&&d.ok){ applySpace(d); toast('joined '+((d.workspace&&d.workspace.name)||'the space')+' ✓','ok'); }
+      else { toast(d&&d.error?d.error:'that invite link is invalid or expired','err'); go(); }
+    }).catch(function(){ toast('could not accept the invite, try the link again','err'); go(); });
   } else go();
 }
 function openBilling(btn){
@@ -2007,6 +2026,17 @@ function seatLabel(){ if(!(SPACE&&SPACE.workspace)) return ''; var n=(SPACE.memb
 /* transient status for space actions (invite sent, errors). its own line under the
    manage controls — not crammed into the tiny seats pill. */
 function spaceNote(t){ var e=$('tcMsg'); if(!e) return; e.textContent=t; e.style.display='block'; clearTimeout(e._t); e._t=setTimeout(function(){ e.style.display='none'; e.textContent=''; },4000); }
+/* app-wide toast for notices that must show even when their home panel is hidden
+   (e.g. an invite-accept failure before the space banner is on screen). */
+function toast(msg, kind){
+  var host=$('toastHost'); if(!host||!msg) return;
+  var el=document.createElement('div');
+  el.className='toast'+(kind?' '+kind:'');
+  el.textContent=msg;
+  host.appendChild(el);
+  requestAnimationFrame(function(){ el.classList.add('in'); });
+  setTimeout(function(){ el.classList.remove('in'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 250); }, 3800);
+}
 function applySpace(d){
   if(!d || d.error){
     if(d && /not signed in/.test(d.error||'')) spaceFallback();
@@ -2250,6 +2280,7 @@ function renderPro(){
       tile.style.display='';
     }
   }
+  try{ renderYouBar(); }catch(e){} /* keep the you-bar plan pill in sync with Pro status */
 }
 
 /* ---------- connect a youtube channel = claim your identity ---------- */
@@ -2567,7 +2598,10 @@ function renderIdentity(){
   if(head){
     head.classList.toggle('prof', !inSpace); head.classList.toggle('chan', inSpace);
     head.style.background = inSpace ? chBn : myBn;
+    /* My Dashboard: the you-bar is your profile, so the channel header is space-only */
+    head.style.display = inSpace ? '' : 'none';
   }
+  try{ renderYouBar(); }catch(e){}
   var ordS=$('orderStrip'); if(ordS) ordS.style.background = inSpace ? (chBn||'') : ''; /* order block matches the channel */
   var epb=$('editProfBtn'); if(epb) epb.style.display = inSpace ? 'none' : ''; /* profile editing is a personal thing */
   var ty=document.querySelector('.tag-you');
