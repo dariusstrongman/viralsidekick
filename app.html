@@ -1016,12 +1016,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
             <svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
             Your YouTube channel
           </label>
-          <div class="rr">
-            <input id="obYt" type="text" placeholder="@yourchannel  ·  youtube.com/@you  ·  UC…">
-            <button class="btn btn-primary" style="flex:0 0 auto" onclick="connectYouTube('obYt','obFound')">Connect</button>
-          </div>
+          <button class="btn btn-primary btn-block" id="obYtVerify" onclick="verifyYouTube()">Connect with Google, verify you own it</button>
           <div class="found" id="obFound" aria-live="polite"></div>
-          <div class="conn-note">We read only public data, no login, no password.</div>
+          <div class="conn-note">Sign in with your channel's Google account so we pull your real numbers, retention and CTR included. This is the verified connection, it cant be faked.</div>
         </div>
         <div class="conn-row">
           <label for="obTt">
@@ -1449,13 +1446,13 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
           YouTube
         </label>
-        <div class="rr">
+        <div class="rr" id="cmYtPasteRow">
           <input id="cmYt" type="text" placeholder="@yourchannel  ·  URL  ·  UC…">
           <button class="btn btn-primary" style="flex:0 0 auto" onclick="connectYouTube('cmYt','cmFound')">Connect</button>
         </div>
         <div class="found" id="cmFound" aria-live="polite"></div>
         <button class="btn btn-primary btn-block" id="cmYtVerify" style="margin-top:12px;display:none" onclick="verifyYouTube()">Connect with Google, verify you own it</button>
-        <div class="sm mut" id="cmYtVnote" style="display:none;margin-top:7px;line-height:1.45">signs you in with google and links the channel you actually own, this is the verified one and it unlocks your real analytics. pasting above just quick-links a channel without verifying.</div>
+        <div class="sm mut" id="cmYtVnote" style="display:none;margin-top:7px;line-height:1.45">signs you in with your channel's google account and links the one you actually own. this is the verified connection, it unlocks your real analytics (retention, CTR) and cant be faked.</div>
       </div>
       <div class="conn-row">
         <label for="cmTt">
@@ -1650,6 +1647,8 @@ function googleAuth(){
 var YT_SCOPES='openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
 function verifyYouTube(){
   var opts={ scopes:YT_SCOPES, redirectTo: location.origin + location.pathname + '?ytconnect=1', queryParams:{ access_type:'offline', prompt:'consent' } };
+  /* the OAuth redirect leaves the page - stash the onboarding picks so they survive the round-trip */
+  try{ if($('onboard') && !$('onboard').classList.contains('hide')){ localStorage.setItem('vs_ob_draft', JSON.stringify({ u:($('obName')&&$('obName').value)||'', a:_obAvatar||'', b:_obBanner||'' })); } }catch(e){}
   try{ var m=$('cmMsg'); if(m){ m.style.color=''; m.textContent='opening google…'; } }catch(e){}
   var doOAuth=function(){ return sb.auth.signInWithOAuth({ provider:'google', options:opts }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
   /* logged-in email account -> LINK google to it (keeps their account) */
@@ -1676,10 +1675,11 @@ function claimYouTube(session){
       PROFILE=PROFILE||{}; PROFILE.youtube_verified=true;
       PROFILE.primary_channel_id=d.channel.id; PROFILE.primary_channel_name=d.channel.name; PROFILE.primary_channel_avatar=d.channel.avatar; PROFILE.primary_channel_subs=d.channel.subs; PROFILE.primary_channel_handle=d.channel.handle;
       try{ closeConnect(); }catch(e){}
+      try{ var of=$('obFound'); if(of){ of.style.display='flex'; of.innerHTML='<div class="fn">'+esc(d.channel.name||'your channel')+' ✓ connected + verified</div>'; } var bv=$('obYtVerify'); if(bv) bv.textContent='✓ connected — reconnect a different account'; }catch(e){}
       try{ renderIdentity(); }catch(e){}
       try{ renderYouBar(); }catch(e){}
       try{ toast('youtube connected + verified ✓','ok'); }catch(e){}
-      try{ if(typeof goLive==='function' && VIEW!=='space') goLive(); }catch(e){} /* re-read now that we have the real, verified channel */
+      try{ if(typeof goLive==='function' && VIEW!=='space' && $('onboard') && $('onboard').classList.contains('hide')) goLive(); }catch(e){} /* re-read now that we have the real channel - but not while onboarding is still open (finishOnboard handles that) */
     } else {
       try{ toast((d&&d.error)?d.error:'could not verify your youtube, try again','err'); }catch(e){}
     }
@@ -1793,7 +1793,13 @@ function loadProfile(){
    });
   });
 }
-function showOnboard(){ $('hqWrap').classList.add('hide'); $('onboard').classList.remove('hide'); renderObProfile(); }
+function showOnboard(){ $('hqWrap').classList.add('hide'); $('onboard').classList.remove('hide');
+  /* restore the username/picture/banner picks that were made before the google redirect */
+  try{ var _d=JSON.parse(localStorage.getItem('vs_ob_draft')||'null'); if(_d){ if(_d.u&&$('obName')) $('obName').value=_d.u; if(_d.a) _obAvatar=_d.a; if(_d.b) _obBanner=_d.b; localStorage.removeItem('vs_ob_draft'); } }catch(e){}
+  renderObProfile();
+  /* if OAuth already connected a channel, show it as done instead of asking again */
+  try{ if(IDENT.yt && (IDENT.yt.id||IDENT.yt.name)){ var of=$('obFound'); if(of){ of.style.display='flex'; of.innerHTML='<div class="fn">'+esc(IDENT.yt.name||'your channel')+' ✓ connected + verified</div>'; } var bv=$('obYtVerify'); if(bv) bv.textContent='✓ connected — reconnect a different account'; } }catch(e){}
+}
 function enterHQ(){
   $('onboard').classList.add('hide'); $('hqWrap').classList.remove('hide');
   renderNav(); /* topbar handle reflects the username just claimed in onboarding */
@@ -2346,9 +2352,7 @@ function connectYouTube(inId, foundId, cb){
 }
 function finishOnboard(){
   if(!IDENT.yt.id && !IDENT.yt.name){
-    var v=$('obYt').value.trim();
-    if(v){ connectYouTube('obYt','obFound', finishOnboard); return; }
-    var f=$('obFound'); f.style.display='flex'; f.innerHTML='<div class="fn" style="color:var(--warning)">connect your YouTube channel first ↑</div>'; return;
+    var f=$('obFound'); f.style.display='flex'; f.innerHTML='<div class="fn" style="color:var(--warning)">connect your YouTube with google first ↑</div>'; return;
   }
   IDENT.tiktok=$('obTt').value.trim(); IDENT.instagram=$('obIg').value.trim();
   var uname=_slugHandle($('obName').value||''), nm=$('obNameMsg');
@@ -3044,10 +3048,13 @@ function openConnect(){
     $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFb').value=IDENT.facebook||'';
   }
   $('cmFound').style.display='none';
-  /* the OAuth "verify you own it" button is for YOUR identity only; spaces (agencies) paste channels they dont own */
-  var _vb=$('cmYtVerify'), _vn=$('cmYtVnote'); var _showV=(_connTarget==='mine');
+  /* YOUR identity = OAuth only (verify ownership, get real analytics); spaces (agencies) paste channels they manage */
+  var _vb=$('cmYtVerify'), _vn=$('cmYtVnote'), _pr=$('cmYtPasteRow'); var _showV=(_connTarget==='mine');
   if(_vb) _vb.style.display=_showV?'':'none';
   if(_vn) _vn.style.display=_showV?'':'none';
+  if(_pr) _pr.style.display=_showV?'none':'';
+  /* if already verified, reflect it on the button */
+  try{ if(_showV && PROFILE && PROFILE.youtube_verified && IDENT.yt && (IDENT.yt.name||IDENT.yt.id)){ if(_vb) _vb.textContent='✓ '+(IDENT.yt.name||'connected')+' — reconnect'; } else if(_vb){ _vb.textContent='Connect with Google, verify you own it'; } }catch(e){}
   $('connectModal').classList.add('on');
   setTimeout(function(){ var f=$('connectModal').querySelector('input,button'); if(f) f.focus(); },30);
 }
