@@ -2283,8 +2283,7 @@ function renderObProfile(){
   if(!_obBanner) _obBanner=(PROFILE&&PROFILE.profile_banner)||'';
   var ag=$('obAvGrid');
   if(ag){
-    ag.innerHTML=ICON_AVATARS.map(function(ic){ return '<div class="pf-swatch'+(_obAvatar==='preset:icon-'+ic.id?' on':'')+'" style="background:url('+ic.uri+') center/cover" data-a="icon-'+ic.id+'"></div>'; }).join('')
-      +AV_PRESETS.map(function(p){ return '<div class="pf-swatch'+(_obAvatar==='preset:'+p.id?' on':'')+'" style="background:'+p.css+'" data-a="'+p.id+'"></div>'; }).join('');
+    ag.innerHTML=ICON_AVATARS.map(function(ic){ return '<div class="pf-swatch'+(_obAvatar==='preset:icon-'+ic.id?' on':'')+'" style="background:url(\''+ic.uri+'\') center/cover" data-a="icon-'+ic.id+'"></div>'; }).join('');
     Array.prototype.forEach.call(ag.querySelectorAll('[data-a]'),function(el){ el.onclick=function(){ _obAvatar='preset:'+el.getAttribute('data-a'); renderObProfile(); }; });
   }
   var bg=$('obBannerGrid');
@@ -2329,39 +2328,38 @@ function saveProfileFields(f){
 /* ---------- identity header ---------- */
 function looksRaw(s){ return !s || /^https?:|youtube\.com|^UC[0-9A-Za-z_-]{22}$/.test(String(s)); }
 /* ---------- personal profile: banner + picture + name ---------- */
-/* real default banners: layered mesh gradients that read like designed art, not a flat 2-stop fade */
+/* designed banners: an SVG texture (grid/dots/waves/circuit...) layered over a rich gradient */
+function _svgBg(inner,w,h){ return "url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+inner+'</svg>')+"')"; }
 var BANNER_PRESETS=[
   {id:'aurora',css:'radial-gradient(60% 130% at 12% 20%,#7c3aedcc,transparent 60%),radial-gradient(55% 130% at 82% 30%,#06b6d4bb,transparent 55%),radial-gradient(80% 150% at 60% 105%,#ec489988,transparent 60%),linear-gradient(120deg,#1e1b4b,#0b0d12)'},
-  {id:'sunset',css:'radial-gradient(60% 130% at 18% 22%,#f59e0bcc,transparent 55%),radial-gradient(58% 130% at 85% 38%,#ef4444bb,transparent 55%),radial-gradient(85% 150% at 52% 105%,#db277799,transparent 60%),linear-gradient(120deg,#3b0764,#0b0d12)'},
-  {id:'ocean',css:'radial-gradient(60% 130% at 14% 24%,#3b82f6cc,transparent 55%),radial-gradient(55% 130% at 84% 34%,#22d3eebb,transparent 55%),radial-gradient(85% 150% at 55% 105%,#0ea5e988,transparent 60%),linear-gradient(120deg,#0c1e3a,#0b0d12)'},
-  {id:'forest',css:'radial-gradient(60% 130% at 16% 24%,#10b981cc,transparent 55%),radial-gradient(55% 130% at 82% 34%,#84cc16aa,transparent 55%),radial-gradient(85% 150% at 55% 105%,#059669aa,transparent 60%),linear-gradient(120deg,#052e2b,#0b0d12)'},
-  {id:'berry',css:'radial-gradient(60% 130% at 16% 22%,#ec4899cc,transparent 55%),radial-gradient(55% 130% at 84% 34%,#a855f7bb,transparent 55%),radial-gradient(85% 150% at 52% 105%,#6d28d999,transparent 60%),linear-gradient(120deg,#3b0764,#0b0d12)'},
-  {id:'gold',css:'radial-gradient(60% 130% at 18% 22%,#fbbf24cc,transparent 55%),radial-gradient(55% 130% at 84% 36%,#f97316bb,transparent 55%),radial-gradient(85% 150% at 55% 105%,#b4530999,transparent 60%),linear-gradient(120deg,#451a03,#0b0d12)'},
-  {id:'ember',css:'radial-gradient(60% 130% at 16% 24%,#ef4444cc,transparent 55%),radial-gradient(55% 130% at 84% 34%,#f9731699,transparent 55%),radial-gradient(85% 150% at 55% 105%,#7c2d1288,transparent 60%),linear-gradient(120deg,#1c0a06,#0b0d12)'},
-  {id:'mono',css:'radial-gradient(60% 130% at 18% 24%,#475569cc,transparent 55%),radial-gradient(55% 130% at 84% 36%,#334155bb,transparent 55%),radial-gradient(85% 150% at 55% 105%,#1e293b99,transparent 60%),linear-gradient(120deg,#1e293b,#0b0d12)'}
+  {id:'grid',css:_svgBg('<path d="M32 0H0V32" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="1"/>',32,32)+' repeat,radial-gradient(120% 120% at 15% 10%,#2563eb55,transparent 55%),linear-gradient(120deg,#1e3a8a,#0b1226)'},
+  {id:'dots',css:_svgBg('<circle cx="11" cy="11" r="1.7" fill="rgba(255,255,255,.20)"/>',22,22)+' repeat,radial-gradient(120% 120% at 80% 15%,#a855f766,transparent 55%),linear-gradient(120deg,#5b21b6,#160f2e)'},
+  {id:'waves',css:_svgBg('<path d="M0 16 Q16 6 32 16 T64 16" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>',64,32)+' repeat,radial-gradient(120% 120% at 20% 10%,#22d3ee66,transparent 55%),linear-gradient(120deg,#0e7490,#062330)'},
+  {id:'stripes',css:_svgBg('<path d="M-2 18L18 -2 M8 28L28 8" stroke="rgba(255,255,255,.13)" stroke-width="2.5"/>',18,18)+' repeat,radial-gradient(120% 120% at 85% 20%,#f9731688,transparent 55%),linear-gradient(120deg,#db2777,#5b1b12)'},
+  {id:'topo',css:_svgBg('<g fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.2"><circle cx="30" cy="30" r="9"/><circle cx="30" cy="30" r="19"/><circle cx="30" cy="30" r="29"/></g>',60,60)+' repeat,radial-gradient(120% 120% at 15% 15%,#fbbf2455,transparent 55%),linear-gradient(120deg,#b45309,#2a1204)'},
+  {id:'circuit',css:_svgBg('<g fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.3"><path d="M0 30H18V12H40V32H60"/><path d="M30 60V38H52"/></g><g fill="rgba(255,255,255,.30)"><circle cx="18" cy="12" r="2.1"/><circle cx="40" cy="32" r="2.1"/><circle cx="52" cy="38" r="2.1"/></g>',60,60)+' repeat,radial-gradient(120% 120% at 80% 12%,#10b98166,transparent 55%),linear-gradient(120deg,#047857,#052018)'},
+  {id:'plus',css:_svgBg('<path d="M13 8V18 M8 13H18" stroke="rgba(255,255,255,.17)" stroke-width="1.6" fill="none"/>',26,26)+' repeat,radial-gradient(120% 120% at 18% 15%,#fb718566,transparent 55%),linear-gradient(120deg,#e11d48,#3b0a17)'}
 ];
-var AV_PRESETS=[
-  {id:'v1',css:'linear-gradient(135deg,#8b5cf6,#06b6d4)'},
-  {id:'v2',css:'linear-gradient(135deg,#f59e0b,#ef4444)'},
-  {id:'v3',css:'linear-gradient(135deg,#10b981,#3b82f6)'},
-  {id:'v4',css:'linear-gradient(135deg,#ec4899,#8b5cf6)'},
-  {id:'v5',css:'linear-gradient(135deg,#22d3ee,#3b82f6)'}
-];
-/* real default profile pictures: inline SVG symbol icons on brand gradients (self-contained data URIs) */
+/* monogram fallback only (default avatar = your initial on a gradient); not offered as a pick */
+var AV_PRESETS=[{id:'v1',css:'linear-gradient(135deg,#8b5cf6,#06b6d4)'}];
+/* cool profile icons: bold glyph, vivid gradient, glossy top-left highlight (self-contained SVG data URIs) */
 function _iconAv(path,c1,c2){
   var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
-    +'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs>'
-    +'<rect width="100" height="100" fill="url(#g)"/>'
-    +'<path transform="translate(26 26) scale(2)" fill="#fff" d="'+path+'"/></svg>';
+    +'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient>'
+    +'<radialGradient id="h" cx="32%" cy="24%" r="72%"><stop offset="0" stop-color="#ffffff" stop-opacity=".4"/><stop offset="60%" stop-color="#ffffff" stop-opacity="0"/></radialGradient></defs>'
+    +'<rect width="100" height="100" fill="url(#g)"/><rect width="100" height="100" fill="url(#h)"/>'
+    +'<g transform="translate(26 26) scale(2)" fill="#ffffff" fill-rule="evenodd">'+path+'</g></svg>';
   return 'data:image/svg+xml,'+encodeURIComponent(s);
 }
 var ICON_AVATARS=[
-  {id:'bolt', uri:_iconAv('M13 2L3 14h6l-1 8 10-12h-7z','#8b5cf6','#06b6d4')},
-  {id:'star', uri:_iconAv('M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z','#f59e0b','#ef4444')},
-  {id:'play', uri:_iconAv('M8 5v14l11-7z','#10b981','#3b82f6')},
-  {id:'heart',uri:_iconAv('M12 21l-1.5-1.4C5 14.6 2 11.9 2 8.5 2 6 4 4 6.5 4c1.6 0 3.1.8 4 2 .9-1.2 2.4-2 4-2C19 4 21 6 21 8.5c0 3.4-3 6.1-8.5 11.1z','#ec4899','#8b5cf6')},
-  {id:'crown',uri:_iconAv('M3 7l4 4 5-7 5 7 4-4-2 12H5z','#22d3ee','#3b82f6')},
-  {id:'spark',uri:_iconAv('M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z','#a855f7','#ec4899')}
+  {id:'bolt',   uri:_iconAv('M13 2L4 14h6l-1 8 9-12h-6z','#f59e0b','#ef4444')},
+  {id:'star',   uri:_iconAv('M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z','#22d3ee','#3b82f6')},
+  {id:'diamond',uri:_iconAv('M6 3h12l3 6-9 12L3 9z','#a855f7','#ec4899')},
+  {id:'crown',  uri:_iconAv('M2 8l4.5 3L12 4l5.5 7L22 8l-2 11H4z','#fbbf24','#f97316')},
+  {id:'heart',  uri:_iconAv('M12 21l-1.5-1.4C5 14.6 2 11.9 2 8.5 2 6 4 4 6.5 4c1.6 0 3.1.8 4 2 .9-1.2 2.4-2 4-2C19 4 21 6 21 8.5c0 3.4-3 6.1-8.5 11.1z','#fb7185','#e11d48')},
+  {id:'play',   uri:_iconAv('M8 5v14l11-7z','#34d399','#059669')},
+  {id:'flame',  uri:_iconAv('M12 2S6 8 6 14a6 6 0 0 0 12 0c0-2-1-4-2-5 0 1-1 2-2 2 1-3-1-6-2-9z','#fb923c','#dc2626')},
+  {id:'target', uri:_iconAv('M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4z','#818cf8','#7c3aed')}
 ];
 function avUri(id){ for(var i=0;i<ICON_AVATARS.length;i++){ if(ICON_AVATARS[i].id===id) return ICON_AVATARS[i].uri; } return ''; }
 /* a username is a handle: lowercase letters, numbers, underscores, unique per account */
@@ -2377,7 +2375,7 @@ function acctName(){
 function presetCss(list,id){ var p=list.filter(function(x){return x.id===id;})[0]; return p?p.css:list[0].css; }
 function bannerBg(val){
   var img;
-  if(val && val.indexOf('data:')===0) img='url('+val+') center/cover';
+  if(val && val.indexOf('data:')===0) img="url('"+val+"') center/cover";
   else if(val && val.indexOf('preset:')===0) img=presetCss(BANNER_PRESETS, val.slice(7));
   else return ''; /* no custom banner -> CSS default */
   return 'linear-gradient(90deg,hsl(230 30% 4% / .82),hsl(230 30% 4% / .32)),'+img;
@@ -2404,14 +2402,13 @@ function renderPfGrids(){
   var bg=$('pfBannerGrid');
   bg.innerHTML=BANNER_PRESETS.map(function(p){
     return '<div class="pf-swatch'+(_pfBanner==='preset:'+p.id?' on':'')+'" style="background:'+p.css+'" data-b="'+p.id+'" title="'+p.id+'"></div>';
-  }).join('')+((_pfBanner&&_pfBanner.indexOf('data:')===0)?'<div class="pf-swatch on" data-bcustom style="background:url('+_pfBanner+') center/cover"></div>':'');
+  }).join('')+((_pfBanner&&_pfBanner.indexOf('data:')===0)?'<div class="pf-swatch on" data-bcustom style="background:url(\''+_pfBanner+'\') center/cover"></div>':'');
   Array.prototype.forEach.call(bg.querySelectorAll('[data-b]'),function(el){ el.onclick=function(){ _pfBanner='preset:'+el.getAttribute('data-b'); renderPfGrids(); renderPfPreview(); }; });
   var ag=$('pfAvGrid');
   var chOn=(_pfAvatar==='channel');
   ag.innerHTML='<div class="pf-swatch chan'+(chOn?' on':'')+'" data-a="channel">my<br>channel</div>'
-    +ICON_AVATARS.map(function(ic){ return '<div class="pf-swatch'+(_pfAvatar==='preset:icon-'+ic.id?' on':'')+'" style="background:url('+ic.uri+') center/cover" data-a="icon-'+ic.id+'"></div>'; }).join('')
-    +AV_PRESETS.map(function(p){ return '<div class="pf-swatch'+(_pfAvatar==='preset:'+p.id?' on':'')+'" style="background:'+p.css+'" data-a="'+p.id+'"></div>'; }).join('')
-    +((_pfAvatar&&_pfAvatar.indexOf('data:')===0)?'<div class="pf-swatch on" data-acustom style="background:url('+_pfAvatar+') center/cover"></div>':'');
+    +ICON_AVATARS.map(function(ic){ return '<div class="pf-swatch'+(_pfAvatar==='preset:icon-'+ic.id?' on':'')+'" style="background:url(\''+ic.uri+'\') center/cover" data-a="icon-'+ic.id+'"></div>'; }).join('')
+    +((_pfAvatar&&_pfAvatar.indexOf('data:')===0)?'<div class="pf-swatch on" data-acustom style="background:url(\''+_pfAvatar+'\') center/cover"></div>':'');
   Array.prototype.forEach.call(ag.querySelectorAll('[data-a]'),function(el){ el.onclick=function(){ var a=el.getAttribute('data-a'); _pfAvatar=(a==='channel')?'channel':'preset:'+a; renderPfGrids(); renderPfPreview(); }; });
 }
 function renderPfPreview(){
