@@ -1564,6 +1564,15 @@ function curCh(){
   if(VIEW==='space' && SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)) return SPACE.channel;
   return IDENT.yt;
 }
+/* the active identity for the current lens: the team channel (incl its TikTok/Instagram)
+   in a team lens, your own connected platforms in the personal lens. keeps every platform
+   in lockstep with YouTube so a teammate sees the team's socials, not their own */
+function actIdent(){
+  if(VIEW==='space' && SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)){
+    var c=SPACE.channel; return { yt:c, tiktok:c.tiktok||'', instagram:c.instagram||'', team:true };
+  }
+  return { yt:IDENT.yt, tiktok:IDENT.tiktok||'', instagram:IDENT.instagram||'', team:false };
+}
 function renderViewSwitch(){
   var old=$('viewSwitch'); if(old) old.style.display='none'; /* superseded by the lens bar */
   var host=$('lensBar'); if(!host) return;
@@ -1605,6 +1614,7 @@ function switchView(v){
   if(v===VIEW) return;
   VIEW=v; try{ localStorage.setItem('vs_view',v); }catch(e){}
   renderViewSwitch(); renderIdentity();
+  renderPlatChips(); renderTabs(); switchPlatform('youtube'); /* TikTok/Instagram follow the lens too */
   applyLensChrome();          /* show/hide team-only tiles + set the private/shared tags */
   try{ loadIdeas(); }catch(e){} /* every scoped surface reloads for the new lens */
   try{ loadRivals(); }catch(e){}
@@ -1699,7 +1709,7 @@ function switchSpace(wsid){
   VIEW='space';
   teamsApi('my_space',{workspace_id:wsid}).then(function(d){
     applySpace(d);
-    try{ renderIdentity(); }catch(e){}
+    try{ renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube'); }catch(e){}
     try{ loadIdeas(); }catch(e){}
     try{ renderQueue((LASTAI&&LASTAI.fixes)||[]); }catch(e){}
   }).catch(function(){});
@@ -1756,6 +1766,7 @@ function applySpace(d){
   renderSpace();
   loadBoard();
   applyLensChrome();
+  try{ renderIdentity(); renderPlatChips(); renderTabs(); }catch(e){} /* header + platforms reflect the applied lens */
   goLive(); /* re-pull history with the shared lens */
 }
 function renderNoSpace(){
@@ -2041,16 +2052,19 @@ function renderIdentity(){
   }
 }
 function renderPlatChips(){
+  var A=actIdent();
   var out=['<span class="plat-chip on" role="listitem">'+IC_YT+' YouTube</span>'];
-  if(IDENT.tiktok) out.push('<span class="plat-chip" role="listitem">'+IC_TT+' @'+esc(IDENT.tiktok.replace(/^@/,''))+'</span>');
-  if(IDENT.instagram) out.push('<span class="plat-chip" role="listitem">'+IC_IG+' @'+esc(IDENT.instagram.replace(/^@/,''))+'</span>');
-  if(!IDENT.tiktok || !IDENT.instagram) out.push('<span class="plat-chip add" onclick="openConnect()" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();openConnect();}" role="button" tabindex="0">+ add platform</span>');
+  if(A.tiktok) out.push('<span class="plat-chip" role="listitem">'+IC_TT+' @'+esc(A.tiktok.replace(/^@/,''))+'</span>');
+  if(A.instagram) out.push('<span class="plat-chip" role="listitem">'+IC_IG+' @'+esc(A.instagram.replace(/^@/,''))+'</span>');
+  /* only the personal lens can add platforms — team socials are set by the owner on their own dashboard */
+  if(!A.team && (!A.tiktok || !A.instagram)) out.push('<span class="plat-chip add" onclick="openConnect()" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();openConnect();}" role="button" tabindex="0">+ add platform</span>');
   $('platChips').innerHTML=out.join('');
 }
 function renderTabs(){
+  var A=actIdent();
   var tabs=[tabHTML('youtube','YouTube','live',IC_YT)];
-  if(IDENT.tiktok) tabs.push(tabHTML('tiktok','TikTok','soon',IC_TT));
-  if(IDENT.instagram) tabs.push(tabHTML('instagram','Instagram','soon',IC_IG));
+  if(A.tiktok) tabs.push(tabHTML('tiktok','TikTok','soon',IC_TT));
+  if(A.instagram) tabs.push(tabHTML('instagram','Instagram','soon',IC_IG));
   $('ptabs').innerHTML=tabs.join(''); $('ptabs').style.display = tabs.length>1?'flex':'none';
 }
 function tabHTML(p,label,st,icon){ return '<div class="ptab" data-p="'+p+'" onclick="switchPlatform(\''+p+'\')" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();switchPlatform(\''+p+'\');}" role="tab" aria-selected="false" tabindex="0">'+icon+' '+label+' <span class="st">'+st+'</span></div>'; }
@@ -2063,9 +2077,10 @@ function switchPlatform(p){
   if(!yt) renderAlt(p);
 }
 function renderAlt(p){
-  var clean=(IDENT[p]||'').replace(/^@/,''), name=p==='tiktok'?'TikTok':'Instagram';
+  var A=actIdent(); var clean=(A[p]||'').replace(/^@/,''), name=p==='tiktok'?'TikTok':'Instagram';
   var url=p==='tiktok'?('https://www.tiktok.com/@'+clean):('https://www.instagram.com/'+clean);
-  $('altHead').innerHTML='<div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">connected · '+esc(name)+'</div><div class="big">@'+esc(clean)+'</div><div class="tsub">This '+esc(name)+' account is linked to your ViralSidekick identity.</div>';
+  var whose=A.team?('the '+esc((SPACE&&SPACE.workspace&&SPACE.workspace.name)||'team')+' channel'):'your ViralSidekick identity';
+  $('altHead').innerHTML='<div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">connected · '+esc(name)+'</div><div class="big">@'+esc(clean)+'</div><div class="tsub">This '+esc(name)+' account is linked to '+whose+'. Deep '+esc(name)+' analytics are rolling out, the handle is saved so it is ready the moment they land.</div>';
   $('altName2').textContent=name; $('altLink').href=url;
 }
 
