@@ -308,6 +308,7 @@ footer a:hover{color:var(--fg)}
 .plat-chip:hover{color:var(--fg);border-color:var(--border2)}
 .plat-chip.on{color:#fff;border-color:var(--gc,var(--primary));background:var(--primary-soft)}
 .plat-chip.add{border-style:dashed;color:var(--faint)}
+.pc-h{font-weight:500;color:var(--faint);opacity:.9}
 .plat-chip .pi{width:14px;height:14px;flex:0 0 auto}
 .id-grade{display:flex;align-items:center;gap:16px;order:3;padding-left:22px;border-left:1px solid var(--border)}
 .id-meta{order:2}
@@ -2332,7 +2333,7 @@ function renderIdentity(){
   else { av.style.background=''; av.innerHTML=''; av.textContent=idInit; }
   $('hqName').textContent = display;
   if(av) av.setAttribute('aria-label',(display||'your channel')+' avatar');
-  $('idHandle').innerHTML = (!emptySpace && yt.handle)? '<b>'+esc(yt.handle)+'</b>' : '';
+  $('idHandle').innerHTML = (inSpace && !emptySpace && yt.handle)? '<b>'+esc(yt.handle)+'</b>' : ''; /* personal: channel handle lives on the YouTube chip, not under your name */
   $('idSubs').textContent = emptySpace ? (canEditSpace()?'no channels linked yet — set up channels →':'no channels linked yet')
     : inSpace ? (yt.subs? ('· '+String(yt.subs).replace(' subscribers',' subs')) : '')
     : ((PROFILE&&(PROFILE.display_name||PROFILE.profile_avatar||PROFILE.profile_banner)) ? '' : '· personalize with Edit profile →'); /* personal = name + handle, not channel metrics */
@@ -2372,7 +2373,8 @@ function renderIdentity(){
 }
 function renderPlatChips(){
   var A=actIdent();
-  var out=['<span class="plat-chip on" role="listitem">'+IC_YT+' YouTube</span>'];
+  var ych=A.yt||{}; var yname=(ych.name && !looksRaw(ych.name))?ych.name:(ych.handle||''); /* channel name lives here, not under your display name */
+  var out=['<span class="plat-chip on" role="listitem">'+IC_YT+' YouTube'+(yname?' <span class="pc-h">'+esc(yname)+'</span>':'')+'</span>'];
   if(A.tiktok) out.push('<span class="plat-chip" role="listitem">'+IC_TT+' @'+esc(A.tiktok.replace(/^@/,''))+'</span>');
   if(A.instagram) out.push('<span class="plat-chip" role="listitem">'+IC_IG+' @'+esc(A.instagram.replace(/^@/,''))+'</span>');
   if(A.facebook) out.push('<span class="plat-chip" role="listitem">'+IC_FB+' '+esc(A.facebook.replace(/^@/,''))+'</span>');
