@@ -954,8 +954,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <h1>This is you. Let's connect your channels.</h1>
         <p class="osub">ViralSidekick becomes your creator command center. Start with YouTube, it goes live instantly.</p>
         <div class="conn-row">
-          <label for="obName">Your display name</label>
-          <div class="rr"><input id="obName" type="text" maxlength="40" placeholder="what teammates see (e.g. Darius)"></div>
+          <label for="obName">Choose your username</label>
+          <div class="rr"><input id="obName" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="username" oninput="obOnName()"></div>
+          <div class="sm mut" id="obNameMsg" aria-live="polite" style="margin-top:4px">lowercase letters, numbers and underscores. unique to you.</div>
         </div>
         <div class="conn-row">
           <label for="obYt">
@@ -1374,11 +1375,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
     <div class="mc">
       <button class="x" onclick="closeConnect()" aria-label="close">✕</button>
       <h2 id="connectModalTitle">Your channels</h2>
-      <p class="sm mut" id="cmHint" style="margin-bottom:18px">Update your identity and the channels bound to your account.</p>
-      <div class="conn-row" id="cmNameRow">
-        <label>Display name</label>
-        <div class="rr"><input id="cmName" type="text" maxlength="40" placeholder="what teammates see"></div>
-      </div>
+      <p class="sm mut" id="cmHint" style="margin-bottom:18px">Update the channels bound to your account. Your username lives in Edit profile.</p>
       <div class="conn-row">
         <label for="cmYt">
           <svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
@@ -2198,9 +2195,20 @@ function finishOnboard(){
     var f=$('obFound'); f.style.display='flex'; f.innerHTML='<div class="fn" style="color:var(--warning)">connect your YouTube channel first ↑</div>'; return;
   }
   IDENT.tiktok=$('obTt').value.trim(); IDENT.instagram=$('obIg').value.trim();
-  var dn=$('obName').value.trim(); if(dn){ PROFILE=PROFILE||{}; PROFILE.display_name=dn; }
-  persistIdentity(function(){ enterHQ(); });
+  var uname=_slugHandle($('obName').value||''), nm=$('obNameMsg');
+  if(uname && uname.length<3){ if(nm){ nm.style.color='var(--danger)'; nm.textContent='username needs at least 3 characters'; } return; }
+  var proceed=function(){ persistIdentity(function(){ enterHQ(); }); };
+  if(uname){
+    if(nm){ nm.style.color=''; nm.textContent='claiming @'+uname+'…'; }
+    saveUsernameProfile(uname,{username:uname}).then(function(res){
+      if(res&&res.taken){ if(nm){ nm.style.color='var(--danger)'; nm.textContent='@'+uname+' is taken, try another'; } return; }
+      if(res&&res.error){ if(nm){ nm.style.color='var(--danger)'; nm.textContent='could not save, try again'; } return; }
+      PROFILE=PROFILE||{}; PROFILE.username=uname; if(nm) nm.textContent='';
+      proceed();
+    });
+  } else proceed();
 }
+function obOnName(){ var el=$('obName'); var v=_slugHandle(el.value); if(v!==el.value) el.value=v; }
 function persistIdentity(cb){
   /* channel binding is server-side now (bind_channel: verified + cooldown).
      only the harmless fields persist directly. */
@@ -2796,19 +2804,16 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var m=doc
 function openConnect(){
   var space = (VIEW==='space' && SPACE && SPACE.workspace);
   _connTarget = (space && canEditSpace()) ? 'space' : 'mine';
-  var title=$('connectModalTitle'), hint=$('cmHint'), nameRow=$('cmNameRow'), msg=$('cmMsg');
+  var title=$('connectModalTitle'), hint=$('cmHint'), msg=$('cmMsg');
   if(msg){ msg.textContent=''; msg.style.color=''; }
   if(_connTarget==='space'){
     var c=SPACE.channel||{};
     if(title) title.textContent='Team channels · '+(SPACE.workspace.name||'your space');
     if(hint) hint.textContent='set the channels this space tracks — everyone you invite sees these, not their own.';
-    if(nameRow) nameRow.style.display='none';
     $('cmYt').value=c.handle||c.name||c.id||''; $('cmTt').value=c.tiktok||''; $('cmIg').value=c.instagram||''; $('cmFb').value=c.facebook||'';
   } else {
     if(title) title.textContent='Your channels';
-    if(hint) hint.textContent='Update your identity and the channels bound to your account.';
-    if(nameRow) nameRow.style.display='';
-    var cn=$('cmName'); if(cn) cn.value=(PROFILE&&PROFILE.display_name)||'';
+    if(hint) hint.textContent='Update the channels bound to your account. Your username lives in Edit profile.';
     $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFb').value=IDENT.facebook||'';
   }
   $('cmFound').style.display='none';
@@ -2818,7 +2823,6 @@ function openConnect(){
 function closeConnect(){ $('connectModal').classList.remove('on'); }
 function saveConnect(){
   if(_connTarget==='space') return saveSpaceChannels();
-  var cn=$('cmName'); if(cn&&cn.value.trim()){ PROFILE=PROFILE||{}; PROFILE.display_name=cn.value.trim(); }
   IDENT.tiktok=$('cmTt').value.trim(); IDENT.instagram=$('cmIg').value.trim(); IDENT.facebook=$('cmFb').value.trim();
   var v=$('cmYt').value.trim();
   var changed = v && v!==(IDENT.yt.handle||'') && v!==(IDENT.yt.name||'') && v!==(IDENT.yt.id||'');
