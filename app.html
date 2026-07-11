@@ -957,7 +957,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="id-actions">
           <span class="sm mut" id="hqWhen" style="font-size:.74rem" aria-live="polite"></span>
           <button id="refreshBtn" class="btn btn-ghost btn-sm" onclick="refreshLive()">↻ Refresh</button>
-          <button class="btn btn-ghost btn-sm" onclick="openConnect()">Edit channels</button>
+          <button id="editChBtn" class="btn btn-ghost btn-sm" onclick="openConnect()">Edit channels</button>
           <div id="scanRun" class="scanline" aria-live="polite"><span class="spin" aria-hidden="true"></span><span id="scanRunTxt">refreshing…</span></div>
         </div>
       </div>
@@ -1313,8 +1313,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
     <div class="mc">
       <button class="x" onclick="closeConnect()" aria-label="close">✕</button>
       <h2 id="connectModalTitle">Your channels</h2>
-      <p class="sm mut" style="margin-bottom:18px">Update your identity and the channels bound to your account.</p>
-      <div class="conn-row">
+      <p class="sm mut" id="cmHint" style="margin-bottom:18px">Update your identity and the channels bound to your account.</p>
+      <div class="conn-row" id="cmNameRow">
         <label>Display name</label>
         <div class="rr"><input id="cmName" type="text" maxlength="40" placeholder="what your team sees"></div>
       </div>
@@ -1343,7 +1343,15 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </label>
         <div class="rr"><input id="cmIg" type="text" placeholder="@yourinstagram"></div>
       </div>
-      <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="saveConnect()">Save channels</button>
+      <div class="conn-row">
+        <label for="cmFb">
+          <svg class="pi pi-fb" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg>
+          Facebook
+        </label>
+        <div class="rr"><input id="cmFb" type="text" placeholder="your page name or facebook.com/…"></div>
+      </div>
+      <div id="cmMsg" class="sm mut" aria-live="polite" style="margin:2px 0 10px"></div>
+      <button class="btn btn-primary btn-block" style="margin-top:2px" onclick="saveConnect()" id="cmSave">Save channels</button>
     </div>
   </div>
 
@@ -1448,7 +1456,7 @@ function googleAuth(){
 function logout(){ sb.auth.signOut(); }
 
 /* ================= VIRAL HQ: identity + platforms + live ================= */
-var IDENT = { yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'' };
+var IDENT = { yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'', facebook:'' };
 var PLATFORM='youtube', LASTAI=null, LIVE=null, lastFullAt=0, IS_PRO=false;
 var PRO_MONTHLY='https://buy.stripe.com/bJe7sN6Kcd4Z89qbHK5wI0s';
 var PRO_ANNUAL='https://buy.stripe.com/8x26oJgkM7KF75m4fi5wI0t';
@@ -1471,6 +1479,7 @@ function setBilling(mode){
 var IC_YT='<svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>';
 var IC_TT='<svg class="pi pi-tt" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.2 1.8 3.9 4 4.1v2.7c-1.4.1-2.7-.3-4-1v6.3a6 6 0 1 1-6-6c.3 0 .5 0 .8.1v2.9a3.1 3.1 0 1 0 2.2 3V3h3z"/></svg>';
 var IC_IG='<svg class="pi pi-ig" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3 0 4.1.1 1 0 1.6.2 2 .4.5.2.9.5 1.3.9.4.4.7.8.9 1.3.2.4.3 1 .4 2C20.9 8 21 8.3 21 11s0 3-.1 4.1c0 1-.2 1.6-.4 2a3.5 3.5 0 0 1-.9 1.3c-.4.4-.8.7-1.3.9-.4.2-1 .3-2 .4-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-1 0-1.6-.2-2-.4a3.5 3.5 0 0 1-1.3-.9 3.5 3.5 0 0 1-.9-1.3c-.2-.4-.3-1-.4-2C3 15 3 14.7 3 12s0-3 .1-4.1c0-1 .2-1.6.4-2 .2-.5.5-.9.9-1.3.4-.4.8-.7 1.3-.9.4-.2 1-.3 2-.4C8.8 3 9.1 3 12 3zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8zM17.8 6a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1z"/></svg>';
+var IC_FB='<svg class="pi pi-fb" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg>';
 function nfmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e3) return (n/1e3).toFixed(n>=1e4?0:1)+'K'; return String(Math.round(n)); }
 /* localStorage namespaces so caches never bleed across accounts (shared browser) or between the mine/space views */
 function _nsU(){ return (typeof USER!=='undefined'&&USER?USER.id:'x'); }
@@ -1511,7 +1520,7 @@ function loadProfile(){
    sb.from('viralsidekick_profiles').select('*').eq('id', USER.id).maybeSingle().then(function(r){
     PROFILE = r.data || {};
     IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
-    IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||'';
+    IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||''; IDENT.facebook = PROFILE.facebook_handle||'';
     IS_PRO = ownPro();
 
     /* INVITED? accept BEFORE any onboarding, team members walk straight into
@@ -1569,10 +1578,13 @@ function curCh(){
    in lockstep with YouTube so a teammate sees the team's socials, not their own */
 function actIdent(){
   if(VIEW==='space' && SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)){
-    var c=SPACE.channel; return { yt:c, tiktok:c.tiktok||'', instagram:c.instagram||'', team:true };
+    var c=SPACE.channel; return { yt:c, tiktok:c.tiktok||'', instagram:c.instagram||'', facebook:c.facebook||'', team:true };
   }
-  return { yt:IDENT.yt, tiktok:IDENT.tiktok||'', instagram:IDENT.instagram||'', team:false };
+  return { yt:IDENT.yt, tiktok:IDENT.tiktok||'', instagram:IDENT.instagram||'', facebook:IDENT.facebook||'', team:false };
 }
+var _connTarget='mine'; /* which record the connect modal edits: 'mine' = your profile, 'space' = the team channel */
+function myRole(){ if(!(SPACE&&SPACE.members&&USER)) return ''; var m=SPACE.members.filter(function(x){return x.user_id===USER.id;})[0]; return m?m.role:''; }
+function canEditSpace(){ if(!(VIEW==='space'&&SPACE&&SPACE.workspace)) return false; var r=myRole(); return r==='owner'||r==='admin'; }
 function renderViewSwitch(){
   var old=$('viewSwitch'); if(old) old.style.display='none'; /* superseded by the lens bar */
   var host=$('lensBar'); if(!host) return;
@@ -1976,9 +1988,10 @@ function connectYouTube(inId, foundId, cb){
     .then(function(r){return r.json();})
     .then(function(d){
       if(!d||!d.ok||!d.channel){ f.innerHTML='<div><div class="fn" style="color:var(--danger)">couldn\'t find that channel</div><div class="fs">try @handle, the full URL, or the UC… id</div></div>'; return; }
-      IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
-      IDENT._dirty=true;
-      f.innerHTML=(IDENT.yt.avatar?'<img src="'+esc(IDENT.yt.avatar)+'" alt="">':'')+'<div><div class="fn">'+esc(IDENT.yt.name)+' ✓ found you</div><div class="fs">'+esc((IDENT.yt.handle?IDENT.yt.handle+'  ·  ':'')+(IDENT.yt.subs||''))+'</div></div>';
+      /* in space mode this is just a preview — the server resolves + stores it, don't touch personal identity */
+      if(_connTarget!=='space'){ IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' }; IDENT._dirty=true; }
+      var ch=d.channel;
+      f.innerHTML=(ch.avatar?'<img src="'+esc(ch.avatar)+'" alt="">':'')+'<div><div class="fn">'+esc(ch.name||'')+' ✓ found you</div><div class="fs">'+esc((ch.handle?ch.handle+'  ·  ':'')+(ch.subs||''))+'</div></div>';
       if(cb) cb();
     })
     .catch(function(){ f.innerHTML='<div class="fn" style="color:var(--danger)">network hiccup, try again</div>'; });
@@ -1997,7 +2010,7 @@ function persistIdentity(cb){
   /* channel binding is server-side now (bind_channel: verified + cooldown).
      only the harmless fields persist directly. */
   saveProfileFields(Object.assign((PROFILE&&PROFILE.display_name)?{display_name:String(PROFILE.display_name).slice(0,40)}:{}, {
-    tiktok_handle:IDENT.tiktok||null, instagram_handle:IDENT.instagram||null
+    tiktok_handle:IDENT.tiktok||null, instagram_handle:IDENT.instagram||null, facebook_handle:IDENT.facebook||null
   })).then(function(){
     if(IDENT.yt && (IDENT.yt.id||IDENT.yt.name) && !IDENT._adopted && IDENT._dirty){
       teamsApi('bind_channel',{channel:IDENT.yt.id||IDENT.yt.handle||IDENT.yt.name}).then(function(d){
@@ -2035,6 +2048,12 @@ function renderIdentity(){
   $('idHandle').innerHTML = yt.handle? '<b>'+esc(yt.handle)+'</b>' : '';
   $('idSubs').textContent = yt.subs? ('· '+String(yt.subs).replace(' subscribers',' subs')) : '';
   updateCardLinks();
+  var ecb=$('editChBtn');
+  if(ecb){
+    if(VIEW==='space' && SPACE && SPACE.workspace){ /* team lens: only owner/admin can set the space channels */
+      if(canEditSpace()){ ecb.style.display=''; ecb.textContent='Set up channels'; } else { ecb.style.display='none'; }
+    } else { ecb.style.display=''; ecb.textContent='Edit channels'; }
+  }
   var ty=document.querySelector('.tag-you');
   if(ty){ var lf=ty.querySelector('#liveFlag'); if(lf){ ty.childNodes.forEach(function(n){ if(n.nodeType===3) n.textContent = (IDENT._adopted||VIEW==='space') ? ' · your team’s channel ' : ' · this is you '; }); } }
   /* self-heal: stored channel is a raw URL/id or missing avatar+subs, resolve the real identity live */
@@ -2056,8 +2075,10 @@ function renderPlatChips(){
   var out=['<span class="plat-chip on" role="listitem">'+IC_YT+' YouTube</span>'];
   if(A.tiktok) out.push('<span class="plat-chip" role="listitem">'+IC_TT+' @'+esc(A.tiktok.replace(/^@/,''))+'</span>');
   if(A.instagram) out.push('<span class="plat-chip" role="listitem">'+IC_IG+' @'+esc(A.instagram.replace(/^@/,''))+'</span>');
-  /* only the personal lens can add platforms — team socials are set by the owner on their own dashboard */
-  if(!A.team && (!A.tiktok || !A.instagram)) out.push('<span class="plat-chip add" onclick="openConnect()" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();openConnect();}" role="button" tabindex="0">+ add platform</span>');
+  if(A.facebook) out.push('<span class="plat-chip" role="listitem">'+IC_FB+' '+esc(A.facebook.replace(/^@/,''))+'</span>');
+  /* personal lens: anyone can add. team lens: only an owner/admin sets the space socials */
+  if((!A.team && (!A.tiktok || !A.instagram || !A.facebook)) || (A.team && canEditSpace() && (!A.tiktok || !A.instagram || !A.facebook)))
+    out.push('<span class="plat-chip add" onclick="openConnect()" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();openConnect();}" role="button" tabindex="0">+ add platform</span>');
   $('platChips').innerHTML=out.join('');
 }
 function renderTabs(){
@@ -2065,6 +2086,7 @@ function renderTabs(){
   var tabs=[tabHTML('youtube','YouTube','live',IC_YT)];
   if(A.tiktok) tabs.push(tabHTML('tiktok','TikTok','soon',IC_TT));
   if(A.instagram) tabs.push(tabHTML('instagram','Instagram','soon',IC_IG));
+  if(A.facebook) tabs.push(tabHTML('facebook','Facebook','soon',IC_FB));
   $('ptabs').innerHTML=tabs.join(''); $('ptabs').style.display = tabs.length>1?'flex':'none';
 }
 function tabHTML(p,label,st,icon){ return '<div class="ptab" data-p="'+p+'" onclick="switchPlatform(\''+p+'\')" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();switchPlatform(\''+p+'\');}" role="tab" aria-selected="false" tabindex="0">'+icon+' '+label+' <span class="st">'+st+'</span></div>'; }
@@ -2077,10 +2099,12 @@ function switchPlatform(p){
   if(!yt) renderAlt(p);
 }
 function renderAlt(p){
-  var A=actIdent(); var clean=(A[p]||'').replace(/^@/,''), name=p==='tiktok'?'TikTok':'Instagram';
-  var url=p==='tiktok'?('https://www.tiktok.com/@'+clean):('https://www.instagram.com/'+clean);
+  var A=actIdent(); var clean=(A[p]||'').replace(/^@/,'');
+  var name=p==='tiktok'?'TikTok':(p==='facebook'?'Facebook':'Instagram');
+  var url=p==='tiktok'?('https://www.tiktok.com/@'+clean):(p==='facebook'?('https://www.facebook.com/'+clean):('https://www.instagram.com/'+clean));
   var whose=A.team?('the '+esc((SPACE&&SPACE.workspace&&SPACE.workspace.name)||'team')+' channel'):'your ViralSidekick identity';
-  $('altHead').innerHTML='<div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">connected · '+esc(name)+'</div><div class="big">@'+esc(clean)+'</div><div class="tsub">This '+esc(name)+' account is linked to '+whose+'. Deep '+esc(name)+' analytics are rolling out, the handle is saved so it is ready the moment they land.</div>';
+  var disp=(p==='facebook'?'':'@')+esc(clean);
+  $('altHead').innerHTML='<div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">connected · '+esc(name)+'</div><div class="big">'+disp+'</div><div class="tsub">This '+esc(name)+' account is linked to '+whose+'. Deep '+esc(name)+' analytics are rolling out, the handle is saved so it is ready the moment they land.</div>';
   $('altName2').textContent=name; $('altLink').href=url;
 }
 
@@ -2372,15 +2396,52 @@ function copyCard(){
 
 /* ---------- connect/edit modal ---------- */
 document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var m=document.querySelector('.modal.on'); if(m) m.classList.remove('on'); } });
-function openConnect(){ var cn=$('cmName'); if(cn) cn.value=(PROFILE&&PROFILE.display_name)||''; $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFound').style.display='none'; $('connectModal').classList.add('on'); setTimeout(function(){ var f=$('connectModal').querySelector('input,button'); if(f) f.focus(); },30); }
+function openConnect(){
+  var space = (VIEW==='space' && SPACE && SPACE.workspace);
+  _connTarget = (space && canEditSpace()) ? 'space' : 'mine';
+  var title=$('connectModalTitle'), hint=$('cmHint'), nameRow=$('cmNameRow'), msg=$('cmMsg');
+  if(msg){ msg.textContent=''; msg.style.color=''; }
+  if(_connTarget==='space'){
+    var c=SPACE.channel||{};
+    if(title) title.textContent='Team channels · '+(SPACE.workspace.name||'your space');
+    if(hint) hint.textContent='set the channels this space tracks — everyone you invite sees these, not their own.';
+    if(nameRow) nameRow.style.display='none';
+    $('cmYt').value=c.handle||c.name||c.id||''; $('cmTt').value=c.tiktok||''; $('cmIg').value=c.instagram||''; $('cmFb').value=c.facebook||'';
+  } else {
+    if(title) title.textContent='Your channels';
+    if(hint) hint.textContent='Update your identity and the channels bound to your account.';
+    if(nameRow) nameRow.style.display='';
+    var cn=$('cmName'); if(cn) cn.value=(PROFILE&&PROFILE.display_name)||'';
+    $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFb').value=IDENT.facebook||'';
+  }
+  $('cmFound').style.display='none';
+  $('connectModal').classList.add('on');
+  setTimeout(function(){ var f=$('connectModal').querySelector('input,button'); if(f) f.focus(); },30);
+}
 function closeConnect(){ $('connectModal').classList.remove('on'); }
 function saveConnect(){
+  if(_connTarget==='space') return saveSpaceChannels();
   var cn=$('cmName'); if(cn&&cn.value.trim()){ PROFILE=PROFILE||{}; PROFILE.display_name=cn.value.trim(); }
-  IDENT.tiktok=$('cmTt').value.trim(); IDENT.instagram=$('cmIg').value.trim();
+  IDENT.tiktok=$('cmTt').value.trim(); IDENT.instagram=$('cmIg').value.trim(); IDENT.facebook=$('cmFb').value.trim();
   var v=$('cmYt').value.trim();
   var changed = v && v!==(IDENT.yt.handle||'') && v!==(IDENT.yt.name||'') && v!==(IDENT.yt.id||'');
   function done(){ persistIdentity(function(){ closeConnect(); renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform(PLATFORM); goLive(); }); }
   if(changed){ connectYouTube('cmYt','cmFound', done); } else { done(); }
+}
+/* owner/admin sets the space's own channels — the server resolves YouTube + stores it on the workspace */
+function saveSpaceChannels(){
+  if(!(SPACE&&SPACE.workspace)) return;
+  var msg=$('cmMsg'), sv=$('cmSave');
+  if(msg){ msg.style.color=''; msg.textContent='saving…'; }
+  if(sv) sv.disabled=true;
+  teamsApi('space_channels',{ workspace_id:SPACE.workspace.id,
+    youtube:$('cmYt').value.trim(), tiktok:$('cmTt').value.trim(),
+    instagram:$('cmIg').value.trim(), facebook:$('cmFb').value.trim() }).then(function(d){
+    if(sv) sv.disabled=false;
+    if(!d || d.error){ if(msg){ msg.style.color='var(--danger)'; msg.textContent=(d&&d.error)||'could not save, try again'; } return; }
+    if(d.channel) SPACE.channel=d.channel;
+    closeConnect(); renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube'); goLive();
+  }).catch(function(){ if(sv) sv.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent='network hiccup, try again'; } });
 }
 
 /* ---------- deep intel tiles (from full scan) ---------- */
