@@ -1651,9 +1651,17 @@ var YT_SCOPES='openid email profile https://www.googleapis.com/auth/youtube.read
 function verifyYouTube(){
   var opts={ scopes:YT_SCOPES, redirectTo: location.origin + location.pathname + '?ytconnect=1', queryParams:{ access_type:'offline', prompt:'consent' } };
   try{ var m=$('cmMsg'); if(m){ m.style.color=''; m.textContent='opening google…'; } }catch(e){}
-  /* logged-in email account -> LINK google to it (keeps their account). fallback -> plain google sign-in */
-  var call = (USER && sb.auth.linkIdentity) ? sb.auth.linkIdentity({ provider:'google', options:opts }) : sb.auth.signInWithOAuth({ provider:'google', options:opts });
-  call.then(function(r){ if(r && r.error){ try{ toast(r.error.message||'could not open google, try again','err'); }catch(e){} } });
+  var doOAuth=function(){ return sb.auth.signInWithOAuth({ provider:'google', options:opts }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
+  /* logged-in email account -> LINK google to it (keeps their account) */
+  if(USER && sb.auth.linkIdentity){
+    sb.auth.linkIdentity({ provider:'google', options:opts }).then(function(r){
+      if(r && r.error){
+        var em=String(r.error.message||'');
+        if(/already|linked|exist|manual linking/i.test(em)){ doOAuth(); return; } /* google already linked -> just re-auth to refresh the token */
+        try{ toast(em||'could not open google, try again','err'); }catch(e){}
+      }
+    });
+  } else { doOAuth(); }
 }
 function claimYouTube(session){
   if(!session || !session.provider_token || window._ytClaimed===session.provider_token) return;
