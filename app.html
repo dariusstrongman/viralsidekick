@@ -292,9 +292,8 @@ footer a:hover{color:var(--fg)}
 .idhead.prof::before{background:radial-gradient(240px 170px at 0% 50%,hsl(260 90% 66%),transparent 70%);opacity:.14}
 .idhead.prof .avatar{border-radius:50%;width:76px;height:76px}
 .idhead.prof .tag-you{color:var(--mine-txt)}
-/* strip the channel-analysis chrome from your personal profile (grade ring + live-data cue) */
+/* strip the channel-analysis chrome from your personal profile (grade ring) */
 .idhead.prof .id-grade{display:none}
-.idhead.prof #hqWhen{display:none}
 .idhead.chan{border-color:hsl(45 90% 60% / .45)}
 /* your profile travels with you: a FULL banner card on top while inside a space (matches My Dashboard) */
 .youbar{display:flex;align-items:center;gap:18px;padding:15px 20px;margin-bottom:12px;border:1px solid hsl(260 90% 66% / .5);border-radius:16px;position:relative;overflow:hidden;background:linear-gradient(120deg,hsl(260 90% 66% / .12),transparent 70%)}
@@ -730,12 +729,6 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .q-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 .q-acts .mini-act{margin-left:0}
 /* team switcher inside the space tile */
-.team-switch{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}
-.team-switch .tsw{font-family:var(--mono);font-size:.66rem;letter-spacing:.03em;border:1px solid var(--border2);border-radius:9px;padding:5px 11px;color:var(--muted);background:transparent;cursor:pointer;transition:.15s}
-.team-switch .tsw:hover{color:#fff;border-color:hsl(45 95% 62% / .6)}
-.team-switch .tsw.on{color:hsl(45 95% 66%);border-color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1);cursor:default}
-.team-switch .tsw.new{border-style:dashed;color:var(--faint)}
-.team-switch .tsw.new:hover{color:hsl(45 95% 66%)}
 .board-team{font-family:var(--mono);font-size:.66rem;letter-spacing:.04em;color:hsl(45 95% 66%);margin-left:2px}
 /* lens tag: is this tile showing your private data or the team's shared data */
 .lens-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.05em;padding:2px 8px;border-radius:6px;vertical-align:middle;margin-left:4px;white-space:nowrap}
@@ -791,6 +784,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .tc-upgrade a{color:hsl(45 95% 66%);font-weight:600}
 .tc-del{font-family:var(--sans);font-size:.76rem;font-weight:600;color:var(--faint);background:transparent;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;cursor:pointer;margin-left:auto;transition:all .15s}
 .tc-del:hover{color:var(--danger);border-color:hsl(0 84% 60% / .45)}
+.tc-msg{margin-top:11px;font-family:var(--mono);font-size:.74rem;color:hsl(45 95% 66%);background:hsl(45 95% 62% / .08);border:1px solid hsl(45 95% 62% / .22);border-radius:9px;padding:8px 12px}
 .pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
 .pkg-sec{margin-bottom:15px}
 .pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -1096,6 +1090,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="tc-label" id="tcRosterLabel">Roster</div>
         <div class="tc-members" id="tcMembers"></div>
         <div class="tc-manage" id="tcManage"></div>
+        <div class="tc-msg" id="tcMsg" aria-live="polite" style="display:none"></div>
       </div>
 
       <!-- content niche banner -->
@@ -1210,7 +1205,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
               <span class="q-count" id="qCount"></span>
               <span class="q-when" id="hqWhen" aria-live="polite"></span>
               <span id="scanRun" class="scanline" aria-live="polite"><span class="spin" aria-hidden="true"></span><span id="scanRunTxt">reading…</span></span>
-              <button id="refreshBtn" class="btn btn-ghost btn-sm q-refresh" onclick="refreshLive()">↻ Refresh</button>
+              <button id="refreshBtn" class="btn btn-ghost btn-sm q-refresh" onclick="refreshLive()" title="re-read this channel with the coach">↻ Refresh</button>
             </span>
           </h3>
           <div id="queueBody"><div class="tsub">Every order lands here. Ship it, check it, watch the score move.</div></div>
@@ -2009,7 +2004,9 @@ function ownPro(){ return (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROF
 function recomputePro(){ IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); try{ renderPro(); }catch(e){} }
 function syncTeamPro(){ recomputePro(); }
 function seatLabel(){ if(!(SPACE&&SPACE.workspace)) return ''; var n=(SPACE.members&&SPACE.members.length)||0; return (SPACE.workspace.plan==='team')?'<span style="color:hsl(45 95% 62%)">'+n+'/5 seats</span>':n+'/5 seats'; }
-function spaceNote(t){ var e=$('tcSeats'); if(e){ e.textContent=t; setTimeout(function(){ e.innerHTML=seatLabel(); },4000); } }
+/* transient status for space actions (invite sent, errors). its own line under the
+   manage controls — not crammed into the tiny seats pill. */
+function spaceNote(t){ var e=$('tcMsg'); if(!e) return; e.textContent=t; e.style.display='block'; clearTimeout(e._t); e._t=setTimeout(function(){ e.style.display='none'; e.textContent=''; },4000); }
 function applySpace(d){
   if(!d || d.error){
     if(d && /not signed in/.test(d.error||'')) spaceFallback();
@@ -2857,10 +2854,10 @@ function backgroundScan(){
       if(d&&d.ai){ hydrateDeep(d.ai,d.radar_live,d.signals,d.breakout); lastFullAt=Date.now(); setTimeout(loadHistory,1200); }
       else if(d&&d.error==='too_new'){ ordMsg('you are just getting started', 'your first week is mapped in the roadmap below. knock these out and post 3 videos, then the coach reads your channel in full.'); restDeepTiles(); starterPlaybook(); }
       else if(d&&(d.error==='session expired - sign in again'||d.error==='session_expired')){ ordMsg('your session expired', 'refresh the page and sign in again to keep the coach on your channel.'); deepStuck('sign in again to load this'); }
-      else if(d&&d.error){ ordMsg('the read did not come back clean', 'tap refresh to try again. if it keeps happening, your channel may be private or too new.'); deepStuck('the read did not come back — tap ↻ Refresh up top to try again'); }
-      else { ordMsg('the read is taking longer than usual', 'tap refresh to retry. big channels and busy niches can take a full minute.'); deepStuck('the read is taking a while — tap ↻ Refresh up top to try again'); }
+      else if(d&&d.error){ ordMsg('the read did not come back clean', 'tap refresh to try again. if it keeps happening, your channel may be private or too new.'); deepStuck('the read did not come back — hit ↻ Refresh to try again'); }
+      else { ordMsg('the read is taking longer than usual', 'tap refresh to retry. big channels and busy niches can take a full minute.'); deepStuck('the read is taking a while — hit ↻ Refresh to try again'); }
     })
-    .catch(function(){ clearTimeout(_to); hideScanning(); ordMsg('the read timed out', 'tap refresh to try again, the coach will pick up where it left off.'); deepStuck('the read timed out — tap ↻ Refresh up top to try again'); })
+    .catch(function(){ clearTimeout(_to); hideScanning(); ordMsg('the read timed out', 'tap refresh to try again, the coach will pick up where it left off.'); deepStuck('the read timed out — hit ↻ Refresh to try again'); })
     .finally(function(){ window._scanning=false; });
 }
 /* a read failed/timed out: clear any deep tile still stuck on "loading…" so it
