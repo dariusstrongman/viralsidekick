@@ -303,6 +303,17 @@ footer a:hover{color:var(--fg)}
 .yb-actions{display:flex;gap:8px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
 .yb-plan{font-family:var(--mono);font-weight:700;font-size:.54rem;letter-spacing:.12em;color:#1a1305;background:linear-gradient(120deg,hsl(45 95% 62%),hsl(38 96% 55%));padding:2px 7px;border-radius:5px;vertical-align:middle;box-shadow:0 0 12px hsl(45 95% 60% / .4)}
 .yb-verified{font-family:var(--mono);font-weight:700;font-size:.54rem;letter-spacing:.1em;color:#d6f5e2;background:hsl(152 45% 22%);border:1px solid hsl(152 55% 40% / .5);padding:2px 7px;border-radius:5px;vertical-align:middle}
+/* personal dashboard empty state (no channel connected) */
+.hq-empty{position:relative;max-width:640px;margin:26px auto 44px;padding:46px 32px 40px;text-align:center;border:1px solid var(--border);border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.008));overflow:hidden}
+.hqe-glow{position:absolute;left:15%;right:15%;top:-46%;height:300px;background:radial-gradient(58% 58% at 50% 0,hsl(262 92% 64% / .30),transparent 72%);filter:blur(18px);pointer-events:none}
+.hqe-eyebrow{position:relative;font-family:var(--mono);font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:hsl(262 92% 72%);margin-bottom:15px}
+.hqe-title{position:relative;font-size:clamp(1.55rem,4.4vw,2.2rem);line-height:1.1;font-weight:800;letter-spacing:-.022em;margin:0 0 14px;text-wrap:balance}
+.hqe-sub{position:relative;max-width:470px;margin:0 auto 26px;color:var(--muted,#9aa3b2);font-size:.98rem;line-height:1.58}
+.hqe-cta{position:relative;font-size:1rem;padding:13px 32px}
+.hqe-note{position:relative;margin-top:13px;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;color:var(--faint,#6b7280)}
+.hqe-teasers{position:relative;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:28px}
+.hqe-teasers span{font-family:var(--mono);font-size:.63rem;letter-spacing:.07em;color:var(--muted,#9aa3b2);padding:5px 12px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.02)}
+#hqWrap.no-channel > *:not(#youBar):not(#hqEmpty){display:none !important}
 .yb-eyebrow{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%));margin-bottom:5px}
 .yb-name{font-weight:800;font-size:clamp(1.3rem,3vw,1.75rem);letter-spacing:-.02em;line-height:1.1;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idhead.chan::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
@@ -1052,6 +1063,17 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <button class="btn btn-ghost btn-sm" id="ybEditCh" onclick="openConnect()" style="display:none">Edit channels</button>
           <button class="btn btn-ghost btn-sm" onclick="openProfile()">Edit profile</button>
         </div>
+      </div>
+
+      <!-- personal dashboard, no channel connected yet -->
+      <div id="hqEmpty" class="hq-empty" style="display:none">
+        <div class="hqe-glow" aria-hidden="true"></div>
+        <div class="hqe-eyebrow">◆ your dashboard</div>
+        <h2 class="hqe-title">Connect your channel,<br>get the inside scoop</h2>
+        <p class="hqe-sub">Your real grade, the fixes that actually move views, and what's about to pop off in your niche, read straight from your own numbers, retention and click-through included.</p>
+        <button class="btn btn-primary hqe-cta" onclick="verifyYouTube()">Connect with Google</button>
+        <div class="hqe-note">read-only · proves it's your channel · cant be faked</div>
+        <div class="hqe-teasers"><span>A+ → F grade</span><span>niche radar</span><span>retention &amp; CTR</span><span>your next video</span></div>
       </div>
 
       <!-- identity header -->
@@ -2727,9 +2749,17 @@ function blankLiveSurfaces(){
   var bl=$('boardList'); if(bl) bl.innerHTML='<div class="tsub">loading…</div>';
   var sig=$('sigCount'); if(sig) sig.textContent='';
 }
+function setNoChannel(on){
+  var w=$('hqWrap'), e=$('hqEmpty'); if(!w) return;
+  if(on){ w.classList.add('no-channel'); if(e) e.style.display='block'; }
+  else { w.classList.remove('no-channel'); if(e) e.style.display='none'; }
+}
 function goLive(){
   resetChannelState();
   blankLiveSurfaces();
+  setNoChannel(false);
+  /* personal dashboard with nothing connected -> show the connect hero, don't try to scan */
+  if(VIEW!=='space' && !(IDENT.yt && (IDENT.yt.id||IDENT.yt.name))){ setNoChannel(true); return; }
   /* an unconfigured space must NOT scan the personal channel — prompt setup and stop */
   if(VIEW==='space' && SPACE && SPACE.workspace && !spaceHasChannel()){
     var msg = canEditSpace()
