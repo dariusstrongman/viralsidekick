@@ -1698,13 +1698,14 @@ function claimYouTube(session){
     try{ if(location.search.indexOf('ytconnect')>-1) history.replaceState({}, '', location.pathname); }catch(e){}
     if(d && d.ok && d.channel){
       IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
-      IDENT._adopted=true; IDENT._verified=true; IDENT._dirty=false;
+      IDENT._adopted=false; IDENT._verified=true; IDENT._dirty=false; /* verified-owned = the opposite of adopted; keeps My Dashboard enabled */
       PROFILE=PROFILE||{}; PROFILE.youtube_verified=true;
       PROFILE.primary_channel_id=d.channel.id; PROFILE.primary_channel_name=d.channel.name; PROFILE.primary_channel_avatar=d.channel.avatar; PROFILE.primary_channel_subs=d.channel.subs; PROFILE.primary_channel_handle=d.channel.handle;
       try{ closeConnect(); }catch(e){}
       try{ var of=$('obFound'); if(of){ of.style.display='flex'; of.innerHTML='<div class="fn">'+esc(d.channel.name||'your channel')+' ✓ connected + verified</div>'; } var bv=$('obYtVerify'); if(bv) bv.textContent='✓ connected — reconnect a different account'; }catch(e){}
       try{ renderIdentity(); }catch(e){}
       try{ renderYouBar(); }catch(e){}
+      try{ renderViewSwitch(); }catch(e){} /* re-enable My Dashboard now that a personal channel is verified */
       try{ toast('youtube connected + verified ✓','ok'); }catch(e){}
       try{ if(typeof goLive==='function' && VIEW!=='space' && $('onboard') && $('onboard').classList.contains('hide')) goLive(); }catch(e){} /* re-read now that we have the real channel - but not while onboarding is still open (finishOnboard handles that) */
     } else {
