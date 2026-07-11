@@ -302,6 +302,7 @@ footer a:hover{color:var(--fg)}
 .yb-meta{flex:1;min-width:0}
 .yb-actions{display:flex;gap:8px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
 .yb-plan{font-family:var(--mono);font-weight:700;font-size:.54rem;letter-spacing:.12em;color:#1a1305;background:linear-gradient(120deg,hsl(45 95% 62%),hsl(38 96% 55%));padding:2px 7px;border-radius:5px;vertical-align:middle;box-shadow:0 0 12px hsl(45 95% 60% / .4)}
+.yb-verified{font-family:var(--mono);font-weight:700;font-size:.54rem;letter-spacing:.1em;color:#d6f5e2;background:hsl(152 45% 22%);border:1px solid hsl(152 55% 40% / .5);padding:2px 7px;border-radius:5px;vertical-align:middle}
 .yb-eyebrow{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%));margin-bottom:5px}
 .yb-name{font-weight:800;font-size:clamp(1.3rem,3vw,1.75rem);letter-spacing:-.02em;line-height:1.1;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idhead.chan::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
@@ -1453,6 +1454,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <button class="btn btn-primary" style="flex:0 0 auto" onclick="connectYouTube('cmYt','cmFound')">Connect</button>
         </div>
         <div class="found" id="cmFound" aria-live="polite"></div>
+        <button class="btn btn-primary btn-block" id="cmYtVerify" style="margin-top:12px;display:none" onclick="verifyYouTube()">Connect with Google, verify you own it</button>
+        <div class="sm mut" id="cmYtVnote" style="display:none;margin-top:7px;line-height:1.45">signs you in with google and links the channel you actually own, this is the verified one and it unlocks your real analytics. pasting above just quick-links a channel without verifying.</div>
       </div>
       <div class="conn-row">
         <label for="cmTt">
@@ -1584,11 +1587,13 @@ try{
   }
 }catch(e){}
 var RECOVERY=false;
-sb.auth.getSession().then(function(r){ route(r.data.session); });
+sb.auth.getSession().then(function(r){ route(r.data.session); try{ if(r.data.session && r.data.session.provider_token) claimYouTube(r.data.session); }catch(e){} });
 sb.auth.onAuthStateChange(function(ev, session){
   if(ev==='PASSWORD_RECOVERY'){ RECOVERY=true; }
   route(session);
   if(RECOVERY && session){ RECOVERY=false; $('pwModal').classList.add('on'); }
+  /* a fresh provider_token only appears right after a Google/YouTube OAuth return -> claim ownership */
+  try{ if(session && session.provider_token) claimYouTube(session); }catch(e){}
 });
 function forgotPass(e){
   if(e) e.preventDefault();
@@ -1640,6 +1645,37 @@ function emailAuth(){
 }
 function googleAuth(){
   sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
+}
+/* ---------- connect YOUR youtube via OAuth = proven ownership (channels.list?mine=true) ---------- */
+var YT_SCOPES='openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
+function verifyYouTube(){
+  var opts={ scopes:YT_SCOPES, redirectTo: location.origin + location.pathname + '?ytconnect=1', queryParams:{ access_type:'offline', prompt:'consent' } };
+  try{ var m=$('cmMsg'); if(m){ m.style.color=''; m.textContent='opening google…'; } }catch(e){}
+  /* logged-in email account -> LINK google to it (keeps their account). fallback -> plain google sign-in */
+  var call = (USER && sb.auth.linkIdentity) ? sb.auth.linkIdentity({ provider:'google', options:opts }) : sb.auth.signInWithOAuth({ provider:'google', options:opts });
+  call.then(function(r){ if(r && r.error){ try{ toast(r.error.message||'could not open google, try again','err'); }catch(e){} } });
+}
+function claimYouTube(session){
+  if(!session || !session.provider_token || window._ytClaimed===session.provider_token) return;
+  window._ytClaimed=session.provider_token; /* provider_token is one-shot; only claim it once */
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    mode:'yt_verify', token:session.access_token, provider_token:session.provider_token, provider_refresh_token:session.provider_refresh_token||''
+  })}).then(function(r){return r.json();}).then(function(d){
+    try{ if(location.search.indexOf('ytconnect')>-1) history.replaceState({}, '', location.pathname); }catch(e){}
+    if(d && d.ok && d.channel){
+      IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
+      IDENT._adopted=true; IDENT._verified=true; IDENT._dirty=false;
+      PROFILE=PROFILE||{}; PROFILE.youtube_verified=true;
+      PROFILE.primary_channel_id=d.channel.id; PROFILE.primary_channel_name=d.channel.name; PROFILE.primary_channel_avatar=d.channel.avatar; PROFILE.primary_channel_subs=d.channel.subs; PROFILE.primary_channel_handle=d.channel.handle;
+      try{ closeConnect(); }catch(e){}
+      try{ renderIdentity(); }catch(e){}
+      try{ renderYouBar(); }catch(e){}
+      try{ toast('youtube connected + verified ✓','ok'); }catch(e){}
+      try{ if(typeof goLive==='function' && VIEW!=='space') goLive(); }catch(e){} /* re-read now that we have the real, verified channel */
+    } else {
+      try{ toast((d&&d.error)?d.error:'could not verify your youtube, try again','err'); }catch(e){}
+    }
+  }).catch(function(){ try{ toast('network hiccup verifying youtube','err'); }catch(e){} });
 }
 function logout(){ sb.auth.signOut(); }
 
@@ -1888,7 +1924,8 @@ function renderYouBar(){
   var eb=$('ybEyebrow'); if(eb){
     var isTeamPlan=(typeof PROFILE!=='undefined'&&PROFILE&&PROFILE.plan==='team');
     var pill=(typeof IS_PRO!=='undefined'&&IS_PRO)?' <span class="yb-plan">'+(isTeamPlan?'TEAM':'PRO')+'</span>':'';
-    eb.innerHTML=(teamLens?'◆ you':'◆ your profile')+pill;
+    var vpill=(!teamLens && PROFILE && PROFILE.youtube_verified)?' <span class="yb-verified" title="you connected this channel with your google account">✓ verified</span>':'';
+    eb.innerHTML=(teamLens?'◆ you':'◆ your profile')+pill+vpill;
   }
   /* channel management is a personal-lens action; in a space it lives on the channel header below */
   var ec=$('ybEditCh'); if(ec) ec.style.display = teamLens ? 'none' : '';
@@ -2999,6 +3036,10 @@ function openConnect(){
     $('cmYt').value=IDENT.yt.handle||IDENT.yt.name||IDENT.yt.id||''; $('cmTt').value=IDENT.tiktok||''; $('cmIg').value=IDENT.instagram||''; $('cmFb').value=IDENT.facebook||'';
   }
   $('cmFound').style.display='none';
+  /* the OAuth "verify you own it" button is for YOUR identity only; spaces (agencies) paste channels they dont own */
+  var _vb=$('cmYtVerify'), _vn=$('cmYtVnote'); var _showV=(_connTarget==='mine');
+  if(_vb) _vb.style.display=_showV?'':'none';
+  if(_vn) _vn.style.display=_showV?'':'none';
   $('connectModal').classList.add('on');
   setTimeout(function(){ var f=$('connectModal').querySelector('input,button'); if(f) f.focus(); },30);
 }
