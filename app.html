@@ -733,26 +733,55 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .lens-tag.mine{color:var(--mine-txt);border:1px solid hsl(260 90% 66% / .45)}
 .lens-tag.team{color:var(--team-txt);border:1px solid hsl(45 95% 62% / .5);background:hsl(45 95% 62% / .08)}
 /* team collaboration header + management surface over the team section */
-.tc-header{text-align:left;margin:14px 0 8px;padding:18px 18px 16px;border:1px solid hsl(45 95% 62% / .24);border-radius:16px;background:radial-gradient(130% 120% at 0 0,hsl(45 95% 62% / .08),transparent 68%)}
-.tc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.tc-eyebrow{font-family:var(--mono);font-size:.58rem;letter-spacing:.34em;text-transform:uppercase;color:hsl(45 95% 66%);font-weight:700}
-.tc-name{font-family:var(--mono);font-weight:800;font-size:clamp(1.3rem,3.6vw,2rem);letter-spacing:.03em;color:var(--fg);margin-top:6px;line-height:1.1;text-wrap:balance;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.tc-plan{font-family:var(--sans);font-size:.58rem;font-weight:700;letter-spacing:.04em;color:hsl(45 95% 62%);background:hsl(45 95% 62% / .1);border-radius:6px;padding:3px 8px;text-transform:uppercase}
-.tc-seats{font-family:var(--mono);font-size:.72rem;color:var(--muted);flex:0 0 auto;padding-top:5px;white-space:nowrap}
-.tc-stats{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:8px;margin-top:15px}
-.tc-stat{font-family:var(--mono);font-size:.66rem;letter-spacing:.02em;color:var(--muted);border:1px solid var(--border2);border-radius:8px;padding:5px 11px}
+.tc-header{position:relative;overflow:hidden;text-align:left;margin:14px 0 10px;padding:20px 20px 18px;border:1px solid var(--border2);border-radius:18px;background:linear-gradient(180deg,hsl(45 95% 62% / .06),transparent 150px),var(--card)}
+.tc-header::before{content:'';position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,hsl(45 95% 62% / .85),hsl(45 95% 62% / .15) 45%,transparent 75%)}
+.tc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.tc-eyebrow{font-family:var(--mono);font-size:.56rem;letter-spacing:.32em;text-transform:uppercase;color:hsl(45 95% 66%);font-weight:700}
+.tc-idrow{display:flex;align-items:center;gap:12px;margin-top:9px}
+.tc-badge{flex:0 0 auto;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:1.15rem;color:hsl(45 60% 8%);background:linear-gradient(145deg,hsl(45 95% 68%),hsl(40 92% 56%));box-shadow:0 4px 14px hsl(45 95% 55% / .28)}
+.tc-name{font-family:var(--mono);font-weight:800;font-size:clamp(1.15rem,3vw,1.55rem);letter-spacing:.02em;color:var(--fg);line-height:1.15;text-wrap:balance;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.tc-plan{font-family:var(--mono);font-size:.54rem;font-weight:700;letter-spacing:.1em;color:hsl(45 60% 10%);background:hsl(45 95% 62%);border-radius:5px;padding:3px 7px;text-transform:uppercase}
+.tc-seats{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:.66rem;color:var(--muted);flex:0 0 auto;white-space:nowrap;border:1px solid var(--border2);border-radius:99px;padding:5px 11px}
+.tc-seats .dot{width:6px;height:6px;border-radius:50%;background:hsl(45 95% 62%)}
+.tc-stats{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:7px;margin-top:16px}
+.tc-stat{font-family:var(--mono);font-size:.64rem;letter-spacing:.02em;color:var(--muted);background:hsl(230 24% 6% / .6);border:1px solid var(--border);border-radius:8px;padding:5px 10px}
 .tc-stat b{color:var(--fg);font-weight:700}
-.tc-stat.hot{border-color:hsl(45 95% 62% / .5)}
+.tc-stat.hot{border-color:hsl(45 95% 62% / .45);color:hsl(45 30% 82%)}
 .tc-stat.hot b{color:hsl(45 95% 66%)}
-.tc-hint{margin-top:12px;font-size:.82rem;color:var(--muted)}
-.tc-hint a{color:hsl(45 95% 62%)}
-.tc-members{margin-top:14px;display:flex;flex-direction:column;gap:7px}
-.tc-members:empty{display:none}
-.tc-manage .caprow{margin-top:12px}
-.tc-manage .caprow input,.tc-manage .caprow select{background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);padding:9px 12px}
+.tc-hint{margin-top:13px;font-size:.82rem;color:var(--muted);background:hsl(45 95% 62% / .06);border:1px solid hsl(45 95% 62% / .2);border-radius:10px;padding:9px 12px}
+.tc-hint a{color:hsl(45 95% 66%);font-weight:600}
+.tc-label{font-family:var(--mono);font-size:.55rem;letter-spacing:.24em;text-transform:uppercase;color:var(--faint);margin:18px 0 9px;display:flex;align-items:center;gap:9px}
+.tc-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.tc-members{display:flex;flex-direction:column;gap:6px}
+.tcm{display:flex;align-items:center;gap:11px;padding:8px 11px;border-radius:11px;background:hsl(230 24% 6% / .5);border:1px solid var(--border);transition:border-color .15s}
+.tcm:hover{border-color:var(--border2)}
+.tcm-av{flex:0 0 auto;width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.6rem;font-weight:700;color:hsl(230 30% 8%)}
+.tcm-av.dash{background:transparent;border:1.5px dashed hsl(45 95% 62% / .5);color:hsl(45 95% 66%);font-size:.7rem}
+.tcm-nm{flex:1;min-width:0;font-weight:600;font-size:.87rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcm.pending .tcm-nm{color:var(--muted);font-weight:500}
+.tcm-you{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--border);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle}
+.tcm-role{flex:0 0 auto;font-family:var(--mono);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:5px}
+.tcm-role.owner{color:hsl(45 95% 66%);background:hsl(45 95% 62% / .13)}
+.tcm-role.admin{color:var(--accent);background:hsl(190 92% 56% / .12)}
+.tcm-role.viewer{color:var(--muted);background:var(--border)}
+.tcm-role.invited{color:var(--faint);background:transparent;border:1px solid var(--border2)}
+.tcm-acts{flex:0 0 auto;display:flex;align-items:center;gap:6px}
+.tcm-x{font-family:var(--sans);font-size:.68rem;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:7px;padding:3px 9px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tcm-x:hover{color:var(--fg);border-color:var(--faint)}
+.tcm-x.danger{padding:3px 8px}
+.tcm-x.danger:hover{color:var(--danger);border-color:hsl(0 84% 60% / .5)}
+@media (hover:hover){.tcm-acts{opacity:0;transition:opacity .15s}.tcm:hover .tcm-acts,.tcm:focus-within .tcm-acts{opacity:1}}
+.tc-manage .caprow{margin-top:13px;gap:8px}
+.tc-manage .caprow input,.tc-manage .caprow select{background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);padding:10px 12px}
 .tc-manage .caprow input{flex:1;font-size:.86rem}
-.tc-manage .caprow select{font-size:.84rem;padding:9px}
-.tc-danger{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+.tc-manage .caprow input:focus,.tc-manage .caprow select:focus{outline:none;border-color:hsl(45 95% 62% / .6)}
+.tc-manage .caprow select{font-size:.84rem;padding:10px}
+.tc-foot{margin-top:16px;padding-top:13px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tc-foot:empty{display:none}
+.tc-upgrade{font-size:.8rem;color:var(--muted)}
+.tc-upgrade a{color:hsl(45 95% 66%);font-weight:600}
+.tc-del{font-family:var(--sans);font-size:.76rem;font-weight:600;color:var(--faint);background:transparent;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;cursor:pointer;margin-left:auto;transition:all .15s}
+.tc-del:hover{color:var(--danger);border-color:hsl(0 84% 60% / .45)}
 .pkg-pred{font-family:var(--mono);font-size:.74rem;color:var(--success);background:hsl(160 84% 50% / .08);border:1px solid hsl(160 84% 50% / .24);border-radius:8px;padding:7px 11px;margin-bottom:14px;display:inline-block}
 .pkg-sec{margin-bottom:15px}
 .pkg-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -1049,12 +1078,16 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="tc-top">
           <div class="tc-id">
             <div class="tc-eyebrow">◇ Shared Space</div>
-            <div class="tc-name" id="tcName"></div>
+            <div class="tc-idrow">
+              <span class="tc-badge" id="tcBadge">◈</span>
+              <div class="tc-name" id="tcName"></div>
+            </div>
           </div>
           <div class="tc-seats" id="tcSeats"></div>
         </div>
         <div class="tc-stats" id="tcStats"></div>
         <div class="tc-hint" id="tcHint" style="display:none"></div>
+        <div class="tc-label" id="tcRosterLabel">Roster</div>
         <div class="tc-members" id="tcMembers"></div>
         <div class="tc-manage" id="tcManage"></div>
       </div>
@@ -1842,8 +1875,10 @@ function renderTeamHeader(){
   var role=mine?mine.role:'viewer';
   var isTeam=(ws.plan==='team');
   var canMod=(role==='owner'||role==='admin');
-  var nm=$('tcName'); if(nm) nm.innerHTML=esc(ws.name||'your space')+(isTeam?' <span class="tc-plan">team plan</span>':'');
-  var se=$('tcSeats'); if(se) se.innerHTML=seatLabel();
+  var spName=ws.name||'your space';
+  var nm=$('tcName'); if(nm) nm.innerHTML=esc(spName)+(isTeam?' <span class="tc-plan">team</span>':'');
+  var bd=$('tcBadge'); if(bd) bd.textContent=(spName.replace(/[^A-Za-z0-9]/g,'').charAt(0)||'◈').toUpperCase();
+  var se=$('tcSeats'); if(se) se.innerHTML='<span class="dot"></span>'+seatLabel();
   var st=$('tcStats');
   if(st){
     var posts=_boardCache||[];
@@ -1864,10 +1899,15 @@ function renderTeamHeader(){
       hint.innerHTML='Next: <a href="#" onclick="openConnect();return false">link this space’s channels</a>, then invite your team below.';
     } else hint.style.display='none';
   }
+  var rl=$('tcRosterLabel'); if(rl){ var lbl='Roster · '+mem.length+(inv.length?' + '+inv.length+' pending':''); if(rl.childNodes[0]&&rl.childNodes[0].nodeType===3) rl.childNodes[0].nodeValue=lbl; else rl.textContent=lbl; }
   var mb=$('tcMembers');
   if(mb){
     var h=mem.map(roleChip).join('');
-    inv.forEach(function(i){ h+='<div class="q-item"><div class="q-b done"><div class="t">'+esc(i.email)+' <span class="q-sev med">invited · pending</span></div></div></div>'; });
+    inv.forEach(function(i){
+      h+='<div class="tcm pending"><span class="tcm-av dash">•</span>'
+        +'<span class="tcm-nm">'+esc(i.email)+'</span>'
+        +'<span class="tcm-role invited">invited</span></div>';
+    });
     mb.innerHTML=h;
   }
   var mg=$('tcManage');
@@ -1875,17 +1915,19 @@ function renderTeamHeader(){
     var m='';
     if(canMod){
       m+='<div class="caprow">'
-        +'<input id="invEmail" type="email" placeholder="invite by email…" onkeydown="if(event.key===\'Enter\')inviteMember()">'
+        +'<input id="invEmail" type="email" placeholder="invite a teammate by email…" onkeydown="if(event.key===\'Enter\')inviteMember()">'
         +'<select id="invRole"><option value="viewer">viewer</option><option value="admin">admin</option></select>'
         +'<button class="btn btn-ghost" style="flex:0 0 auto" onclick="inviteMember()">Invite</button>'
         +'</div>';
     }
+    var foot='';
     if(!isTeam){
-      m+='<div class="tsub" style="margin-top:12px">This space is on the free plan, <a href="#" onclick="document.getElementById(\'teamBtn\').click();return false" style="color:hsl(45 95% 62%)">upgrade to Team</a> to open Pro for every member.</div>';
+      foot+='<span class="tc-upgrade">On the free plan · <a href="#" onclick="document.getElementById(\'teamBtn\').click();return false">upgrade to Team</a> to open Pro for everyone</span>';
     }
     if(role==='owner'){
-      m+='<div class="tc-danger"><button class="btn btn-ghost btn-sm" style="color:var(--danger);border-color:hsl(0 84% 60% / .4)" onclick="openDeleteSpace()">Delete this space</button></div>';
+      foot+='<button class="tc-del" onclick="openDeleteSpace()">Delete space</button>';
     }
+    if(foot) m+='<div class="tc-foot">'+foot+'</div>';
     mg.innerHTML=m;
   }
   var tu=$('tTeamUp'); if(tu) tu.style.display = isTeam ? 'none' : '';
@@ -2042,20 +2084,27 @@ function memberName(m){
   if(m.user_id===USER.id) return acctName();
   return m.username || _slugHandle(m.display_name) || _slugHandle((m.email||'').split('@')[0]) || (m.user_id||'').slice(0,8);
 }
+/* one roster row: identity disc + @username + role pill + hover-revealed controls */
 function roleChip(m){
   var me=(m.user_id===USER.id), mine=SPACE&&(SPACE.members||[]).filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
-  var col=m.role==='owner'?'hsl(45 95% 62%)':(m.role==='admin'?'var(--accent)':'var(--muted)');
-  var html='<div class="q-item"><div class="q-b"><div class="t">'+esc('@'+memberName(m))
-    +(me?' <span class="q-sev med">you</span>':'')
-    +' <span class="q-sev" style="color:'+col+';background:transparent;border:1px solid '+col+'">'+esc(m.role)+'</span></div></div>';
-  if(myRole==='owner' && m.role!=='owner'){
-    html+='<button class="btn btn-ghost btn-sm" onclick="chRole(\''+m.user_id+'\',\''+(m.role==='admin'?'viewer':'admin')+'\')">'+(m.role==='admin'?'make viewer':'make admin')+'</button>';
+  var role=m.role||'viewer';
+  var nm=memberName(m);
+  var hue=_hashStr(nm)%360;
+  var init=(nm||'?').replace(/^@/,'').charAt(0).toUpperCase();
+  var acts='';
+  if(myRole==='owner' && role!=='owner'){
+    acts+='<button class="tcm-x" onclick="chRole(\''+m.user_id+'\',\''+(role==='admin'?'viewer':'admin')+'\')">'+(role==='admin'?'make viewer':'make admin')+'</button>';
   }
-  if((myRole==='owner'||myRole==='admin') && m.role!=='owner' && !me){
-    html+='<button class="btn btn-ghost btn-sm" onclick="rmMember(\''+m.user_id+'\')" aria-label="remove member">✕</button>';
+  if((myRole==='owner'||myRole==='admin') && role!=='owner' && !me){
+    acts+='<button class="tcm-x danger" onclick="rmMember(\''+m.user_id+'\')" aria-label="remove member" title="remove">✕</button>';
   }
-  return html+'</div>';
+  return '<div class="tcm">'
+    +'<span class="tcm-av" style="background:hsl('+hue+' 52% 56%)">'+esc(init)+'</span>'
+    +'<span class="tcm-nm">@'+esc(nm)+(me?'<span class="tcm-you">you</span>':'')+'</span>'
+    +'<span class="tcm-role '+esc(role)+'">'+esc(role)+'</span>'
+    +(acts?'<span class="tcm-acts">'+acts+'</span>':'')
+    +'</div>';
 }
 /* ---------- team board: the space's shared scratchpad ---------- */
 var _boardCache=[];
