@@ -2843,12 +2843,20 @@ function backgroundScan(){
       clearTimeout(_to); hideScanning();
       if(d&&d.ai){ hydrateDeep(d.ai,d.radar_live,d.signals,d.breakout); lastFullAt=Date.now(); setTimeout(loadHistory,1200); }
       else if(d&&d.error==='too_new'){ ordMsg('you are just getting started', 'your first week is mapped in the roadmap below. knock these out and post 3 videos, then the coach reads your channel in full.'); restDeepTiles(); starterPlaybook(); }
-      else if(d&&(d.error==='session expired - sign in again'||d.error==='session_expired')){ ordMsg('your session expired', 'refresh the page and sign in again to keep the coach on your channel.'); }
-      else if(d&&d.error){ ordMsg('the read did not come back clean', 'tap refresh to try again. if it keeps happening, your channel may be private or too new.'); }
-      else { ordMsg('the read is taking longer than usual', 'tap refresh to retry. big channels and busy niches can take a full minute.'); }
+      else if(d&&(d.error==='session expired - sign in again'||d.error==='session_expired')){ ordMsg('your session expired', 'refresh the page and sign in again to keep the coach on your channel.'); deepStuck('sign in again to load this'); }
+      else if(d&&d.error){ ordMsg('the read did not come back clean', 'tap refresh to try again. if it keeps happening, your channel may be private or too new.'); deepStuck('the read did not come back — tap ↻ Refresh up top to try again'); }
+      else { ordMsg('the read is taking longer than usual', 'tap refresh to retry. big channels and busy niches can take a full minute.'); deepStuck('the read is taking a while — tap ↻ Refresh up top to try again'); }
     })
-    .catch(function(){ clearTimeout(_to); hideScanning(); ordMsg('the read timed out', 'tap refresh to try again, the coach will pick up where it left off.'); })
+    .catch(function(){ clearTimeout(_to); hideScanning(); ordMsg('the read timed out', 'tap refresh to try again, the coach will pick up where it left off.'); deepStuck('the read timed out — tap ↻ Refresh up top to try again'); })
     .finally(function(){ window._scanning=false; });
+}
+/* a read failed/timed out: clear any deep tile still stuck on "loading…" so it
+   shows a retry message instead of spinning forever. only touches tiles that are
+   still loading, so a refresh error never wipes data from a prior good read. */
+function deepStuck(msg){
+  ['radarBody','nextBody','roadBody','signalsBody','winBody'].forEach(function(id){
+    var el=$(id); if(el && /loading…/.test(el.textContent||'')) el.innerHTML='<div class="tsub">'+esc(msg)+'</div>';
+  });
 }
 /* a sub-3-upload channel can't get a full read yet, so stop the deep tiles promising data that won't arrive this session */
 function restDeepTiles(){
