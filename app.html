@@ -1427,8 +1427,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="pf-prev-av" id="pfPrevAv"></div>
         <div class="pf-prev-name" id="pfPrevName"></div>
       </div>
-      <div class="ied-field" style="margin-top:14px"><label for="pfName">Display name</label>
-        <input id="pfName" type="text" maxlength="40" autocomplete="off" placeholder="what you go by" oninput="pfOnName()"></div>
+      <div class="ied-field" style="margin-top:14px"><label for="pfName">Username</label>
+        <input id="pfName" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="username" oninput="pfOnName()">
+        <div class="sm mut" style="margin-top:4px">lowercase letters, numbers and underscores. unique to you.</div></div>
       <div class="pf-sec">
         <div class="pf-lab">Banner <button class="pf-up" onclick="pfUpload('banner')">⤒ upload</button></div>
         <div class="pf-grid" id="pfBannerGrid"></div>
@@ -1612,7 +1613,7 @@ function scoreColor(s){ if(s==null) return 'var(--faint)'; if(s>=75) return 'var
 function gcolor(g){ var c=(g||'')[0]; if(c==='S')return 'hsl(45 95% 62%)'; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
 
 function showApp(){
-  $('navRight').innerHTML = '<span>'+esc((PROFILE&&PROFILE.display_name)||USER.email||'')+'</span><button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>';
+  $('navRight').innerHTML = '<span>@'+esc(acctName())+'</span><button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>';
   setBilling(BILLING);
   var tb = $('teamBtn');
   if (tb) tb.href = _withRef(TEAM_LINK);
@@ -1812,7 +1813,7 @@ function renderTeamHeader(){
   var av=$('tcAvatars');
   if(av){
     var show=mem.slice(0,5);
-    var h=show.map(function(m){ return '<span class="tc-av" title="'+esc(memberName(m))+' · '+esc(m.role||'')+'">'+esc(_tcInitials(m))+'</span>'; }).join('');
+    var h=show.map(function(m){ return '<span class="tc-av" title="@'+esc(memberName(m))+' · '+esc(m.role||'')+'">'+esc(_tcInitials(m))+'</span>'; }).join('');
     if(mem.length>5) h+='<span class="tc-av more" title="'+(mem.length-5)+' more">+'+(mem.length-5)+'</span>';
     inv.slice(0,3).forEach(function(i){ h+='<span class="tc-av pending" title="invited · '+esc(i.email||'')+'">•</span>'; });
     av.innerHTML=h;
@@ -1983,17 +1984,17 @@ function confirmDeleteSpace(){
     teamsApi('my_space').then(applySpace).catch(spaceFallback);
   }).catch(function(){ if(m){ m.style.color='var(--danger)'; m.textContent='network hiccup, try again'; } if(b) b.disabled=false; });
 }
-/* a member's shown name = their profile display name. for yourself, fall back to
-   your account name so it always matches My Dashboard even before a name is saved. */
+/* a member's shown name = their unique username. for yourself, fall back to your
+   account handle so it always matches My Dashboard even before you pick one. */
 function memberName(m){
   if(m.user_id===USER.id) return acctName();
-  return m.display_name || (m.email||'').split('@')[0] || (m.user_id||'').slice(0,8);
+  return m.username || _slugHandle(m.display_name) || _slugHandle((m.email||'').split('@')[0]) || (m.user_id||'').slice(0,8);
 }
 function roleChip(m){
   var me=(m.user_id===USER.id), mine=SPACE&&(SPACE.members||[]).filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
   var col=m.role==='owner'?'hsl(45 95% 62%)':(m.role==='admin'?'var(--accent)':'var(--muted)');
-  var html='<div class="q-item"><div class="q-b"><div class="t">'+esc(memberName(m))
+  var html='<div class="q-item"><div class="q-b"><div class="t">'+esc('@'+memberName(m))
     +(me?' <span class="q-sev med">you</span>':'')
     +' <span class="q-sev" style="color:'+col+';background:transparent;border:1px solid '+col+'">'+esc(m.role)+'</span></div></div>';
   if(myRole==='owner' && m.role!=='owner'){
@@ -2267,11 +2268,15 @@ var ICON_AVATARS=[
   {id:'spark',uri:_iconAv('M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z','#a855f7','#ec4899')}
 ];
 function avUri(id){ for(var i=0;i<ICON_AVATARS.length;i++){ if(ICON_AVATARS[i].id===id) return ICON_AVATARS[i].uri; } return ''; }
-/* account name = what THEY go by, never the youtube channel name */
+/* a username is a handle: lowercase letters, numbers, underscores, unique per account */
+function _slugHandle(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20); }
+/* your account handle = your unique username, never the youtube channel name.
+   before you pick one, we show an email-derived handle for display only. */
 function acctName(){
-  if(PROFILE && PROFILE.display_name) return PROFILE.display_name;
+  if(PROFILE && PROFILE.username) return PROFILE.username;
   var u=(typeof USER!=='undefined')?USER:null;
-  return (u&&u.user_metadata&&u.user_metadata.full_name) || ((u&&u.email||'').split('@')[0]) || 'you';
+  var base=(u&&u.user_metadata&&u.user_metadata.full_name) || ((u&&u.email||'').split('@')[0]) || 'you';
+  return _slugHandle(base) || 'you';
 }
 function presetCss(list,id){ var p=list.filter(function(x){return x.id===id;})[0]; return p?p.css:list[0].css; }
 function bannerBg(val){
@@ -2290,8 +2295,8 @@ function paintAvatar(av, val, initial){
 var _pfBanner='', _pfAvatar='', _pfName='';
 function openProfile(){
   PROFILE=PROFILE||{};
-  _pfBanner=PROFILE.profile_banner||''; _pfAvatar=PROFILE.profile_avatar||''; _pfName=PROFILE.display_name||'';
-  $('pfName').value=_pfName; $('pfName').setAttribute('placeholder', acctName()||'what you go by');
+  _pfBanner=PROFILE.profile_banner||''; _pfAvatar=PROFILE.profile_avatar||''; _pfName=PROFILE.username||'';
+  $('pfName').value=_pfName; $('pfName').setAttribute('placeholder', acctName()||'username');
   var m=$('pfMsg'); if(m){ m.textContent=''; m.style.color=''; }
   var bs=$('pfSave'); if(bs) bs.disabled=false;
   renderPfGrids(); renderPfPreview();
@@ -2321,9 +2326,9 @@ function renderPfPreview(){
     if(_pfAvatar==='channel' && IDENT.yt.avatar){ pa.style.background=''; pa.innerHTML='<img src="'+esc(IDENT.yt.avatar)+'" alt="">'; }
     else if(!paintAvatar(pa,_pfAvatar,init)){ paintAvatar(pa,'preset:v1',init); } /* default = generated initial, not the channel logo */
   }
-  var pn=$('pfPrevName'); if(pn) pn.textContent=_pfName||acctName()||'your name';
+  var pn=$('pfPrevName'); if(pn) pn.textContent='@'+(_pfName||acctName()||'you');
 }
-function pfOnName(){ _pfName=$('pfName').value; renderPfPreview(); }
+function pfOnName(){ var el=$('pfName'); var v=_slugHandle(el.value); if(v!==el.value) el.value=v; _pfName=v; renderPfPreview(); }
 function pfUpload(kind){ window._pfKind=kind; var f=$('pfFile'); if(f){ f.value=''; f.click(); } }
 function pfFilePicked(e){
   var file=e.target.files&&e.target.files[0]; if(!file) return;
@@ -2354,13 +2359,35 @@ function compressImage(file, opt){
 }
 function saveProfile(){
   PROFILE=PROFILE||{};
-  PROFILE.display_name=($('pfName').value||'').trim()||PROFILE.display_name||'';
-  PROFILE.profile_banner=_pfBanner||''; PROFILE.profile_avatar=_pfAvatar||'';
+  var uname=_slugHandle($('pfName').value||'');
+  var msg=$('pfMsg');
+  if(uname && uname.length<3){ if(msg){ msg.style.color='var(--danger)'; msg.textContent='username needs at least 3 characters'; } return; }
+  var banner=_pfBanner||'', avatar=_pfAvatar||'';
   var bs=$('pfSave'); if(bs) bs.disabled=true;
-  var msg=$('pfMsg'); if(msg){ msg.style.color=''; msg.textContent='saving…'; }
-  saveProfileFields({ display_name:PROFILE.display_name?String(PROFILE.display_name).slice(0,40):null, profile_banner:PROFILE.profile_banner||null, profile_avatar:PROFILE.profile_avatar||null }).then(function(){
-    closeProfile(); try{ renderIdentity(); renderPlatChips(); }catch(e){}
-  }).catch(function(){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent='could not save, try again'; } });
+  if(msg){ msg.style.color=''; msg.textContent='saving…'; }
+  var fields={ profile_banner:banner||null, profile_avatar:avatar||null };
+  if(uname) fields.username=uname;
+  saveUsernameProfile(uname, fields).then(function(res){
+    if(res && res.taken){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent='@'+uname+' is taken, try another'; } return; }
+    if(res && res.error){ if(bs) bs.disabled=false; if(msg){ msg.style.color='var(--danger)'; msg.textContent='could not save, try again'; } return; }
+    if(uname) PROFILE.username=uname;
+    PROFILE.profile_banner=banner; PROFILE.profile_avatar=avatar;
+    closeProfile(); try{ renderIdentity(); renderPlatChips(); if(VIEW==='space' && typeof renderSpace==='function' && SPACE && SPACE.workspace){ renderSpace(); renderTeamHeader(); } }catch(e){}
+  });
+}
+/* one upsert; a duplicate username comes back as a unique violation (23505) we surface as "taken".
+   if the username column isnt live yet, save the rest so banner/picture still stick. */
+function saveUsernameProfile(uname, fields){
+  var base={ id:USER.id, email:USER.email, updated_at:new Date().toISOString() };
+  return sb.from('viralsidekick_profiles').upsert(Object.assign({},base,fields)).then(function(r){
+    if(r.error){
+      var c=(r.error.code||'')+'', m=(r.error.message||'')+'';
+      if(c==='23505' || /duplicate key|unique/i.test(m)) return {taken:true};
+      var f2={}; for(var k in fields){ if(k!=='username') f2[k]=fields[k]; } /* column missing etc: drop username, keep the rest */
+      return sb.from('viralsidekick_profiles').upsert(Object.assign({},base,f2)).then(function(r2){ return r2.error?{error:true}:{ok:true}; });
+    }
+    return {ok:true};
+  }).catch(function(){ return {error:true}; });
 }
 function renderIdentity(){
   var inSpace=(VIEW==='space' && SPACE && SPACE.workspace);
@@ -2369,7 +2396,7 @@ function renderIdentity(){
   var yt = spCh ? SPACE.channel : (inSpace ? {} : IDENT.yt);
   var av=$('idAvatar');
   var display = emptySpace ? (SPACE.workspace.name||'your space')
-              : (!inSpace) ? acctName()  /* personal: your account name, never the youtube channel name */
+              : (!inSpace) ? '@'+acctName()  /* personal: your unique username, never the youtube channel name */
               : (looksRaw(yt.name) ? (yt.handle || 'your channel') : yt.name);
   var idInit=(String(emptySpace?(SPACE.workspace.name||'S'):(display||'Y')).replace(/^@/,'').charAt(0)||'Y').toUpperCase();
   if(!inSpace){ /* personal: your own picture, default to a generated avatar not the channel logo */
