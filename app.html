@@ -1168,16 +1168,15 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 
 <div class="tile s3" id="tStudio" style="--tc:var(--accent)">
           <h3><span class="acc" aria-hidden="true">⚡</span> creator tools</h3>
-          <div class="tsub" style="margin-bottom:9px">Turn any idea or title into a shoot-ready package, thumbnail, or full script.</div>
+          <div class="tsub" style="margin-bottom:9px">Turn any idea or title into a shoot-ready package with an AI thumbnail, or a full script.</div>
           <div class="lab-form">
             <input id="studioIn" type="text" placeholder="a video idea or title…" aria-label="idea for the tools" onkeydown="if(event.key==='Enter')studioGo('package')">
             <button class="btn btn-primary" style="flex:0 0 auto" onclick="studioGo('package')">⚡ package</button>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-            <button class="btn btn-ghost btn-sm" onclick="studioGo('package')">⚡ package + thumbnail</button>
-            <button class="btn btn-ghost btn-sm" onclick="studioGo('script')">▶ full script</button>
+          <div style="margin-top:10px">
+            <button class="btn btn-ghost btn-sm" onclick="studioGo('script')">▶ full script instead</button>
           </div>
-          <div class="tsub" style="margin-top:9px;font-size:.72rem;color:var(--faint)">AI thumbnails generate inside the package. Title testing lives in the title lab below.</div>
+          <div class="tsub" style="margin-top:9px;font-size:.72rem;color:var(--faint)">Title testing lives in the title lab below.</div>
         </div>
 
 <div class="tile s3" id="tIdeas">
