@@ -1359,6 +1359,19 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
     </div>
   </div>
 
+  <!-- delete space: github-style type-the-name confirmation -->
+  <div class="modal" id="delSpaceModal" role="dialog" aria-modal="true" aria-labelledby="delSpaceTitle">
+    <div class="mc">
+      <button class="x" onclick="document.getElementById('delSpaceModal').classList.remove('on')" aria-label="close">✕</button>
+      <h2 id="delSpaceTitle" style="color:var(--danger)">Delete this space</h2>
+      <p class="sm mut" style="margin-bottom:14px">This permanently deletes <b id="delSpName2" style="color:var(--fg)"></b> and everything in it, the shared board, ideas, scans and member access. This cannot be undone.</p>
+      <div class="ied-field"><label for="delSpConfirm">Type <b id="delSpName" style="color:var(--danger)"></b> to confirm</label>
+        <input id="delSpConfirm" type="text" autocomplete="off" oninput="onDelSpInput()" onkeydown="if(event.key==='Enter'&&!document.getElementById('delSpBtn').disabled)confirmDeleteSpace()" placeholder="type the space name"></div>
+      <div id="delSpMsg" class="sm mut" aria-live="polite" style="margin:2px 0 10px"></div>
+      <button id="delSpBtn" class="btn btn-block" style="background:var(--danger);color:#fff;border:none" onclick="confirmDeleteSpace()" disabled>Delete this space forever</button>
+    </div>
+  </div>
+
 <footer role="contentinfo">
   <div class="wrap">
     <span>© 2026 Stromation LLC, <a href="https://www.stromation.com" target="_blank" rel="noopener">a Stromation product</a></span>
@@ -1632,7 +1645,7 @@ function renderViewSwitch(){
 function switchView(v){
   if(v===VIEW) return;
   VIEW=v; try{ localStorage.setItem('vs_view',v); }catch(e){}
-  renderViewSwitch(); renderIdentity();
+  renderViewSwitch(); renderIdentity(); recomputePro(); /* keep the plan/active tile in sync with the lens */
   renderPlatChips(); renderTabs(); switchPlatform('youtube'); /* TikTok/Instagram follow the lens too */
   applyLensChrome();          /* show/hide team-only tiles + set the private/shared tags */
   try{ loadIdeas(); }catch(e){} /* every scoped surface reloads for the new lens */
@@ -1724,6 +1737,7 @@ function activeWs(){ return (SPACE&&SPACE.workspace)?SPACE.workspace.id:null; }
 function switchSpace(wsid){
   if(!wsid) return;
   if(wsid===activeWs()){ if(VIEW!=='space') switchView('space'); return; }
+  blankLiveSurfaces();  /* clear the current space's tiles immediately so nothing bleeds into the next */
   try{ localStorage.setItem('vs_space',wsid); localStorage.setItem('vs_view','space'); }catch(e){}
   VIEW='space';
   teamsApi('my_space',{workspace_id:wsid}).then(function(d){
@@ -1764,7 +1778,7 @@ function spaceFallback(){ $('spaceBody').innerHTML='<div class="tsub">Spaces are
 /* single source of truth for entitlement. own paid plan (with a live status) OR a team-plan workspace.
    recomputed on every profile/space change so leaving a team actually drops Pro instead of staying stuck true. */
 function ownPro(){ return (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROFILE.plan_status==null || PROFILE.plan_status==='active' || PROFILE.plan_status==='trialing'); }
-function recomputePro(){ var was=IS_PRO; IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); if(IS_PRO!==was){ try{ renderPro(); }catch(e){} } }
+function recomputePro(){ IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); try{ renderPro(); }catch(e){} }
 function syncTeamPro(){ recomputePro(); }
 function seatLabel(){ if(!(SPACE&&SPACE.workspace)) return ''; var n=(SPACE.members&&SPACE.members.length)||0; return (SPACE.workspace.plan==='team')?'<span style="color:hsl(45 95% 62%)">'+n+'/5 seats</span>':n+'/5 seats'; }
 function spaceNote(t){ var e=$('spaceEnd'); if(e){ e.textContent=t; setTimeout(function(){ e.innerHTML=seatLabel(); },4000); } }
@@ -1831,6 +1845,37 @@ function showCreateSpace(){
   setTimeout(function(){ var i=$('spName'); if(i) i.focus(); },40);
 }
 function cancelCreateSpace(){ if(SPACE&&SPACE.workspace){ renderSpace(); } applyLensChrome(); }
+/* delete a space, github-style: only the owner, confirmed by typing the exact name */
+function openDeleteSpace(){
+  if(!(SPACE&&SPACE.workspace) || myRole()!=='owner') return;
+  var nm=SPACE.workspace.name||'';
+  window._delSpName=nm; window._delSpId=SPACE.workspace.id;
+  $('delSpName').textContent=nm; $('delSpName2').textContent=nm;
+  var inp=$('delSpConfirm'); if(inp) inp.value='';
+  var b=$('delSpBtn'); if(b) b.disabled=true;
+  var m=$('delSpMsg'); if(m){ m.textContent=''; m.style.color=''; }
+  $('delSpaceModal').classList.add('on');
+  setTimeout(function(){ if(inp) inp.focus(); },40);
+}
+function onDelSpInput(){
+  var v=($('delSpConfirm').value||'').trim();
+  var b=$('delSpBtn'); if(b) b.disabled = (v!==(window._delSpName||''));
+}
+function confirmDeleteSpace(){
+  var v=($('delSpConfirm').value||'').trim();
+  if(v!==(window._delSpName||'')) return;
+  var b=$('delSpBtn'); if(b) b.disabled=true;
+  var m=$('delSpMsg'); if(m){ m.style.color=''; m.textContent='deleting…'; }
+  var gone=window._delSpId;
+  teamsApi('delete_space',{workspace_id:gone, confirm:v}).then(function(d){
+    if(!d || d.error){ if(m){ m.style.color='var(--danger)'; m.textContent=(d&&d.error)||'could not delete, try again'; } if(b) b.disabled=false; return; }
+    $('delSpaceModal').classList.remove('on');
+    SPACES=(SPACES||[]).filter(function(t){return t.id!==gone;});
+    /* leave the deleted space: drop to My Dashboard and reload space state fresh */
+    VIEW='mine'; try{ localStorage.setItem('vs_view','mine'); localStorage.removeItem('vs_space'); }catch(e){}
+    teamsApi('my_space').then(applySpace).catch(spaceFallback);
+  }).catch(function(){ if(m){ m.style.color='var(--danger)'; m.textContent='network hiccup, try again'; } if(b) b.disabled=false; });
+}
 function roleChip(m){
   var me=(m.user_id===USER.id), mine=SPACE&&(SPACE.members||[]).filter(function(x){return x.user_id===USER.id;})[0];
   var myRole=mine?mine.role:'viewer';
@@ -1880,6 +1925,10 @@ function renderSpace(){
   }
   if(!isTeam){
     html+='<div class="tsub" style="margin-top:12px">This space is on the free plan, <a href="#" onclick="document.getElementById(\'teamBtn\').click();return false" style="color:hsl(45 95% 62%)">upgrade to Team</a> to open Pro for every member.</div>';
+  }
+  if(myRole==='owner'){
+    html+='<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">'
+      +'<button class="btn btn-ghost btn-sm" style="color:var(--danger);border-color:hsl(0 84% 60% / .4)" onclick="openDeleteSpace()">Delete this space</button></div>';
   }
   $('spaceBody').innerHTML=html;
   var tu=$('tTeamUp'); if(tu) tu.style.display = isTeam ? 'none' : '';
@@ -2146,8 +2195,18 @@ function renderAlt(p){
 
 /* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
 function resetChannelState(){ try{ PULSE.c={}; }catch(e){} var pg=$('pulseGrid'); if(pg) pg.innerHTML=''; var tp=$('tPulse'); if(tp) tp.style.display='none'; var tg=$('tGoal'); if(tg) tg.style.display='none'; var nb=$('nicheBar'); if(nb) nb.style.display='none'; LIVE_SIG=false; WIRE_KEY=null; window._lvCh=null; window._lvAt=0; window._liveTitles=[]; }
+/* wipe every channel-specific surface so switching space/channel never shows the
+   previous one's data underneath while the new read is still loading */
+function blankLiveSurfaces(){
+  ['radarBody','nextBody','roadBody','signalsBody','winBody'].forEach(function(id){ var el=$(id); if(el) el.innerHTML='<div class="tsub">loading…</div>'; });
+  var os=$('orderStrip'); if(os) os.classList.add('hide');
+  var g=$('hqGrade'), sc=$('hqScore'); if(g) g.textContent='-'; if(sc) sc.textContent='-';
+  var bl=$('boardList'); if(bl) bl.innerHTML='<div class="tsub">loading…</div>';
+  var sig=$('sigCount'); if(sig) sig.textContent='';
+}
 function goLive(){
   resetChannelState();
+  blankLiveSurfaces();
   /* an unconfigured space must NOT scan the personal channel — prompt setup and stop */
   if(VIEW==='space' && SPACE && SPACE.workspace && !spaceHasChannel()){
     var msg = canEditSpace()
