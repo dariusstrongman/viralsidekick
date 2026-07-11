@@ -350,8 +350,13 @@ footer a:hover{color:var(--fg)}
 .ptab:hover{color:var(--fg)}
 .ptab.on{color:#fff;background:var(--primary-soft);border-color:hsl(260 90% 66% / .4)}
 .ptab .pi{width:15px;height:15px}
+.ptab .pc-h{font-weight:500;color:var(--faint);opacity:.9;font-size:.8rem}
+.ptab.on .pc-h{color:rgba(255,255,255,.75)}
 .ptab .st{font-family:var(--mono);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.ptab .st.live{color:var(--accent)}
 .ptab.on .st{color:var(--accent)}
+.ptab.add{border:1px dashed var(--border2);color:var(--faint)}
+.ptab.add:hover{color:var(--fg)}
 
 /* ===== ZONES: the console reads NOW -> WEEK -> PLAN -> ORBIT ===== */
 .zone{margin-top:18px}
@@ -1042,7 +1047,8 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="ord-receipt" id="ordReceipt"></div>
       </div>
 
-      <!-- platform selector merged into the connected-accounts chips in the identity header -->
+      <!-- ONE platform selector = your connected accounts AND the analysis switcher -->
+      <div class="ptabs" id="ptabs" role="tablist" aria-label="platform selector"></div>
 
       <!-- YOUTUBE DECK -->
       <div id="ytDeck" role="tabpanel" aria-label="YouTube analytics">
@@ -2375,30 +2381,29 @@ function renderIdentity(){
       }).catch(function(){});
   }
 }
-/* ONE platform row = your connected accounts AND the analysis selector (clickable chips). */
-function renderPlatChips(){
+/* header chips are gone - the ONE platform row lives lower, in #ptabs (renderTabs) */
+function renderPlatChips(){ var el=$('platChips'); if(el){ el.innerHTML=''; el.style.display='none'; } }
+/* ONE platform row = your connected accounts AND the analysis switcher, boxed/tab style */
+function renderTabs(){
   var A=actIdent();
   var ych=A.yt||{}; var yname=(ych.name && !looksRaw(ych.name))?ych.name:(ych.handle||'');
-  var ic={youtube:IC_YT,tiktok:IC_TT,instagram:IC_IG,facebook:IC_FB};
-  var list=[{p:'youtube',lab:'YouTube',sub:yname,st:'live'}];
-  if(A.tiktok) list.push({p:'tiktok',lab:'TikTok',sub:'@'+A.tiktok.replace(/^@/,''),st:'soon'});
-  if(A.instagram) list.push({p:'instagram',lab:'Instagram',sub:'@'+A.instagram.replace(/^@/,''),st:'soon'});
-  if(A.facebook) list.push({p:'facebook',lab:'Facebook',sub:A.facebook.replace(/^@/,''),st:'soon'});
-  var out=list.map(function(c){
-    var on=(PLATFORM===c.p);
-    return '<button class="plat-chip'+(on?' on':'')+'" data-p="'+c.p+'" onclick="switchPlatform(\''+c.p+'\')" role="tab" aria-selected="'+on+'">'
-      +ic[c.p]+' '+c.lab+(c.sub?' <span class="pc-h">'+esc(c.sub)+'</span>':'')+' <span class="pc-st'+(c.st==='live'?' live':'')+'">'+c.st+'</span></button>';
+  var list=[{p:'youtube',lab:'YouTube',sub:yname,st:'live',icon:IC_YT}];
+  if(A.tiktok) list.push({p:'tiktok',lab:'TikTok',sub:'@'+A.tiktok.replace(/^@/,''),st:'soon',icon:IC_TT});
+  if(A.instagram) list.push({p:'instagram',lab:'Instagram',sub:'@'+A.instagram.replace(/^@/,''),st:'soon',icon:IC_IG});
+  if(A.facebook) list.push({p:'facebook',lab:'Facebook',sub:A.facebook.replace(/^@/,''),st:'soon',icon:IC_FB});
+  var out=list.map(function(c){ var on=(PLATFORM===c.p);
+    return '<div class="ptab'+(on?' on':'')+'" data-p="'+c.p+'" onclick="switchPlatform(\''+c.p+'\')" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();switchPlatform(\''+c.p+'\');}" role="tab" aria-selected="'+on+'" tabindex="0">'
+      +c.icon+' '+c.lab+(c.sub?' <span class="pc-h">'+esc(c.sub)+'</span>':'')+' <span class="st'+(c.st==='live'?' live':'')+'">'+c.st+'</span></div>';
   });
   /* personal lens: anyone can add. team lens: only an owner/admin sets the space socials */
   if((!A.team && (!A.tiktok || !A.instagram || !A.facebook)) || (A.team && canEditSpace() && (!A.tiktok || !A.instagram || !A.facebook)))
-    out.push('<button class="plat-chip add" onclick="openConnect()">+ add platform</button>');
-  $('platChips').innerHTML=out.join('');
+    out.push('<div class="ptab add" onclick="openConnect()" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();openConnect();}" role="button" tabindex="0">+ add platform</div>');
+  var t=$('ptabs'); if(t){ t.innerHTML=out.join(''); t.style.display='flex'; }
 }
-function renderTabs(){ var t=$('ptabs'); if(t){ t.innerHTML=''; t.style.display='none'; } } /* merged into the header chips */
 function switchPlatform(p){
   PLATFORM=p;
-  var chips=$('platChips');
-  if(chips) Array.prototype.forEach.call(chips.querySelectorAll('[data-p]'),function(el){ var on=el.getAttribute('data-p')===p; el.classList.toggle('on',on); el.setAttribute('aria-selected',on); });
+  var t=$('ptabs');
+  if(t) Array.prototype.forEach.call(t.querySelectorAll('[data-p]'),function(el){ var on=el.getAttribute('data-p')===p; el.classList.toggle('on',on); el.setAttribute('aria-selected',on); });
   var yt=(p==='youtube');
   $('ytDeck').classList.toggle('hide',!yt);
   $('altPanel').classList.toggle('hide',yt);
