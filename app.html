@@ -296,13 +296,13 @@ footer a:hover{color:var(--fg)}
 .idhead.prof .id-grade{display:none}
 .idhead.prof #hqWhen{display:none}
 .idhead.chan{border-color:hsl(45 90% 60% / .45)}
-/* your profile travels with you: a compact "you" bar pinned on top while inside a space */
-.youbar{display:flex;align-items:center;gap:11px;padding:9px 13px;margin-bottom:12px;border:1px solid hsl(260 90% 66% / .4);border-radius:14px;background:linear-gradient(120deg,hsl(260 90% 66% / .12),transparent 70%)}
-.yb-av{width:38px;height:38px;border-radius:50%;overflow:hidden;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;color:#fff;background:hsl(230 24% 10%)}
+/* your profile travels with you: a FULL banner card on top while inside a space (matches My Dashboard) */
+.youbar{display:flex;align-items:center;gap:18px;padding:15px 20px;margin-bottom:12px;border:1px solid hsl(260 90% 66% / .5);border-radius:16px;position:relative;overflow:hidden;background:linear-gradient(120deg,hsl(260 90% 66% / .12),transparent 70%)}
+.yb-av{width:76px;height:76px;border-radius:50%;overflow:hidden;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem;color:#fff;background:linear-gradient(135deg,var(--primary),var(--accent));border:2px solid var(--border2);box-shadow:0 0 0 1px hsl(230 24% 5%),0 10px 34px hsl(260 90% 66% / .25)}
 .yb-av img{width:100%;height:100%;object-fit:cover}
 .yb-meta{flex:1;min-width:0}
-.yb-eyebrow{font-family:var(--mono);font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%))}
-.yb-name{font-weight:700;font-size:.95rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yb-eyebrow{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%));margin-bottom:5px}
+.yb-name{font-weight:800;font-size:clamp(1.3rem,3vw,1.75rem);letter-spacing:-.02em;line-height:1.1;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idhead.chan::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
 .idhead.chan .tag-you{color:var(--team-txt)}
 .perk{display:flex;gap:9px;align-items:flex-start;font-size:.86rem;padding:3px 0}
@@ -958,12 +958,25 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
     <!-- ONBOARDING: connect your identity -->
     <div class="onboard hide" id="onboard">
       <div class="oc">
-        <h1>This is you. Let's connect your channels.</h1>
-        <p class="osub">ViralSidekick becomes your creator command center. Start with YouTube, it goes live instantly.</p>
+        <h1>Set up your profile.</h1>
+        <p class="osub">Pick a username, a picture and a banner. Then connect YouTube and it goes live instantly.</p>
+        <div class="pf-preview" style="margin-bottom:18px">
+          <div class="pf-prev-banner" id="obPrevBanner"></div>
+          <div class="pf-prev-av" id="obPrevAv"></div>
+          <div class="pf-prev-name" id="obPrevName">@you</div>
+        </div>
         <div class="conn-row">
           <label for="obName">Choose your username</label>
           <div class="rr"><input id="obName" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="username" oninput="obOnName()"></div>
           <div class="sm mut" id="obNameMsg" aria-live="polite" style="margin-top:4px">lowercase letters, numbers and underscores. unique to you.</div>
+        </div>
+        <div class="conn-row">
+          <label>Profile picture</label>
+          <div class="pf-grid pf-grid-av" id="obAvGrid"></div>
+        </div>
+        <div class="conn-row">
+          <label>Banner</label>
+          <div class="pf-grid" id="obBannerGrid"></div>
         </div>
         <div class="conn-row">
           <label for="obYt">
@@ -1693,7 +1706,7 @@ function loadProfile(){
    });
   });
 }
-function showOnboard(){ $('hqWrap').classList.add('hide'); $('onboard').classList.remove('hide'); }
+function showOnboard(){ $('hqWrap').classList.add('hide'); $('onboard').classList.remove('hide'); renderObProfile(); }
 function enterHQ(){
   $('onboard').classList.add('hide'); $('hqWrap').classList.remove('hide');
   renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube');
@@ -1830,6 +1843,7 @@ function renderYouBar(teamLens){
   var yb=$('youBar'); if(!yb) return;
   if(!teamLens){ yb.style.display='none'; return; }
   yb.style.display='flex';
+  yb.style.background = bannerBg((PROFILE&&PROFILE.profile_banner)||'') || bannerBg('preset:aurora'); /* full banner, same as My Dashboard */
   var n=$('ybName'); if(n) n.textContent='@'+acctName();
   var el=$('ybAv'); if(el){
     var init=(acctName()||'Y').replace(/^@/,'').charAt(0).toUpperCase();
@@ -2240,18 +2254,49 @@ function finishOnboard(){
   IDENT.tiktok=$('obTt').value.trim(); IDENT.instagram=$('obIg').value.trim();
   var uname=_slugHandle($('obName').value||''), nm=$('obNameMsg');
   if(uname && uname.length<3){ if(nm){ nm.style.color='var(--danger)'; nm.textContent='username needs at least 3 characters'; } return; }
-  var proceed=function(){ persistIdentity(function(){ enterHQ(); }); };
-  if(uname){
-    if(nm){ nm.style.color=''; nm.textContent='claiming @'+uname+'…'; }
-    saveUsernameProfile(uname,{username:uname}).then(function(res){
+  var fields={};
+  if(uname) fields.username=uname;
+  if(_obBanner) fields.profile_banner=_obBanner;
+  if(_obAvatar) fields.profile_avatar=_obAvatar;
+  var proceed=function(){
+    PROFILE=PROFILE||{};
+    if(uname) PROFILE.username=uname;
+    if(_obBanner) PROFILE.profile_banner=_obBanner;
+    if(_obAvatar) PROFILE.profile_avatar=_obAvatar;
+    persistIdentity(function(){ enterHQ(); });
+  };
+  if(Object.keys(fields).length){
+    if(nm){ nm.style.color=''; nm.textContent=uname?('claiming @'+uname+'…'):'saving…'; }
+    saveUsernameProfile(uname, fields).then(function(res){
       if(res&&res.taken){ if(nm){ nm.style.color='var(--danger)'; nm.textContent='@'+uname+' is taken, try another'; } return; }
       if(res&&res.error){ if(nm){ nm.style.color='var(--danger)'; nm.textContent='could not save, try again'; } return; }
-      PROFILE=PROFILE||{}; PROFILE.username=uname; if(nm) nm.textContent='';
+      if(nm) nm.textContent='';
       proceed();
     });
   } else proceed();
 }
-function obOnName(){ var el=$('obName'); var v=_slugHandle(el.value); if(v!==el.value) el.value=v; }
+function obOnName(){ var el=$('obName'); var v=_slugHandle(el.value); if(v!==el.value) el.value=v; renderObProfile(); }
+/* account creation IS profile setup: username + picture + banner, live-previewed */
+var _obAvatar='', _obBanner='';
+function renderObProfile(){
+  if(!_obAvatar) _obAvatar=(PROFILE&&PROFILE.profile_avatar)||'';
+  if(!_obBanner) _obBanner=(PROFILE&&PROFILE.profile_banner)||'';
+  var ag=$('obAvGrid');
+  if(ag){
+    ag.innerHTML=ICON_AVATARS.map(function(ic){ return '<div class="pf-swatch'+(_obAvatar==='preset:icon-'+ic.id?' on':'')+'" style="background:url('+ic.uri+') center/cover" data-a="icon-'+ic.id+'"></div>'; }).join('')
+      +AV_PRESETS.map(function(p){ return '<div class="pf-swatch'+(_obAvatar==='preset:'+p.id?' on':'')+'" style="background:'+p.css+'" data-a="'+p.id+'"></div>'; }).join('');
+    Array.prototype.forEach.call(ag.querySelectorAll('[data-a]'),function(el){ el.onclick=function(){ _obAvatar='preset:'+el.getAttribute('data-a'); renderObProfile(); }; });
+  }
+  var bg=$('obBannerGrid');
+  if(bg){
+    bg.innerHTML=BANNER_PRESETS.map(function(p){ return '<div class="pf-swatch'+(_obBanner==='preset:'+p.id?' on':'')+'" style="background:'+p.css+'" data-b="'+p.id+'" title="'+p.id+'"></div>'; }).join('');
+    Array.prototype.forEach.call(bg.querySelectorAll('[data-b]'),function(el){ el.onclick=function(){ _obBanner='preset:'+el.getAttribute('data-b'); renderObProfile(); }; });
+  }
+  var uname=_slugHandle(($('obName')&&$('obName').value)||'')||acctName();
+  var pb=$('obPrevBanner'); if(pb) pb.style.background=bannerBg(_obBanner)||bannerBg('preset:aurora');
+  var pv=$('obPrevAv'); if(pv){ var init=(uname||'Y').charAt(0).toUpperCase(); if(!paintAvatar(pv,_obAvatar,init)) paintAvatar(pv,'preset:v1',init); }
+  var pn=$('obPrevName'); if(pn) pn.textContent='@'+uname;
+}
 function persistIdentity(cb){
   /* channel binding is server-side now (bind_channel: verified + cooldown).
      only the harmless fields persist directly. */
