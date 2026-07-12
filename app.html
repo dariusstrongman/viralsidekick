@@ -1476,6 +1476,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
           YouTube
         </label>
+        <div id="cmYtStatus" style="display:none;align-items:flex-start;gap:11px;padding:12px 14px;margin-bottom:8px;background:hsl(150 60% 45% / .1);border:1px solid hsl(150 60% 45% / .32);border-radius:12px"></div>
         <div class="rr" id="cmYtPasteRow">
           <input id="cmYt" type="text" placeholder="@yourchannel  ·  URL  ·  UC…">
           <button class="btn btn-primary" style="flex:0 0 auto" onclick="connectYouTube('cmYt','cmFound')">Connect</button>
@@ -1853,30 +1854,26 @@ function loadProfile(){
        the space, no channel setup, no forms. (token survives oauth redirects
        + email confirms via localStorage) */
     var pend=null; try{ pend=localStorage.getItem('vs_pending_invite'); }catch(e){}
-    function adoptAndEnter(d){
+    /* joining/accepting a space is a deliberate act -> land in the SPACE lens. we NEVER copy
+       a space's channel onto your personal identity: My Dashboard stays yours alone, and with
+       no personal channel it shows the witty connect page, it never borrows a space's channel. */
+    function enterSpace(d){
       SPACE=d; syncTeamPro();
-      if(!(IDENT.yt.id||IDENT.yt.name) && d.channel && (d.channel.id||d.channel.name)){
-        IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
-        IDENT._adopted=true;
-      }
+      VIEW='space'; try{ localStorage.setItem('vs_view','space'); if(d.workspace) localStorage.setItem('vs_space',d.workspace.id); }catch(e){}
       enterHQ();
     }
     function normalFlow(){
-      if(IDENT.yt.id || IDENT.yt.name){ enterHQ(); }
-      else {
-        /* team member without their own channel: lock onto the space's LIVE channel */
-        teamsApi('my_space').then(function(d){
-          if(d && d.ok && d.workspace && d.channel && (d.channel.id||d.channel.name)){ adoptAndEnter(d); }
-          else enterHQ(); /* no channel + no team channel -> land on the witty "connect your channel" page, never force onboarding */
-        }).catch(function(){ enterHQ(); });
-      }
+      /* no personal channel -> land on My Dashboard (the witty connect page), never a space's
+         channel. initSpace() still loads any space so the lens bar shows it one click away. */
+      if(!(IDENT.yt.id || IDENT.yt.name)){ VIEW='mine'; try{ localStorage.setItem('vs_view','mine'); }catch(e){} }
+      enterHQ();
     }
     if(pend){
       /* one-shot: drop the token BEFORE we call so a failing invite can never re-fire on every
          login (that was spamming failure emails). if it is legit, the click-through re-sets it. */
       try{ localStorage.removeItem('vs_pending_invite'); }catch(e){}
       teamsApi('accept',{invite:pend}).then(function(d){
-        if(d && d.ok && d.workspace){ adoptAndEnter(d); }
+        if(d && d.ok && d.workspace){ enterSpace(d); }
         else normalFlow();
       }).catch(normalFlow);
     } else normalFlow();
@@ -2201,8 +2198,7 @@ function applySpace(d){
   SPACES = (d.spaces&&d.spaces.length) ? d.spaces
     : [{id:d.workspace.id,name:d.workspace.name,plan:d.workspace.plan,role:((d.members||[]).filter(function(m){return m.user_id===USER.id;})[0]||{}).role||'owner'}];
   try{ localStorage.setItem('vs_space', d.workspace.id); }catch(e){}
-  try{ var pv=localStorage.getItem('vs_view'); if(pv==='space'||(IDENT._adopted)) VIEW='space'; else if(pv==='mine') VIEW='mine'; }catch(e){}
-  if(IDENT._adopted) VIEW='space';
+  try{ var pv=localStorage.getItem('vs_view'); if(pv==='space') VIEW='space'; else if(pv==='mine') VIEW='mine'; }catch(e){}
   renderViewSwitch();
   renderTeamHeader();
   loadBoard();
@@ -3166,14 +3162,33 @@ function openConnect(){
   }
   $('cmFound').style.display='none';
   /* YOUR identity = OAuth only (verify ownership, get real analytics); spaces (agencies) paste channels they manage */
-  var _vb=$('cmYtVerify'), _vn=$('cmYtVnote'), _pr=$('cmYtPasteRow'); var _showV=(_connTarget==='mine');
-  if(_vb) _vb.style.display=_showV?'':'none';
-  if(_vn) _vn.style.display=_showV?'':'none';
-  if(_pr) _pr.style.display=_showV?'none':'';
-  /* if already verified, reflect it on the button + offer a disconnect */
-  var _linked=$('cmYtLinked'), _connected=(_showV && IDENT.yt && (IDENT.yt.name||IDENT.yt.id));
-  try{ if(_showV && PROFILE && PROFILE.youtube_verified && IDENT.yt && (IDENT.yt.name||IDENT.yt.id)){ if(_vb) _vb.textContent='✓ '+(IDENT.yt.name||'connected')+' — reconnect'; } else if(_vb){ _vb.textContent='Connect with Google, verify you own it'; } }catch(e){}
-  if(_linked) _linked.style.display=_connected?'':'none';
+  var _vb=$('cmYtVerify'), _vn=$('cmYtVnote'), _pr=$('cmYtPasteRow'), _st=$('cmYtStatus'), _linked=$('cmYtLinked');
+  var _showV=(_connTarget==='mine');
+  if(_pr) _pr.style.display=_showV?'none':'';   /* paste row is for spaces (agencies) only; your own channel is OAuth-verified */
+  if(_showV){
+    /* personal: if a channel is connected, just say what you're connected to. otherwise, prompt to connect. */
+    var _conn=!!(PROFILE && PROFILE.youtube_verified && IDENT.yt && (IDENT.yt.name||IDENT.yt.id));
+    if(_conn){
+      var _nm=esc(IDENT.yt.name||'your channel');
+      var _hd=IDENT.yt.handle?(' · '+esc(IDENT.yt.handle)):'';
+      var _sb=IDENT.yt.subs?(' · '+esc(IDENT.yt.subs)+' subscribers'):'';
+      if(_st){ _st.style.display='flex'; _st.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to '+_nm+'</b>'+_hd+_sb+'<br><span class="mut">verified, your real analytics (retention, CTR) are on. read-only.</span></span>'; }
+      if(_vb){ _vb.style.display=''; _vb.className='btn btn-ghost btn-block'; _vb.textContent='Reconnect a different channel'; }
+      if(_vn) _vn.style.display='none';
+      if(_linked) _linked.style.display='';
+    } else {
+      if(_st){ _st.style.display='none'; _st.innerHTML=''; }
+      if(_vb){ _vb.style.display=''; _vb.className='btn btn-primary btn-block'; _vb.textContent='Connect with Google, verify you own it'; }
+      if(_vn) _vn.style.display='';
+      if(_linked) _linked.style.display='none';
+    }
+  } else {
+    /* space channel: paste flow, no personal OAuth connect/disconnect here */
+    if(_st) _st.style.display='none';
+    if(_vb) _vb.style.display='none';
+    if(_vn) _vn.style.display='none';
+    if(_linked) _linked.style.display='none';
+  }
   $('connectModal').classList.add('on');
   setTimeout(function(){ var f=$('connectModal').querySelector('input,button'); if(f) f.focus(); },30);
 }
