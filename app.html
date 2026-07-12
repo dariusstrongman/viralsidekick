@@ -3166,15 +3166,24 @@ function openConnect(){
   var _showV=(_connTarget==='mine');
   if(_pr) _pr.style.display=_showV?'none':'';   /* paste row is for spaces (agencies) only; your own channel is OAuth-verified */
   if(_showV){
-    /* personal: if a channel is connected, just say what you're connected to. otherwise, prompt to connect. */
-    var _conn=!!(PROFILE && PROFILE.youtube_verified && IDENT.yt && (IDENT.yt.name||IDENT.yt.id));
-    if(_conn){
-      var _nm=esc(IDENT.yt.name||'your channel');
-      var _hd=IDENT.yt.handle?(' · '+esc(IDENT.yt.handle)):'';
-      var _sb=IDENT.yt.subs?(' · '+esc(IDENT.yt.subs)+' subscribers'):'';
-      if(_st){ _st.style.display='flex'; _st.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to '+_nm+'</b>'+_hd+_sb+'<br><span class="mut">verified, your real analytics (retention, CTR) are on. read-only.</span></span>'; }
+    /* personal channel, three states: verified (OAuth) / connected the old paste way / nothing. */
+    var _has=!!(IDENT.yt && (IDENT.yt.name||IDENT.yt.id));
+    var _ver=!!(PROFILE && PROFILE.youtube_verified && _has);
+    var _nm=esc(IDENT.yt.name||'your channel');
+    var _hd=IDENT.yt.handle?(' · '+esc(IDENT.yt.handle)):'';
+    var _sb=IDENT.yt.subs?(' · '+esc(String(IDENT.yt.subs))):'';   /* subs value may already carry the word "subscribers" */
+    if(_ver){
+      if(_st){ _st.style.display='flex'; _st.style.background='hsl(150 60% 45% / .1)'; _st.style.borderColor='hsl(150 60% 45% / .32)';
+        _st.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to '+_nm+'</b>'+_hd+_sb+'<br><span class="mut">verified, your real analytics (retention, CTR) are on. read-only.</span></span>'; }
       if(_vb){ _vb.style.display=''; _vb.className='btn btn-ghost btn-block'; _vb.textContent='Reconnect a different channel'; }
       if(_vn) _vn.style.display='none';
+      if(_linked) _linked.style.display='';
+    } else if(_has){
+      /* connected the old (paste) way: acknowledge it, but nudge to verify for real analytics */
+      if(_st){ _st.style.display='flex'; _st.style.background='hsl(38 92% 55% / .1)'; _st.style.borderColor='hsl(38 92% 55% / .34)';
+        _st.innerHTML='<span style="font-size:1.1rem;line-height:1">◐</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to '+_nm+'</b>'+_hd+_sb+' <span class="mut">(basic)</span><br><span class="mut">verify with Google to prove you own it and turn on real analytics (retention, CTR).</span></span>'; }
+      if(_vb){ _vb.style.display=''; _vb.className='btn btn-primary btn-block'; _vb.textContent='Connect with Google, verify you own it'; }
+      if(_vn) _vn.style.display='none';   /* the status line already explains it */
       if(_linked) _linked.style.display='';
     } else {
       if(_st){ _st.style.display='none'; _st.innerHTML=''; }
