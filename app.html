@@ -313,7 +313,10 @@ footer a:hover{color:var(--fg)}
 .hqe-note{position:relative;margin-top:13px;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;color:var(--faint,#6b7280)}
 .hqe-teasers{position:relative;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:28px}
 .hqe-teasers span{font-family:var(--mono);font-size:.63rem;letter-spacing:.07em;color:var(--muted,#9aa3b2);padding:5px 12px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.02)}
-#hqWrap.no-channel > *:not(#youBar):not(#hqEmpty){display:none !important}
+/* no personal channel: hide the dashboard guts, but KEEP the lens bar so a team owner/member
+   can still reach their space(s) from the witty connect page */
+#hqWrap.no-channel > *:not(#youBar):not(#hqEmpty):not(#lensBar){display:none !important}
+#hqWrap.no-channel #lensBar{margin-bottom:6px}
 .yb-eyebrow{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%));margin-bottom:5px}
 .yb-name{font-weight:800;font-size:clamp(1.3rem,3vw,1.75rem);letter-spacing:-.02em;line-height:1.1;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idhead.chan::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
