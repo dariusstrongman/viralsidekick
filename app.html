@@ -1772,7 +1772,7 @@ function logout(){
   try{ Object.keys(localStorage).forEach(function(k){ if(/^vs_|^vsq_/.test(k)) localStorage.removeItem(k); }); }catch(e){}
   SPACE=null; SPACES=[]; PROFILE=null; VIEW='mine'; LASTAI=null; LIVE=null; IS_PRO=false;
   IDENT={ yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'', facebook:'' };
-  try{ window._appUser=null; window._ytClaimed=null; window._dailyPulseDone=false; window._autoRev=false; window._lvCh=null; }catch(e){}
+  try{ window._appUser=null; window._ytClaimed=null; window._dailyPulseDone=false; window._autoRev=false; window._lvCh=null; window._msPrefetch=null; }catch(e){}
   try{ stopPulse(); }catch(e){}
   sb.auth.signOut();
 }
@@ -1827,6 +1827,10 @@ function showApp(){
      init (profile load, scans, pulse timers) once per user, or every refresh re-bills a scan. */
   if(window._appUser===USER.id) return;
   window._appUser=USER.id;
+  /* prefetch the space in parallel with the profile load, so the lens bar isnt gated on
+     profile-upsert -> profile-select -> my_space running one after another. skip on invite links
+     (initSpace accepts those instead). */
+  try{ if(!/[?&]invite=/.test(location.search)){ var _pw=''; try{ _pw=localStorage.getItem('vs_space')||''; }catch(e){} window._msPrefetch=teamsApi('my_space',_pw?{workspace_id:_pw}:null).catch(function(){return null;}); } }catch(e){}
   try { migrateQueue(); } catch(e){}
   try { loadIdeas(); } catch(e){}
   try { initDigest(); } catch(e){}
@@ -1894,7 +1898,10 @@ function enterHQ(){
   $('onboard').classList.add('hide'); $('hqWrap').classList.remove('hide');
   renderNav(); /* topbar handle reflects the username just claimed in onboarding */
   renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube');
-  renderPro(); goLive(); initSpace();
+  renderPro(); goLive();
+  /* paint the lens bar instantly from the cached space list so it doesnt wait on the my_space webhook */
+  try{ var _cs=JSON.parse(localStorage.getItem('vs_spaces_'+((USER&&USER.id)||''))||'null'); if(_cs&&_cs.length){ if(!(SPACES&&SPACES.length)) SPACES=_cs; renderViewSwitch(); } }catch(e){}
+  initSpace();
   celebrateUpgrade();
   if(PROFILE && PROFILE.onboarded===false){ teamsApi('welcome').catch(function(){}); }
   /* let the entrance play once, then freeze tile animations so tab switches don't replay them */
@@ -1936,7 +1943,7 @@ function renderViewSwitch(){
   _coerceView();
   var old=$('viewSwitch'); if(old) old.style.display='none'; /* superseded by the lens bar */
   var host=$('lensBar'); if(!host) return;
-  var hasSpace=!!(SPACE&&SPACE.workspace);
+  var hasSpace=!!(SPACE&&SPACE.workspace) || !!(SPACES&&SPACES.length);  /* SPACES may be warm from cache before my_space returns */
   var canMore=canCreateMoreSpaces();
   /* show the lens bar whenever there's a space OR you can make one (so the Create button lives up top) */
   if(!hasSpace && !canMore){ host.style.display='none'; return; }
@@ -2125,7 +2132,8 @@ function spaceScans(){
 }
 var SPACE=null;
 var SPACES=[];  /* every workspace this user belongs to (owned + joined) */
-function activeWs(){ return (SPACE&&SPACE.workspace)?SPACE.workspace.id:null; }
+function activeWs(){ if(SPACE&&SPACE.workspace) return SPACE.workspace.id; try{ return localStorage.getItem('vs_space')||null; }catch(e){ return null; } }
+function _cacheSpaces(){ try{ if(USER&&USER.id) localStorage.setItem('vs_spaces_'+USER.id, JSON.stringify(SPACES||[])); }catch(e){} }
 function switchSpace(wsid){
   if(!wsid) return;
   if(wsid===activeWs()){ if(VIEW!=='space') switchView('space'); return; }
@@ -2150,7 +2158,11 @@ function teamsApi(action, extra){
 function initSpace(){
   /* accept a pending invite first if we arrived via ?invite=TOKEN */
   var p=new URLSearchParams(location.search), inv=p.get('invite');
-  var go=function(){ var w=''; try{ w=localStorage.getItem('vs_space')||''; }catch(e){} teamsApi('my_space',w?{workspace_id:w}:null).then(applySpace).catch(function(){ spaceFallback(); }); };
+  var go=function(){ var w=''; try{ w=localStorage.getItem('vs_space')||''; }catch(e){}
+    var pf=window._msPrefetch; window._msPrefetch=null;
+    var pr = pf ? pf.then(function(d){ return d || teamsApi('my_space',w?{workspace_id:w}:null); }) : teamsApi('my_space',w?{workspace_id:w}:null);
+    pr.then(applySpace).catch(function(){ spaceFallback(); });
+  };
   if(inv){
     history.replaceState(null,'',location.pathname);
     teamsApi('accept',{invite:inv}).then(function(d){
@@ -2196,10 +2208,11 @@ function applySpace(d){
     else renderNoSpace();
     return;
   }
-  if(!d.workspace){ SPACES=d.spaces||[]; renderNoSpace(); return; }
+  if(!d.workspace){ SPACES=d.spaces||[]; _cacheSpaces(); renderNoSpace(); return; }
   SPACE=d; syncTeamPro();
   SPACES = (d.spaces&&d.spaces.length) ? d.spaces
     : [{id:d.workspace.id,name:d.workspace.name,plan:d.workspace.plan,role:((d.members||[]).filter(function(m){return m.user_id===USER.id;})[0]||{}).role||'owner'}];
+  _cacheSpaces();
   try{ localStorage.setItem('vs_space', d.workspace.id); }catch(e){}
   try{ var pv=localStorage.getItem('vs_view'); if(pv==='space') VIEW='space'; else if(pv==='mine') VIEW='mine'; }catch(e){}
   renderViewSwitch();
