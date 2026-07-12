@@ -1483,6 +1483,10 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="found" id="cmFound" aria-live="polite"></div>
         <button class="btn btn-primary btn-block" id="cmYtVerify" style="margin-top:12px;display:none" onclick="verifyYouTube()">Connect with Google, verify you own it</button>
         <div class="sm mut" id="cmYtVnote" style="display:none;margin-top:7px;line-height:1.45">signs you in with your channel's google account and links the one you actually own. this is the verified connection, it unlocks your real analytics (retention, CTR) and cant be faked.</div>
+        <div id="cmYtLinked" style="display:none;margin-top:12px">
+          <button class="btn btn-ghost btn-block" id="cmYtDisc" onclick="disconnectYouTube()">Disconnect this channel</button>
+          <div class="sm mut" style="margin-top:6px;line-height:1.45">unlinks the channel from your account and revokes ViralSidekick's read-only access at google. you can reconnect anytime.</div>
+        </div>
       </div>
       <div class="conn-row">
         <label for="cmTt">
@@ -3120,12 +3124,41 @@ function openConnect(){
   if(_vb) _vb.style.display=_showV?'':'none';
   if(_vn) _vn.style.display=_showV?'':'none';
   if(_pr) _pr.style.display=_showV?'none':'';
-  /* if already verified, reflect it on the button */
+  /* if already verified, reflect it on the button + offer a disconnect */
+  var _linked=$('cmYtLinked'), _connected=(_showV && IDENT.yt && (IDENT.yt.name||IDENT.yt.id));
   try{ if(_showV && PROFILE && PROFILE.youtube_verified && IDENT.yt && (IDENT.yt.name||IDENT.yt.id)){ if(_vb) _vb.textContent='✓ '+(IDENT.yt.name||'connected')+' — reconnect'; } else if(_vb){ _vb.textContent='Connect with Google, verify you own it'; } }catch(e){}
+  if(_linked) _linked.style.display=_connected?'':'none';
   $('connectModal').classList.add('on');
   setTimeout(function(){ var f=$('connectModal').querySelector('input,button'); if(f) f.focus(); },30);
 }
 function closeConnect(){ $('connectModal').classList.remove('on'); }
+function disconnectYouTube(){
+  if(!(IDENT.yt && (IDENT.yt.id||IDENT.yt.name))) return;
+  if(!confirm('Disconnect '+(IDENT.yt.name||'this channel')+'? This unlinks it and revokes ViralSidekick’s access at google. You can reconnect anytime.')) return;
+  var btn=$('cmYtDisc'); if(btn){ btn.disabled=true; btn.textContent='disconnecting…'; }
+  sb.auth.getSession().then(function(s){
+    var tok=(s&&s.data&&s.data.session)?s.data.session.access_token:null;
+    if(!tok){ if(btn){ btn.disabled=false; btn.textContent='Disconnect this channel'; } toast('sign in first','err'); return; }
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ mode:'yt_disconnect', token:tok })})
+      .then(function(r){return r.json();}).then(function(d){
+        if(btn){ btn.disabled=false; btn.textContent='Disconnect this channel'; }
+        if(d && d.ok){
+          IDENT.yt={ id:'',name:'',avatar:'',subs:'',handle:'' }; IDENT._verified=false; IDENT._adopted=false; IDENT._dirty=false;
+          PROFILE=PROFILE||{}; PROFILE.youtube_verified=false; PROFILE.primary_channel_id=''; PROFILE.primary_channel_name=''; PROFILE.primary_channel_avatar=''; PROFILE.primary_channel_subs=''; PROFILE.primary_channel_handle='';
+          try{ window._ytClaimed=null; }catch(e){}
+          /* clear cached deep tiles + live pulse so nothing stale flashes for the next channel */
+          try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('vs_full_'+_nsU())===0) localStorage.removeItem(k); }); }catch(e){}
+          try{ closeConnect(); }catch(e){}
+          try{ LASTAI=null; LIVE=null; }catch(e){}
+          try{ renderIdentity(); renderYouBar(); renderViewSwitch(); }catch(e){}
+          try{ if(VIEW!=='space') goLive(); }catch(e){} /* drops back to the witty connect-your-channel page */
+          try{ toast('channel disconnected · access revoked','ok'); }catch(e){}
+        } else {
+          try{ toast((d&&d.error)?d.error:'could not disconnect, try again','err'); }catch(e){}
+        }
+      }).catch(function(){ if(btn){ btn.disabled=false; btn.textContent='Disconnect this channel'; } toast('network hiccup, try again','err'); });
+  });
+}
 function saveConnect(){
   if(_connTarget==='space') return saveSpaceChannels();
   IDENT.tiktok=$('cmTt').value.trim(); IDENT.instagram=$('cmIg').value.trim(); IDENT.facebook=$('cmFb').value.trim();
