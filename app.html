@@ -2949,6 +2949,8 @@ function applyLive(c,snap){
   }
 }
 function loadLatestFull(){
+  /* paint the last cached full read for this channel immediately, then revalidate from the server */
+  try{ var _lc=curCh()||{}, _lq=_lc.id||_lc.name||''; if(_lq){ var fc=JSON.parse(localStorage.getItem('vs_full_'+_nsUV()+'_'+_lq)||'null'); if(fc&&fc.ai){ hydrateDeep(fc.ai, fc.radar_live, fc.signals, fc.breakout); } } }catch(e){}
   spaceScans().select('channel_id,report,created_at').order('created_at',{ascending:false}).limit(6).then(function(r){
     var rows=(r.data||[]); var row=null;
     for(var i=0;i<rows.length;i++){ if(rows[i].report && rows[i].report.ai){ row=rows[i]; break; } }
@@ -3131,6 +3133,8 @@ function saveSpaceChannels(){
 /* ---------- deep intel tiles (from full scan) ---------- */
 function hydrateDeep(ai, radarLive, signals, breakout){
   ai = ai || {}; LASTAI = ai;
+  /* snapshot the full read per channel so the next open paints instantly (stale-while-revalidate) */
+  try{ if(ai && (ai.verdict||ai.fixes||ai.radar)){ var _hc=curCh()||{}, _hq=_hc.id||_hc.name||''; if(_hq) localStorage.setItem('vs_full_'+_nsUV()+'_'+_hq, JSON.stringify({at:Date.now(),ai:ai,radar_live:radarLive,signals:signals,breakout:breakout})); } }catch(e){}
   if(!LIVE_SIG){ window._lastSignals = signals||{}; renderSignals(signals||null); }
   renderNicheBanner(); renderGoal();
   loadTrends((ai&&ai.niche)||'');
