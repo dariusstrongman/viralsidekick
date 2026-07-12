@@ -1898,7 +1898,15 @@ function myRole(){ if(!(SPACE&&SPACE.members&&USER)) return ''; var m=SPACE.memb
 function canEditSpace(){ if(!(VIEW==='space'&&SPACE&&SPACE.workspace)) return false; var r=myRole(); return r==='owner'||r==='admin'; }
 function ownedSpaceCount(){ return (SPACES||[]).filter(function(t){return t.role==='owner';}).length; }
 function canCreateMoreSpaces(){ return (typeof PROFILE!=='undefined'&&PROFILE&&PROFILE.plan==='team') && ownedSpaceCount()<3; }
+/* INVARIANT (guard against the recurring "My Dashboard is broken" bug): the personal lens
+   must ALWAYS be reachable. two rules, enforced everywhere: (1) the My Dashboard button is
+   NEVER disabled - with no channel it lands on the witty empty page; (2) you can never be
+   stranded in a space lens whose space isn't loaded. run this before any lens render/refresh. */
+function _coerceView(){
+  if(VIEW==='space' && !(SPACE && SPACE.workspace)){ VIEW='mine'; try{ localStorage.setItem('vs_view','mine'); }catch(e){} }
+}
 function renderViewSwitch(){
+  _coerceView();
   var old=$('viewSwitch'); if(old) old.style.display='none'; /* superseded by the lens bar */
   var host=$('lensBar'); if(!host) return;
   var hasSpace=!!(SPACE&&SPACE.workspace);
@@ -2792,6 +2800,7 @@ function setNoChannel(on){
   else { w.classList.remove('no-channel'); if(e) e.style.display='none'; }
 }
 function goLive(){
+  _coerceView();
   resetChannelState();
   blankLiveSurfaces();
   setNoChannel(false);
