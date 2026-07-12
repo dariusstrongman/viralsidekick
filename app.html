@@ -769,14 +769,14 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .tc-label{font-family:var(--mono);font-size:.55rem;letter-spacing:.24em;text-transform:uppercase;color:var(--faint);margin:18px 0 9px;display:flex;align-items:center;gap:9px}
 .tc-label::after{content:'';flex:1;height:1px;background:var(--border)}
 .tc-members{display:flex;flex-direction:column;gap:6px}
-/* space lens: fuse the channel header + the shared-space card into ONE card */
-.idhead.chan{border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0;border-bottom:1px solid hsl(45 90% 60% / .26)}
-.idhead.chan + #teamsBanner{margin-top:0;border-top:none;border-top-left-radius:0;border-top-right-radius:0;border-color:hsl(45 90% 60% / .45);padding-top:16px}
-.idhead.chan + #teamsBanner::before{display:none}
-/* channel already names the space, so drop the duplicate name/eyebrow inside the card */
-#teamsBanner.has-chan .tc-eyebrow,#teamsBanner.has-chan .tc-idrow{display:none}
-#teamsBanner.has-chan .tc-top{justify-content:flex-end;margin-bottom:2px}
-#teamsBanner.has-chan .tc-stats{margin-top:0}
+/* space lens: the channel header is moved INSIDE the space card and becomes its header */
+#teamsBanner > .idhead{border:none!important;border-bottom:1px solid var(--border)!important;background:transparent!important;margin:0 0 15px;padding:0 0 16px;border-radius:0}
+#teamsBanner > .idhead::before{display:none}
+/* the channel header already names + brands the space, so drop the card's duplicate title */
+#teamsBanner .tc-eyebrow,#teamsBanner .tc-idrow{display:none}
+#teamsBanner .tc-top{justify-content:flex-end;margin-bottom:0}
+#teamsBanner .tc-seats{margin-top:2px}
+#teamsBanner .tc-stats{margin-top:14px}
 .tcm{display:flex;align-items:center;gap:11px;padding:8px 11px;border-radius:11px;background:hsl(230 24% 6% / .5);border:1px solid var(--border);transition:border-color .15s}
 .tcm:hover{border-color:var(--border2)}
 .tcm-av{flex:0 0 auto;width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.6rem;font-weight:700;color:hsl(230 30% 8%)}
@@ -1991,7 +1991,7 @@ function renderYouBar(){
    role controls, invites, plan + delete. one place, no redundant second tile. */
 function renderTeamHeader(){
   if(!(SPACE&&SPACE.workspace)) return;
-  var _tb=$('teamsBanner'); if(_tb) _tb.classList.toggle('has-chan', spaceHasChannel()); /* channel header names the space -> hide the duplicate title in the fused card */
+  var _tb=$('teamsBanner'), _ih=$('idhead'); if(_tb && _ih && _ih.parentNode!==_tb){ _tb.insertBefore(_ih, _tb.firstChild); } /* pull the channel header INTO the space card so it's one card, not two */
   var ws=SPACE.workspace, mem=SPACE.members||[], inv=SPACE.invites||[];
   var mine=mem.filter(function(x){return x.user_id===USER.id;})[0];
   var role=mine?mine.role:'viewer';
