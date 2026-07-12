@@ -1076,7 +1076,10 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
       </div>
 
-      <!-- personal dashboard, no channel connected yet -->
+      <!-- lens bar: which view am I in (private vs shared team space) -->
+      <div class="lensbar" id="lensBar" aria-live="polite" style="display:none"></div>
+
+      <!-- personal dashboard, no channel connected yet (sits below the lens bar) -->
       <div id="hqEmpty" class="hq-empty" style="display:none">
         <div class="hqe-glow" aria-hidden="true"></div>
         <div class="hqe-eyebrow">◆ your dashboard</div>
@@ -1086,9 +1089,6 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="hqe-note">read-only · proves it's your channel · cant be faked</div>
         <div class="hqe-teasers"><span>S → F grade</span><span>niche radar</span><span>retention &amp; CTR</span><span>your next video</span></div>
       </div>
-
-      <!-- lens bar: which view am I in (private vs shared team space) -->
-      <div class="lensbar" id="lensBar" aria-live="polite" style="display:none"></div>
 
       <!-- identity header (in a space this is the space's channel; it fuses with the space card below) -->
       <div class="idhead" id="idhead">
