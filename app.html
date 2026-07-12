@@ -320,6 +320,14 @@ footer a:hover{color:var(--fg)}
 #hqWrap.no-channel:not(.has-socials) > *:not(#youBar):not(#hqEmpty):not(#lensBar){display:none !important}
 #hqWrap.no-channel.has-socials > *:not(#youBar):not(#hqEmpty):not(#lensBar):not(#ptabs):not(#altPanel){display:none !important}
 #hqWrap.no-channel #lensBar{margin-bottom:6px}
+/* on the no-channel page, order the visible pieces: profile, lens bar, THEN the platform tabs,
+   then the connect hero / soon panel (so the tab bar sits up top, not under the hero) */
+#hqWrap.no-channel{display:flex;flex-direction:column}
+#hqWrap.no-channel > #youBar{order:1}
+#hqWrap.no-channel > #lensBar{order:2}
+#hqWrap.no-channel > #ptabs{order:3;margin-top:2px}
+#hqWrap.no-channel > #hqEmpty{order:4}
+#hqWrap.no-channel > #altPanel{order:4}
 .yb-eyebrow{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%));margin-bottom:5px}
 .yb-name{font-weight:800;font-size:clamp(1.3rem,3vw,1.75rem);letter-spacing:-.02em;line-height:1.1;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idhead.chan::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
