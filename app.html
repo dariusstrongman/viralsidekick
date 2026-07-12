@@ -1681,10 +1681,13 @@ function verifyYouTube(){
   /* the OAuth redirect leaves the page - stash the onboarding picks so they survive the round-trip */
   try{ if($('onboard') && !$('onboard').classList.contains('hide')){ localStorage.setItem('vs_ob_draft', JSON.stringify({ u:($('obName')&&$('obName').value)||'', a:_obAvatar||'', b:_obBanner||'' })); } }catch(e){}
   try{ var m=$('cmMsg'); if(m){ m.style.color=''; m.textContent='opening google…'; } }catch(e){}
-  /* logged-in on an email account -> LINK google to it (keeps their account).
-     NEVER fall back to signInWithOAuth here: that would create/switch to a separate
-     google-based account instead of attaching youtube to the account they are on. */
-  if(USER && sb.auth.linkIdentity){
+  var _reauth=function(){ sb.auth.signInWithOAuth({ provider:'google', options:opts }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
+  if(USER && _hasGoogle()){
+    /* already signed in WITH google -> just re-auth the SAME account to grant the youtube scope (no linking, no switch) */
+    _reauth();
+  } else if(USER && sb.auth.linkIdentity){
+    /* email/password account with no google yet -> LINK google to it (keeps their account).
+       do NOT fall back to signInWithOAuth on error: that could switch to a separate account. */
     sb.auth.linkIdentity({ provider:'google', options:opts }).then(function(r){
       if(r && r.error){
         var em=String(r.error.message||'');
@@ -1694,9 +1697,19 @@ function verifyYouTube(){
       }
     });
   } else {
-    /* brand-new visitor with no account yet -> google sign-in IS their account (no linking needed) */
-    sb.auth.signInWithOAuth({ provider:'google', options:opts }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } });
+    /* brand-new visitor with no account yet -> google sign-in IS their account */
+    _reauth();
   }
+}
+function _hasGoogle(){
+  try{
+    if(!USER) return false;
+    if(USER.identities && USER.identities.some(function(i){return i.provider==='google';})) return true;
+    var am=USER.app_metadata||{};
+    if(am.provider==='google') return true;
+    if((am.providers||[]).indexOf('google')>-1) return true;
+  }catch(e){}
+  return false;
 }
 function claimYouTube(session){
   if(!session || !session.provider_token || window._ytClaimed===session.provider_token) return;
