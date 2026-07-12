@@ -2410,7 +2410,7 @@ function renderPro(){
   if(IS_PRO || isTeamPlan){
     if(badge) badge.innerHTML='<span class="pro-badge">'+(isTeamPlan?'TEAM':'PRO')+'</span>';
     if(head) head.classList.add('pro');
-    var tu0=$('tTeamUp'); if(tu0 && isTeamPlan) tu0.style.display='none';  /* team members never see the upsell */
+    var tu0=$('tTeamUp'); if(tu0) tu0.style.display='none';  /* ANY paying member: hide the Team checkout so a Pro member cant start a second (double-billed) subscription. plan changes go through the Stripe billing portal. */
     if(tile){
       tile.style.borderColor='hsl(45 90% 60% / .45)'; tile.style.setProperty('--tc','hsl(45 95% 62%)');
       tile.innerHTML='<h3><span class="acc" style="color:hsl(45 95% 62%)">★</span> '+(isTeamPlan?'team plan':'pro member')+' <span class="end" style="color:hsl(45 95% 62%)">active</span></h3>'
@@ -3054,6 +3054,7 @@ function backgroundScan(){
       if(d&&d.ai){ hydrateDeep(d.ai,d.radar_live,d.signals,d.breakout); lastFullAt=Date.now(); setTimeout(loadHistory,1200); }
       else if(d&&d.error==='too_new'){ ordMsg('you are just getting started', 'your first week is mapped in the roadmap below. knock these out and post 3 videos, then the coach reads your channel in full.'); restDeepTiles(); starterPlaybook(); }
       else if(d&&(d.error==='session expired - sign in again'||d.error==='session_expired')){ ordMsg('your session expired', 'refresh the page and sign in again to keep the coach on your channel.'); deepStuck('sign in again to load this'); }
+      else if(d&&d.error==='views_hidden'){ ordMsg('youtube is hiding your view counts', (d.detail||'these uploads dont report public view counts (often members-only or region-locked), so the coach cant grade them yet.')); deepStuck('view counts arent public on these uploads, so this cant be graded yet'); }
       else if(d&&d.error){ ordMsg('the read did not come back clean', 'tap refresh to try again. if it keeps happening, your channel may be private or too new.'); deepStuck('the read did not come back — hit ↻ Refresh to try again'); }
       else { ordMsg('the read is taking longer than usual', 'tap refresh to retry. big channels and busy niches can take a full minute.'); deepStuck('the read is taking a while — hit ↻ Refresh to try again'); }
     })
