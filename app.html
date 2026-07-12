@@ -1848,41 +1848,62 @@ function bootType(){
 }
 
 /* ---------- profile: bind identity, then route ---------- */
+function _bindIdent(){
+  IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
+  IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||''; IDENT.facebook = PROFILE.facebook_handle||'';
+}
+function _cacheProfile(){
+  try{ if(!(USER&&USER.id)) return; var p=PROFILE||{}, keep={};
+    ['id','username','display_name','plan','plan_status','youtube_verified','primary_channel_id','primary_channel_name','primary_channel_avatar','primary_channel_subs','primary_channel_handle','tiktok_handle','instagram_handle','facebook_handle','onboarded','daily_digest'].forEach(function(k){ if(p[k]!==undefined) keep[k]=p[k]; });
+    localStorage.setItem('vs_profile_'+USER.id, JSON.stringify(keep));   /* display fields only, never tokens */
+  }catch(e){}
+}
 function loadProfile(){
+  var pend=null; try{ pend=localStorage.getItem('vs_pending_invite'); }catch(e){}
+  var painted=false, prevCh='';
+  /* INSTANT PAINT: hydrate from the last cached profile so the dashboard shell, identity and
+     (already cache-first) vitals/scan appear with no wait. skip when an invite is pending. */
+  if(!pend){
+    try{ var pc=JSON.parse(localStorage.getItem('vs_profile_'+USER.id)||'null');
+      if(pc && pc.id===USER.id){
+        PROFILE=pc; _bindIdent(); IS_PRO=ownPro();
+        if(!(IDENT.yt.id || IDENT.yt.name)){ VIEW='mine'; try{ localStorage.setItem('vs_view','mine'); }catch(e){} }
+        prevCh=(IDENT.yt.id||IDENT.yt.name||'');
+        enterHQ(); painted=true;
+      }
+    }catch(e){}
+  }
   sb.from('viralsidekick_profiles').upsert({ id: USER.id, email: USER.email,
     display_name: (USER.user_metadata&&USER.user_metadata.full_name)||(USER.email||'').split('@')[0] }, { onConflict:'id', ignoreDuplicates:true }).then(function(){
    sb.from('viralsidekick_profiles').select('*').eq('id', USER.id).maybeSingle().then(function(r){
     PROFILE = r.data || {};
-    IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
-    IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||''; IDENT.facebook = PROFILE.facebook_handle||'';
+    _bindIdent();
     IS_PRO = ownPro();
-
-    /* INVITED? accept BEFORE any onboarding, team members walk straight into
-       the space, no channel setup, no forms. (token survives oauth redirects
-       + email confirms via localStorage) */
-    var pend=null; try{ pend=localStorage.getItem('vs_pending_invite'); }catch(e){}
+    _cacheProfile();
+    var pend2=null; try{ pend2=localStorage.getItem('vs_pending_invite'); }catch(e){}
     /* joining/accepting a space is a deliberate act -> land in the SPACE lens. we NEVER copy
-       a space's channel onto your personal identity: My Dashboard stays yours alone, and with
-       no personal channel it shows the witty connect page, it never borrows a space's channel. */
+       a space's channel onto your personal identity: My Dashboard stays yours alone. */
     function enterSpace(d){
       SPACE=d; syncTeamPro();
       VIEW='space'; try{ localStorage.setItem('vs_view','space'); if(d.workspace) localStorage.setItem('vs_space',d.workspace.id); }catch(e){}
       enterHQ();
     }
     function normalFlow(){
-      /* no personal channel -> land on My Dashboard (the witty connect page), never a space's
-         channel. initSpace() still loads any space so the lens bar shows it one click away. */
       if(!(IDENT.yt.id || IDENT.yt.name)){ VIEW='mine'; try{ localStorage.setItem('vs_view','mine'); }catch(e){} }
       enterHQ();
     }
-    if(pend){
-      /* one-shot: drop the token BEFORE we call so a failing invite can never re-fire on every
-         login (that was spamming failure emails). if it is legit, the click-through re-sets it. */
+    if(pend2){
+      /* one-shot: drop the token BEFORE we call so a failing invite can never re-fire on every login. */
       try{ localStorage.removeItem('vs_pending_invite'); }catch(e){}
-      teamsApi('accept',{invite:pend}).then(function(d){
+      teamsApi('accept',{invite:pend2}).then(function(d){
         if(d && d.ok && d.workspace){ enterSpace(d); }
         else normalFlow();
       }).catch(normalFlow);
+    } else if(painted){
+      /* already painted from cache -> reconcile cheaply. only re-run the heavy live pass if the
+         channel identity actually changed since the cache (rare: connected/disconnected elsewhere). */
+      renderNav(); renderIdentity(); renderPlatChips(); renderPro();
+      if((IDENT.yt.id||IDENT.yt.name||'')!==prevCh) goLive();
     } else normalFlow();
    });
   });
