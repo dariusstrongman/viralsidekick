@@ -1677,7 +1677,6 @@ function googleAuth(){
 var YT_SCOPES='openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
 function verifyYouTube(){
   var opts={ scopes:YT_SCOPES, redirectTo: location.origin + location.pathname + '?ytconnect=1', queryParams:{ access_type:'offline', prompt:'consent' } };
-  try{ localStorage.setItem('vs_yt_intent','1'); }catch(e){} /* mark this google round-trip as an intentional YouTube connect */
   /* the OAuth redirect leaves the page - stash the onboarding picks so they survive the round-trip */
   try{ if($('onboard') && !$('onboard').classList.contains('hide')){ localStorage.setItem('vs_ob_draft', JSON.stringify({ u:($('obName')&&$('obName').value)||'', a:_obAvatar||'', b:_obBanner||'' })); } }catch(e){}
   try{ var m=$('cmMsg'); if(m){ m.style.color=''; m.textContent='opening google…'; } }catch(e){}
@@ -1713,11 +1712,13 @@ function _hasGoogle(){
 }
 function claimYouTube(session){
   if(!session || !session.provider_token || window._ytClaimed===session.provider_token) return;
-  /* only verify when the user DELIBERATELY clicked Connect (that flow carries ?ytconnect=1 + an intent flag).
-     a plain "sign in with google" login returns a token WITHOUT the youtube scope, so verifying it 403s. */
-  var _intended = (location.search.indexOf('ytconnect')>-1) || (function(){ try{ return localStorage.getItem('vs_yt_intent')==='1'; }catch(e){ return false; } })();
+  /* ONLY verify when the user DELIBERATELY clicked Connect - that flow is the only thing
+     that sets ?ytconnect=1 on the return URL. a plain "sign in with google" login returns a
+     token WITHOUT the youtube scope, so verifying it 403s. the URL marker is self-clearing
+     (history.replaceState strips it below) so it can never go stale like a localStorage flag. */
+  var _intended = (location.search.indexOf('ytconnect')>-1);
+  try{ localStorage.removeItem('vs_yt_intent'); }catch(e){} /* wipe any legacy stale flag */
   if(!_intended) return;
-  try{ localStorage.removeItem('vs_yt_intent'); }catch(e){}
   window._ytClaimed=session.provider_token; /* provider_token is one-shot; only claim it once */
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     mode:'yt_verify', token:session.access_token, provider_token:session.provider_token, provider_refresh_token:session.provider_refresh_token||''
@@ -1834,8 +1835,8 @@ function loadProfile(){
         /* team member without their own channel: lock onto the space's LIVE channel */
         teamsApi('my_space').then(function(d){
           if(d && d.ok && d.workspace && d.channel && (d.channel.id||d.channel.name)){ adoptAndEnter(d); }
-          else showOnboard();
-        }).catch(function(){ showOnboard(); });
+          else enterHQ(); /* no channel + no team channel -> land on the witty "connect your channel" page, never force onboarding */
+        }).catch(function(){ enterHQ(); });
       }
     }
     if(pend){
