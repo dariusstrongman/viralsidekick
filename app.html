@@ -918,7 +918,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
             <span class="dot"></span>
             viral hq · creator command center
           </div>
-          <h2>Your channel's<br><span class="grad">second brain.</span></h2>
+          <h2>Your channel's<br><span class="grad">command center.</span></h2>
           <p class="desc">Log in once. ViralSidekick tracks your score, sweeps your niche live, and hands you a new game plan every week, automatically.</p>
           <div class="auth-feats">
             <div class="auth-feat">
@@ -1081,7 +1081,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <p class="hqe-sub">Your real grade, the fixes that actually move views, and what's about to pop off in your niche, read straight from your own numbers, retention and click-through included.</p>
         <button class="btn btn-primary hqe-cta" onclick="verifyYouTube()">Connect with Google</button>
         <div class="hqe-note">read-only · proves it's your channel · cant be faked</div>
-        <div class="hqe-teasers"><span>A+ → F grade</span><span>niche radar</span><span>retention &amp; CTR</span><span>your next video</span></div>
+        <div class="hqe-teasers"><span>S → F grade</span><span>niche radar</span><span>retention &amp; CTR</span><span>your next video</span></div>
       </div>
 
       <!-- lens bar: which view am I in (private vs shared team space) -->
@@ -1482,7 +1482,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
         <div class="found" id="cmFound" aria-live="polite"></div>
         <button class="btn btn-primary btn-block" id="cmYtVerify" style="margin-top:12px;display:none" onclick="verifyYouTube()">Connect with Google, verify you own it</button>
-        <div class="sm mut" id="cmYtVnote" style="display:none;margin-top:7px;line-height:1.45">signs you in with your channel's google account and links the one you actually own. this is the verified connection, it unlocks your real analytics (retention, CTR) and cant be faked.</div>
+        <div class="sm mut" id="cmYtVnote" style="display:none;margin-top:7px;line-height:1.45">signs you in with your channel's google account and links the one you actually own. this is the verified connection, it turns on your real analytics (retention, CTR) and cant be faked.</div>
         <div id="cmYtLinked" style="display:none;margin-top:12px">
           <button class="btn btn-ghost btn-block" id="cmYtDisc" onclick="disconnectYouTube()">Disconnect this channel</button>
           <div class="sm mut" style="margin-top:6px;line-height:1.45">unlinks the channel from your account and revokes ViralSidekick's read-only access at google. you can reconnect anytime.</div>
@@ -1626,6 +1626,22 @@ sb.auth.onAuthStateChange(function(ev, session){
   /* a fresh provider_token only appears right after a Google/YouTube OAuth return -> claim ownership */
   try{ if(session && session.provider_token) claimYouTube(session); }catch(e){}
 });
+/* MONEY SAFETY NET: intercept EVERY Stripe checkout click and rebuild the URL with the
+   signed-in user's client_reference_id at click time. no matter what raw href sits in the
+   DOM, a payment can always map to an account, and a logged-out click routes to sign-in
+   instead of creating an orphaned, unattributable charge. */
+document.addEventListener('click', function(e){
+  var a = (e.target && e.target.closest) ? e.target.closest('a[href*="buy.stripe.com"]') : null;
+  if(!a) return;
+  e.preventDefault();
+  if(!(typeof USER!=='undefined' && USER && USER.id)){
+    try{ toast('sign in first so your upgrade lands on your account','err'); }catch(_){}
+    location.href='app.html'; return;
+  }
+  var base = String(a.getAttribute('href')||'').split('?')[0];
+  if(base.indexOf('buy.stripe.com')<0) return;
+  window.location.href = base + '?client_reference_id=' + encodeURIComponent(USER.id) + '&prefilled_email=' + encodeURIComponent(USER.email||'');
+}, true);
 function forgotPass(e){
   if(e) e.preventDefault();
   var email=$('aEmail').value.trim();
@@ -1746,7 +1762,16 @@ function claimYouTube(session){
     }
   }).catch(function(){ try{ toast('network hiccup verifying youtube','err'); }catch(e){} });
 }
-function logout(){ sb.auth.signOut(); }
+function logout(){
+  /* purge every per-account cache + reset in-memory state so nothing from this account
+     can flash for the next person on a shared browser (was: signOut only). */
+  try{ Object.keys(localStorage).forEach(function(k){ if(/^vs_|^vsq_/.test(k)) localStorage.removeItem(k); }); }catch(e){}
+  SPACE=null; SPACES=[]; PROFILE=null; VIEW='mine'; LASTAI=null; LIVE=null; IS_PRO=false;
+  IDENT={ yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'', facebook:'' };
+  try{ window._appUser=null; window._ytClaimed=null; window._dailyPulseDone=false; window._autoRev=false; window._lvCh=null; }catch(e){}
+  try{ stopPulse(); }catch(e){}
+  sb.auth.signOut();
+}
 
 /* ================= VIRAL HQ: identity + platforms + live ================= */
 var IDENT = { yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'', facebook:'' };
@@ -1756,7 +1781,9 @@ var PRO_ANNUAL='https://buy.stripe.com/8x26oJgkM7KF75m4fi5wI0t';
 var TEAM_LINK='https://buy.stripe.com/cNi8wRgkM1mh4Xe7ru5wI0u';
 var BILLING='monthly';
 var PRO_URL=PRO_MONTHLY;
-function _withRef(u){ if(!(typeof USER!=='undefined'&&USER&&USER.id)) return u; return u+'?client_reference_id='+USER.id+'&prefilled_email='+encodeURIComponent(USER.email||''); }
+/* fail CLOSED: never hand back a raw Stripe link with no client_reference_id (that payment
+   cant map to an account = lost money). when not signed in, route to the app/sign-in instead. */
+function _withRef(u){ if(!(typeof USER!=='undefined'&&USER&&USER.id)) return 'app.html'; return u+'?client_reference_id='+USER.id+'&prefilled_email='+encodeURIComponent(USER.email||''); }
 function setBilling(mode){
   BILLING=(mode==='annual')?'annual':'monthly';
   PRO_URL=_withRef((BILLING==='annual')?PRO_ANNUAL:PRO_MONTHLY);
@@ -2826,6 +2853,7 @@ function expandCount(txt){ /* "21.1M subscribers" -> 21100000 */
   return Math.round(n*mult);
 }
 function odoRender(el, val){
+  if(!el || !isFinite(val)) return; /* guard NaN/Infinity so the odometer never renders "NaN" digits */
   val=Math.max(0,Math.floor(val));
   var s=String(val), want=s.length;
   if(el._digits!==want){ /* (re)build digit columns with comma groups */
@@ -2857,18 +2885,20 @@ function pulseCounter(key, label, icon, color){
 }
 /* honest, poll-driven: the odometer only flips to REAL polled numbers, and the
    "+X/hr" badge only shows growth we actually measured between polls. no fabrication. */
-function pulseSet(key, newVal, subHTML){
-  var c=PULSE.c[key]; if(!c || newVal==null) return;
+function pulseSet(key, newVal, subHTML, rounded){
+  var c=PULSE.c[key]; if(!c || newVal==null || !isFinite(newVal)) return;
   var now=Date.now();
-  if(c.lastVal!=null && now>c.lastTs){
+  /* `rounded` metrics (subscriber counts are quantized to 3 sig figs by YouTube) never get a
+     "+X/hr" badge - a single rounding tick would fabricate an absurd hourly rate. */
+  if(!rounded && c.lastVal!=null && now>c.lastTs){
     var grew=newVal-c.lastVal;
     c.rate = grew>0 ? grew/((now-c.lastTs)/1000) : 0; /* real measured velocity; 0 when not moving */
-  }
+  } else { c.rate=0; }
   c.lastVal=newVal; c.lastTs=now; c.val=newVal;
   odoRender(c.el, newVal); /* flip straight to the true number */
   if(subHTML!=null) $('ps_'+key).innerHTML=subHTML;
   var r=$('pr_'+key);
-  if(r) r.textContent = c.rate>0 ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
+  if(r) r.textContent = (!rounded && c.rate>0) ? ('+'+nfmt(Math.round(c.rate*3600))+'/hr') : '';
 }
 function pollPulse(){
   var _c=curCh(); var q=_c.id||_c.name; if(!q) return Promise.resolve();
@@ -2883,7 +2913,7 @@ function pollPulse(){
       if(yt.subs_text || (yt.subs_exact!=null && yt.subs_exact>0)){
         var _sv=(yt.subs_exact!=null && yt.subs_exact>0)?yt.subs_exact:expandCount(yt.subs_text);
         pulseCounter('subs','subscribers',IC_YT,'hsl(0 84% 62%)');
-        pulseSet('subs', _sv, '<b>'+esc(yt.name||'')+'</b> · youtube precision');
+        pulseSet('subs', _sv, '<b>'+esc(yt.name||'')+'</b> · approximate (youtube rounds subs)', true);
         logSubs(_sv); renderGoal(); /* feed the live growth prediction */
       }
       if(yt.total_views!=null && yt.total_views>0){
@@ -3051,13 +3081,13 @@ function restDeepTiles(){
 function starterPlaybook(){
   var el=$('roadBody'); if(!el) return;
   var moves=[
-    ['post 3 videos this week','the coach needs at least 3 public uploads to read your channel. get them up and the full read unlocks.'],
+    ['post 3 videos this week','the coach needs at least 3 public uploads to read your channel. get them up and the full read opens up.'],
     ['pick one lane and stay in it','make your next 3 videos about the same topic so youtube learns exactly who to show you to.'],
     ['study 3 channels your size that are winning','add them as competitors below and the radar starts pulling what is working in your lane.'],
     ['make every title a promise or a number','vague titles die. say exactly what they get, or put a number on it.'],
     ['open with the payoff','your first 5 seconds decide everything. lead with the result, not a slow intro.']
   ];
-  el.innerHTML='<div class="tsub" style="margin-bottom:10px">You are just getting started, here is your first week. Do these and post 3 videos, then the full coach read unlocks.</div>'
+  el.innerHTML='<div class="tsub" style="margin-bottom:10px">You are just getting started, here is your first week. Do these and post 3 videos, then the full coach read opens up.</div>'
     + moves.map(function(m,i){ return '<div class="q-item"><div class="q-b"><div class="t">'+(i+1)+'. '+esc(m[0])+'</div><div class="d">'+esc(m[1])+'</div></div></div>'; }).join('');
 }
 /* creator tools home: any idea or title -> package (+ thumbnail) or full script */
