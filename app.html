@@ -842,7 +842,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .lens-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .lens-row+.lens-row{margin-top:8px}
 .lens-k{font-family:var(--mono);font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);flex:0 0 auto;min-width:54px}
-.lens-btn{font-size:.82rem;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:99px;padding:5px 13px;cursor:pointer;font-family:var(--sans);transition:all .15s;max-width:min(220px,60vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lens-btn{font-size:.82rem;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:99px;padding:8px 14px;min-height:38px;display:inline-flex;align-items:center;cursor:pointer;font-family:var(--sans);transition:all .15s;max-width:min(220px,60vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lens-btn:hover:not(:disabled){border-color:var(--lensc);color:var(--fg)}
 .lens-btn.on{color:#0b0d12;background:var(--lensc);border-color:var(--lensc)}
 .lens-btn:disabled{opacity:.4;cursor:not-allowed}
@@ -1215,7 +1215,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <h3><span class="acc" aria-hidden="true">⚔</span> competitor analysis <span class="lens-tag" id="rivalLensTag" style="display:none"></span> <span class="end" id="rivalEnd"></span></h3>
           <div id="rivalBody"><div class="tsub">Add the channels you compete with, side-by-side grades, momentum and engagement, refreshed live.</div></div>
           <div class="caprow" id="rivalAdd">
-            <input id="rivalIn" type="text" placeholder="add a competitor… @handle or URL" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')addRival()">
+            <input id="rivalIn" type="text" aria-label="add a competitor channel" placeholder="add a competitor… @handle or URL" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')addRival()">
             <button class="btn btn-ghost" style="flex:0 0 auto" onclick="addRival()">Add</button>
           </div>
         </div>
@@ -1439,11 +1439,11 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <h2 id="ideaModalTitle">✎ Video idea <span id="iedLens" class="ied-lens"></span></h2>
       <p class="sm mut" id="iedWhere" style="margin-bottom:16px"></p>
       <div class="ied-field"><label for="iedTitle">the idea / working title</label>
-        <input id="iedTitle" type="text" maxlength="160" placeholder="what is the video? e.g. i tried the cheapest camera on amazon"></div>
+        <input id="iedTitle" type="text" maxlength="160" aria-label="video idea title" placeholder="what is the video? e.g. i tried the cheapest camera on amazon"></div>
       <div class="ied-field" id="iedFmtField"><label for="iedFmt">format</label>
         <select id="iedFmt"><option value="">not sure yet</option><option value="short">short · 30-60s vertical</option><option value="longform">long-form · 8-12 min</option></select></div>
       <div class="ied-field"><label for="iedNotes">notes · angle, hook, anything to remember</label>
-        <textarea id="iedNotes" maxlength="4000" placeholder="the hook, the twist, b-roll you need, why it'll work…"></textarea></div>
+        <textarea id="iedNotes" maxlength="4000" aria-label="idea notes" placeholder="the hook, the twist, b-roll you need, why it'll work…"></textarea></div>
       <div class="ied-field"><label>script</label>
         <div id="iedScriptWrap"></div></div>
       <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:4px">
@@ -2137,7 +2137,10 @@ function switchSpace(wsid){
     try{ renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube'); }catch(e){}
     try{ loadIdeas(); }catch(e){}
     try{ renderQueue((LASTAI&&LASTAI.fixes)||[]); }catch(e){}
-  }).catch(function(){});
+  }).catch(function(){
+    /* space fetch failed (network) - dont strand the user on blanked tiles in a dead space lens */
+    try{ renderNoSpace(); }catch(e){} try{ goLive(); }catch(e){}
+  });
 }
 function teamsApi(action, extra){
   return fetch(TEAMS_API,{method:'POST',headers:{'Content-Type':'application/json'},
