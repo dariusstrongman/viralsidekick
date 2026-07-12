@@ -7,3 +7,11 @@ viralsidekick-billing-guard.sql
 viralsidekick-wire.sql
 viralsidekick-ab.sql
 viralsidekick-digest.sql
+
+# audit workspace + temp: contains extracted n8n code with live secrets - NEVER commit
+.audit/
+.tmp_engine/
+.exec.json
+vs_check_tmp.js
+# all local SQL (security model / migrations) stays local
+*.sql
