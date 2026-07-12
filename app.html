@@ -314,8 +314,11 @@ footer a:hover{color:var(--fg)}
 .hqe-teasers{position:relative;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:28px}
 .hqe-teasers span{font-family:var(--mono);font-size:.63rem;letter-spacing:.07em;color:var(--muted,#9aa3b2);padding:5px 12px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.02)}
 /* no personal channel: hide the dashboard guts, but KEEP the lens bar so a team owner/member
-   can still reach their space(s) from the witty connect page */
-#hqWrap.no-channel > *:not(#youBar):not(#hqEmpty):not(#lensBar){display:none !important}
+   can still reach their space(s) from the witty connect page. if socials (TikTok/IG/FB) are
+   connected, ALSO keep the platform tabs + the "coming soon" panel so they and their soon
+   banner stay reachable without a YouTube channel. */
+#hqWrap.no-channel:not(.has-socials) > *:not(#youBar):not(#hqEmpty):not(#lensBar){display:none !important}
+#hqWrap.no-channel.has-socials > *:not(#youBar):not(#hqEmpty):not(#lensBar):not(#ptabs):not(#altPanel){display:none !important}
 #hqWrap.no-channel #lensBar{margin-bottom:6px}
 .yb-eyebrow{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%));margin-bottom:5px}
 .yb-name{font-weight:800;font-size:clamp(1.3rem,3vw,1.75rem);letter-spacing:-.02em;line-height:1.1;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1902,7 +1905,7 @@ function loadProfile(){
     } else if(painted){
       /* already painted from cache -> reconcile cheaply. only re-run the heavy live pass if the
          channel identity actually changed since the cache (rare: connected/disconnected elsewhere). */
-      renderNav(); renderIdentity(); renderPlatChips(); renderPro();
+      renderNav(); renderIdentity(); renderPlatChips(); renderTabs(); renderPro();
       if((IDENT.yt.id||IDENT.yt.name||'')!==prevCh) goLive();
     } else normalFlow();
    });
@@ -2835,6 +2838,10 @@ function switchPlatform(p){
   $('ytDeck').classList.toggle('hide',!yt);
   $('altPanel').classList.toggle('hide',yt);
   if(!yt) renderAlt(p);
+  /* youtube-empty state: the connect hero stands in for the yt deck. a social tab swaps it for
+     that platform's soon panel; back to youtube brings the connect hero back. */
+  var hw=$('hqWrap'), he=$('hqEmpty');
+  if(hw && he && hw.classList.contains('no-channel')){ he.style.display = yt ? 'block' : 'none'; }
 }
 function renderAlt(p){
   var A=actIdent(); var clean=(A[p]||'').replace(/^@/,'');
@@ -2859,8 +2866,9 @@ function blankLiveSurfaces(){
 }
 function setNoChannel(on){
   var w=$('hqWrap'), e=$('hqEmpty'); if(!w) return;
-  if(on){ w.classList.add('no-channel'); if(e) e.style.display='block'; }
-  else { w.classList.remove('no-channel'); if(e) e.style.display='none'; }
+  if(on){ w.classList.add('no-channel'); if(e) e.style.display='block';
+    var A=actIdent(); w.classList.toggle('has-socials', !!(A.tiktok||A.instagram||A.facebook)); }
+  else { w.classList.remove('no-channel'); w.classList.remove('has-socials'); if(e) e.style.display='none'; }
 }
 function goLive(){
   _coerceView();
