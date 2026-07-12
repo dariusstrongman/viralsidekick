@@ -1684,18 +1684,19 @@ function verifyYouTube(){
   /* the OAuth redirect leaves the page - stash the onboarding picks so they survive the round-trip */
   try{ if($('onboard') && !$('onboard').classList.contains('hide')){ localStorage.setItem('vs_ob_draft', JSON.stringify({ u:($('obName')&&$('obName').value)||'', a:_obAvatar||'', b:_obBanner||'' })); } }catch(e){}
   try{ var m=$('cmMsg'); if(m){ m.style.color=''; m.textContent='opening google…'; } }catch(e){}
-  var _reauth=function(){ sb.auth.signInWithOAuth({ provider:'google', options:opts }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
-  if(USER && _hasGoogle()){
-    /* already signed in WITH google -> just re-auth the SAME account to grant the youtube scope (no linking, no switch) */
-    _reauth();
-  } else if(USER && sb.auth.linkIdentity){
-    /* email/password account with no google yet -> LINK google to it (keeps their account).
-       do NOT fall back to signInWithOAuth on error: that could switch to a separate account. */
+  /* re-auth the account you are ALREADY on. login_hint pins it to your email so the chooser
+     can never drift you onto a different google/account. only for a google you already own. */
+  var _reauth=function(){ var o2={ scopes:opts.scopes, redirectTo:opts.redirectTo, queryParams:{ access_type:'offline', prompt:'consent' } }; if(USER&&USER.email) o2.queryParams.login_hint=USER.email; sb.auth.signInWithOAuth({ provider:'google', options:o2 }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
+  if(USER && sb.auth.linkIdentity){
+    /* ALWAYS link the chosen channel's google TO THE ACCOUNT YOU ARE ON. this is the whole fix:
+       connecting a different channel adds it to your one login instead of swapping you onto
+       whatever account that google belongs to. */
     sb.auth.linkIdentity({ provider:'google', options:opts }).then(function(r){
       if(r && r.error){
         var em=String(r.error.message||'');
         if(/manual linking/i.test(em)) toast('youtube connect needs one setting enabled on the server, hang tight','err');
-        else if(/already|linked|identity.*exist/i.test(em)) toast('that google account is already connected to a different ViralSidekick login','err');
+        else if(/another user/i.test(em)) toast('that youtube is already connected to a different ViralSidekick account. log into that one, or disconnect it there first.','err');
+        else if(/already|linked|identity.*exist/i.test(em)) _reauth(); /* it is YOUR OWN google, already on this account - just re-grant the youtube scope, same account, no switch */
         else toast(em||'could not open google, try again','err');
       }
     });
