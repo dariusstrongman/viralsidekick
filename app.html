@@ -1340,7 +1340,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="tile s4 sell" id="tTeamUp" style="border-color:hsl(45 90% 60% / .35);--tc:hsl(45 95% 62%)">
           <h3><span class="acc" aria-hidden="true">⬡</span> team plan</h3>
           <div class="tbig" style="color:hsl(45 95% 62%)">$39.99<small style="font-size:.9rem;color:var(--muted);font-weight:500">/mo</small></div>
-          <div class="tsub" style="margin:8px 0 12px">Create up to 3 shared spaces, 5 seats each, under $8 a seat. Each space gets its own channels plus everything in Pro, live data, radar, grades, the plan, roles and a shared board. 7 days free, cancel anytime.</div>
+          <div class="tsub" style="margin:8px 0 12px">One shared space with 5 seats, under $8 a seat. The space gets its own channels plus everything in Pro, live data, radar, grades, the plan, roles and a shared board. 7 days free, cancel anytime.</div>
           <a id="teamBtn" class="btn btn-primary btn-sm" style="margin-top:auto" href="https://buy.stripe.com/cNi8wRgkM1mh4Xe7ru5wI0u" target="_blank" rel="noopener">Start 7-day free trial</a>
         </div>
 
@@ -1924,7 +1924,7 @@ var _connTarget='mine'; /* which record the connect modal edits: 'mine' = your p
 function myRole(){ if(!(SPACE&&SPACE.members&&USER)) return ''; var m=SPACE.members.filter(function(x){return x.user_id===USER.id;})[0]; return m?m.role:''; }
 function canEditSpace(){ if(!(VIEW==='space'&&SPACE&&SPACE.workspace)) return false; var r=myRole(); return r==='owner'||r==='admin'; }
 function ownedSpaceCount(){ return (SPACES||[]).filter(function(t){return t.role==='owner';}).length; }
-function canCreateMoreSpaces(){ return (typeof PROFILE!=='undefined'&&PROFILE&&PROFILE.plan==='team') && ownedSpaceCount()<3; }
+function canCreateMoreSpaces(){ return (typeof PROFILE!=='undefined'&&PROFILE&&PROFILE.plan==='team') && ownedSpaceCount()<1; }
 /* INVARIANT (guard against the recurring "My Dashboard is broken" bug): the personal lens
    must ALWAYS be reachable. two rules, enforced everywhere: (1) the My Dashboard button is
    NEVER disabled - with no channel it lands on the witty empty page; (2) you can never be
@@ -2221,7 +2221,7 @@ function openCreateSpace(){
   var i=$('csName'); if(i) i.value='';
   var msg=$('csMsg'); if(msg){ msg.textContent=''; msg.style.color=''; }
   var btn=$('csBtn'); if(btn) btn.disabled=false;
-  var cap=$('csCap'); if(cap) cap.textContent='space '+(ownedSpaceCount()+1)+' of 3';
+  var cap=$('csCap'); if(cap) cap.textContent='your team space';
   $('createSpaceModal').classList.add('on');
   setTimeout(function(){ if(i) i.focus(); },40);
 }
