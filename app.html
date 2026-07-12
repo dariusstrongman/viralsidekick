@@ -1845,8 +1845,10 @@ function loadProfile(){
       }
     }
     if(pend){
+      /* one-shot: drop the token BEFORE we call so a failing invite can never re-fire on every
+         login (that was spamming failure emails). if it is legit, the click-through re-sets it. */
+      try{ localStorage.removeItem('vs_pending_invite'); }catch(e){}
       teamsApi('accept',{invite:pend}).then(function(d){
-        try{ localStorage.removeItem('vs_pending_invite'); }catch(e){}
         if(d && d.ok && d.workspace){ adoptAndEnter(d); }
         else normalFlow();
       }).catch(normalFlow);
