@@ -1905,7 +1905,6 @@ function renderViewSwitch(){
   var canMore=canCreateMoreSpaces();
   /* show the lens bar whenever there's a space OR you can make one (so the Create button lives up top) */
   if(!hasSpace && !canMore){ host.style.display='none'; return; }
-  var ownCh = !!(IDENT.yt.id||IDENT.yt.name) && !IDENT._adopted;
   var mine = (VIEW!=='space') || !hasSpace;
   var curWs = activeWs();
   var teams = (SPACES&&SPACES.length) ? SPACES : (hasSpace?[{id:SPACE.workspace.id,name:SPACE.workspace.name}]:[]);
@@ -1914,7 +1913,8 @@ function renderViewSwitch(){
   var active = (teams.filter(function(t){return t.id===curWs;})[0])||{};
   var tName=esc(active.name||'this space');
   var nMem = (SPACE&&SPACE.members&&SPACE.members.length)||0;
-  var personalBtn = '<button class="lens-btn'+(mine?' on':'')+'" data-view="mine"'+(ownCh?'':' disabled title="link your personal channel first"')+'>◈ My Dashboard</button>';
+  /* always clickable: with no personal channel it just lands on the witty connect-your-channel page */
+  var personalBtn = '<button class="lens-btn'+(mine?' on':'')+'" data-view="mine">◈ My Dashboard</button>';
   var teamBtns = teams.map(function(t){
     var on = (!mine && t.id===curWs);
     return '<button class="lens-btn'+(on?' on':'')+'" data-ws="'+esc(t.id)+'">⬡ '+esc(t.name||'space')+'</button>';
