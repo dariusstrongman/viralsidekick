@@ -2952,7 +2952,7 @@ function disconnectTikTok(){
       .then(function(r){return r.json();}).then(function(){
         if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; PROFILE.tiktok_handle=null; }
         IDENT.tiktok='';
-        try{ localStorage.removeItem('vs_ttconn_'+((USER&&USER.id)||'')); localStorage.removeItem('vs_ttdeep_'+((USER&&USER.id)||'')); }catch(e){}
+        try{ localStorage.removeItem('vs_ttconn_'+((USER&&USER.id)||'')); localStorage.removeItem('vs_ttdeep2_'+((USER&&USER.id)||'')); }catch(e){}
         try{ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; }catch(e){}
         try{ if(typeof toast==='function') toast('TikTok disconnected','ok'); }catch(e){}
         try{ renderTabs(); }catch(e){}
@@ -3041,7 +3041,7 @@ function renderTtCard(d, handle, connected){
 function ttDeep(handle){
   var host=$('ttDeep'); if(!host) return;
   if(!ttConnected()){ host.innerHTML=''; return; }
-  var key='vs_ttdeep_'+((USER&&USER.id)||'');
+  var key='vs_ttdeep2_'+((USER&&USER.id)||'');
   var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
   if(cached && cached.d){ renderTtDeep(cached.d); }
   else { host.innerHTML='<div class="tt-sec"><div class="tsub">the coach is reading your posts…</div></div>'; }
