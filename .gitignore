@@ -15,3 +15,6 @@ viralsidekick-digest.sql
 vs_check_tmp.js
 # all local SQL (security model / migrations) stays local
 *.sql
+
+# internal to-do / ops notes — never publish to the public repo
+DARIUS-TODO.md
