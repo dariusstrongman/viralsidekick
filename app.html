@@ -4046,7 +4046,7 @@ function genIdeaScript(){
   var wrap=$('iedScriptWrap');
   wrap.innerHTML='<div class="tsub"><span class="spin" style="display:inline-block;vertical-align:middle;margin-right:8px"></span>the script writer is on it… ('+(fmt==='short'?'~10s':'~20s')+')</div>';
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mode:'blueprint',idea:idea,niche:(LASTAI&&LASTAI.niche)||'',format:fmt,token:ACCESS,website:''})})
+    body:JSON.stringify({mode:'blueprint',idea:idea,niche:(LASTAI&&LASTAI.niche)||'',format:fmt,platform:(PLATFORM==='tiktok')?'tiktok':'youtube',token:ACCESS,website:''})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(!d||!d.ok||!d.blueprint){ wrap.innerHTML='<div class="tsub">'+esc((d&&d.detail)||'could not write that one, try again.')+'</div><div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="renderIedScript()">back</button></div>'; return; }
@@ -4130,6 +4130,8 @@ function buildIt(idea){
       +'<a class="btn btn-primary" href="'+(($('proBtn')&&$('proBtn').href)||PRO_URL)+'" target="_blank" rel="noopener">Start your 7-day free trial</a>';
     return;
   }
+  /* TikTok is short-only — skip the long-form chooser and write the vertical script straight away */
+  if(PLATFORM==='tiktok'){ window._bpIdea=idea; buildFmt(idea,'short'); return; }
   var hint=fmtHint();
   $('bpBody').innerHTML='<div class="tsub" style="margin-bottom:12px">What are we writing?</div>'
     +'<div style="display:flex;gap:10px;flex-wrap:wrap">'
@@ -4142,12 +4144,12 @@ function buildIt(idea){
 function buildFmt(idea, fmt){
   $('bpBody').innerHTML='<div class="tsub"><span class="spin" style="display:inline-block;vertical-align:middle;margin-right:8px"></span>the script writer is on it… ('+(fmt==='short'?'~10s':'~20s')+')</div>';
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mode:'blueprint',idea:idea,niche:(LASTAI&&LASTAI.niche)||'',format:fmt,token:ACCESS,website:''})})
+    body:JSON.stringify({mode:'blueprint',idea:idea,niche:(LASTAI&&LASTAI.niche)||'',format:fmt,platform:(PLATFORM==='tiktok')?'tiktok':'youtube',token:ACCESS,website:''})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(!d||!d.ok||!d.blueprint){ $('bpBody').innerHTML='<div class="tsub">'+esc((d&&d.detail)||'could not write that one, try again.')+'</div>'; return; }
-      var bp=d.blueprint, html='';
-      html+='<div class="bp-sec"><div class="bp-k">title</div><div class="tlead">'+esc(bp.title||'')+'</div>'
+      var bp=d.blueprint, html='', isTtBp=(d.platform==='tiktok');
+      html+='<div class="bp-sec"><div class="bp-k">'+(isTtBp?'caption':'title')+'</div><div class="tlead">'+esc(bp.title||'')+'</div>'
         +(bp.alt_title?'<div class="tsub">alt: '+esc(bp.alt_title)+'</div>':'')
         +(bp.logline?'<div class="tsub" style="color:var(--fg);margin-top:4px;font-style:italic">'+esc(bp.logline)+'</div>':'')+'</div>';
       var sc=bp.script||[];
@@ -4200,39 +4202,41 @@ function openPackage(idea){
   if(pred){ pe.style.display=''; pe.innerHTML='◈ '+esc(pred); } else pe.style.display='none';
   $('pkgBody').innerHTML='<div class="tsub">packaging it for your channel…</div>';
   var S=window._lastSignals||{};
-  var fmt=(S.formats&&(S.formats.shorts_count||0)>(S.formats.long_count||0))?'short':'longform';
-  var body={mode:'package', idea:idea, niche:(LASTAI&&LASTAI.niche)||'creator content', format:fmt,
+  var plat=(PLATFORM==='tiktok')?'tiktok':'youtube';
+  var fmt=plat==='tiktok'?'short':((S.formats&&(S.formats.shorts_count||0)>(S.formats.long_count||0))?'short':'longform');
+  var body={mode:'package', idea:idea, niche:(LASTAI&&LASTAI.niche)||'creator content', platform:plat, format:fmt,
     dna:S.title_dna||null, power_words:S.power_words||null, recent_titles:(window._liveTitles||[]).slice(0,8)};
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(function(r){return r.json();})
     .then(function(d){
       window._pkgBusy=false;
       if(!d||!d.ok||!d.result){ $('pkgBody').innerHTML='<div class="tsub">'+esc((d&&d.detail)||'packaging hiccuped, try again.')+'</div>'; return; }
-      renderPackage(d.result, idea);
+      renderPackage(d.result, idea, d.platform||plat);
     })
     .catch(function(){ window._pkgBusy=false; $('pkgBody').innerHTML='<div class="tsub">network hiccup, try again.</div>'; });
 }
-function renderPackage(r, idea){
+function renderPackage(r, idea, plat){
+  var isTt=(plat==='tiktok'); window._pkgPlatform=isTt?'tiktok':'youtube';
   var titles=(r.titles||[]).slice(0,3), th=r.thumbnail||{}, beats=(r.first_30s||[]).slice(0,3), h='';
   window._pkgThumb=th;
   if(titles.length){
-    h+='<div class="pkg-sec"><div class="pkg-k">titles · tap to copy</div>'
+    h+='<div class="pkg-sec"><div class="pkg-k">'+(isTt?'captions':'titles')+' · tap to copy</div>'
       + titles.map(function(t){ return '<div class="copychip pkg-title" data-copy="'+esc(t)+'" title="'+esc(t)+'">'+esc(t)+'</div>'; }).join('')+'</div>';
   }
   if(th.subject||th.text_overlay||th.style){
-    h+='<div class="pkg-sec"><div class="pkg-k">thumbnail</div><div class="pkg-thumb">'
+    h+='<div class="pkg-sec"><div class="pkg-k">'+(isTt?'cover frame':'thumbnail')+'</div><div class="pkg-thumb">'
       +(th.subject?'<div><b>shoot:</b> '+esc(th.subject)+'</div>':'')
       +(th.text_overlay?'<div><b>text:</b> <span class="pkg-ov">'+esc(th.text_overlay)+'</span></div>':'')
       +(th.style?'<div class="mut2"><b>style:</b> '+esc(th.style)+'</div>':'')
       +'</div>'
-      +'<div class="pkg-thumbgen"><span class="mini-act p" id="genThumbBtn" onclick="genThumb()">▦ generate this thumbnail'+(IS_PRO?'':' · Pro')+'</span></div>'
+      +'<div class="pkg-thumbgen"><span class="mini-act p" id="genThumbBtn" onclick="genThumb()">▦ generate this '+(isTt?'cover':'thumbnail')+(IS_PRO?'':' · Pro')+'</span></div>'
       +'<div id="pkgThumbImg"></div></div>';
   }
   if(r.hook){
     h+='<div class="pkg-sec"><div class="pkg-k">the hook · first line</div><div class="copychip pkg-hook" data-copy="'+esc(r.hook)+'">'+esc(r.hook)+'</div></div>';
   }
   if(beats.length){
-    h+='<div class="pkg-sec"><div class="pkg-k">first 30 seconds</div><ol class="pkg-beats">'+beats.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ol></div>';
+    h+='<div class="pkg-sec"><div class="pkg-k">'+(isTt?'first 3-5 seconds':'first 30 seconds')+'</div><ol class="pkg-beats">'+beats.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ol></div>';
   }
   var ie=encodeURIComponent(idea), be=encodeURIComponent(titles[0]||idea);
   h+='<div class="pkg-acts">'
@@ -4254,7 +4258,7 @@ function genThumb(){
   window._thumbBusy=true;
   var gb=$('genThumbBtn'); if(gb) gb.style.display='none';
   host.innerHTML='<div class="tsub" style="margin-top:10px">painting your thumbnail… ~20s</div>';
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'thumbnail',token:ACCESS,thumbnail:th,idea:($('pkgIdea')&&$('pkgIdea').textContent)||''})})
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'thumbnail',token:ACCESS,thumbnail:th,platform:window._pkgPlatform||'youtube',idea:($('pkgIdea')&&$('pkgIdea').textContent)||''})})
     .then(function(r){return r.json();})
     .then(function(d){
       window._thumbBusy=false;
