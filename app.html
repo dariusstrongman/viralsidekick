@@ -673,9 +673,12 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 /* ===== ALT PLATFORM PANEL ===== */
 .altpanel{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:16px;padding:26px}
 .altpanel .big{font-size:1.2rem;font-weight:800;margin:10px 0 4px}
-/* deep TikTok analysis (mirrors the youtube coach depth) */
+/* deep TikTok analysis — reuses the youtube deck tiles; strip the altpanel card chrome so zones sit flush like youtube */
+.altpanel.deep{background:none;border:0;padding:0}
+.altpanel.deep #altHead{margin-bottom:2px}
 #ttDeep:empty{display:none}
-#ttDeep{margin-top:16px;display:flex;flex-direction:column;gap:14px}
+#ttDeep{margin-top:16px}
+#ttDeep .zone:first-child{margin-top:0}
 .tt-order{padding:15px 17px;border:1px solid hsl(266 90% 66% / .3);border-radius:14px;background:hsl(266 90% 60% / .07)}
 .tt-eyebrow{font-family:var(--mono);font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
 .tt-verdict{font-size:.98rem;line-height:1.5;color:var(--fg);font-weight:600}
@@ -2919,7 +2922,7 @@ function switchPlatform(p){
   if(hw && he && hw.classList.contains('no-channel')){ he.style.display = yt ? 'block' : 'none'; }
 }
 function renderAlt(p){
-  try{ if(p!=='tiktok'){ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; } }catch(e){}
+  try{ if(p!=='tiktok'){ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; var _ap=$('altPanel'); if(_ap) _ap.classList.remove('deep'); } }catch(e){}
   var A=actIdent(); var clean=(A[p]||'').replace(/^@/,'');
   var name=p==='tiktok'?'TikTok':(p==='facebook'?'Facebook':'Instagram');
   var url=p==='tiktok'?('https://www.tiktok.com/@'+clean):(p==='facebook'?('https://www.facebook.com/'+clean):('https://www.instagram.com/'+clean));
@@ -2953,7 +2956,7 @@ function disconnectTikTok(){
         if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; PROFILE.tiktok_handle=null; }
         IDENT.tiktok='';
         try{ localStorage.removeItem('vs_ttconn_'+((USER&&USER.id)||'')); localStorage.removeItem('vs_ttdeep2_'+((USER&&USER.id)||'')); }catch(e){}
-        try{ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; }catch(e){}
+        try{ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; var _ap=$('altPanel'); if(_ap) _ap.classList.remove('deep'); }catch(e){}
         try{ if(typeof toast==='function') toast('TikTok disconnected','ok'); }catch(e){}
         try{ renderTabs(); }catch(e){}
         try{ if($('connectModal').classList.contains('on')) openConnect(); }catch(e){}
@@ -2966,7 +2969,7 @@ function ttCard(handle){
   var host=$('altHead'); if(!host) return;
   handle=String(handle||'').replace(/^@/,'');
   if(ttConnected()){ ttConnectedCard(handle); return; }
-  try{ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; }catch(e){}
+  try{ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; var _ap=$('altPanel'); if(_ap) _ap.classList.remove('deep'); }catch(e){}
   var key='vs_ttcard_'+handle.toLowerCase();
   var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
   if(cached && cached.d){ renderTtCard(cached.d, handle, false); }
@@ -2982,7 +2985,7 @@ function ttCard(handle){
 /* connected per-video grade (Display API via the engine, refreshes the token server-side) */
 function ttConnectedCard(handle){
   var host=$('altHead'); if(!host) return;
-  try{ var _c=$('ttComing'); if(_c) _c.style.display='none'; }catch(e){}
+  try{ var _c=$('ttComing'); if(_c) _c.style.display='none'; var _ap=$('altPanel'); if(_ap) _ap.classList.add('deep'); }catch(e){}
   ttDeep(handle);
   var key='vs_ttconn_'+((USER&&USER.id)||'');
   var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
@@ -3059,82 +3062,104 @@ function ttDeep(handle){
 function ttCopyCap(el){ try{ vsCopy(el.textContent).then(function(){ el.classList.add('copied'); setTimeout(function(){ el.classList.remove('copied'); },1200); }); }catch(e){} }
 function renderTtDeep(d){
   var host=$('ttDeep'); if(!host) return;
-  var ai=d.ai||{}, card=d.card||{};
+  var ai=d.ai||{}, card=d.card||{}, v=card.vitals||{};
   if(!ai.verdict && !(ai.fixes&&ai.fixes.length)){ host.innerHTML=''; return; }
-  var sev={critical:'var(--danger)',high:'var(--warning)',med:'var(--muted)'};
-  var out='';
-  if(ai.verdict){ out+='<div class="tt-order"><div class="tt-eyebrow">◆ the read</div><div class="tt-verdict">'+esc(ai.verdict)+'</div></div>'; }
-  if(ai.fixes&&ai.fixes.length){
-    out+='<div class="tt-sec"><div class="tt-h">the fixes</div>';
-    ai.fixes.forEach(function(f){
-      out+='<div class="tt-fix"><div class="tt-fix-t"><span class="tt-dot" style="background:'+(sev[f.severity]||'var(--muted)')+'"></span>'+esc(f.title||'')+'</div>'
-        +(f.why?'<div class="tt-fix-w">'+esc(f.why)+'</div>':'')
-        +(f.do?'<div class="tt-fix-do"><b>do:</b> '+esc(f.do)+'</div>':'')+'</div>';
-    });
-    out+='</div>';
-  }
+  var fixes=ai.fixes||[];
+  var tile=function(size,icon,title,end,body){ return '<div class="tile '+size+'"><h3><span class="acc" aria-hidden="true">'+icon+'</span> '+title+(end?' <span class="end">'+end+'</span>':'')+'</h3>'+body+'</div>'; };
+  /* niche radar — same .rd/.trend/.urg/.ev/.yv markup as the youtube radar tile */
+  var rad=(ai.radar||[]).slice(0,3);
+  var radarHtml = rad.length ? rad.map(function(x){
+    var ang=x.your_angle||'';
+    var u=(x.urgency||'').toLowerCase(), uc=(u.indexOf('now')>=0||u.indexOf('48')>=0||u.indexOf('24')>=0)?'now':'soon';
+    return '<div class="rd"><div class="trend"><span>'+esc(x.trend||'')+'</span><span class="urg '+uc+'">'+esc(x.urgency||'')+(x.format?' · '+esc(x.format):'')+'</span></div>'
+      +(x.steal_this?'<div class="ev" style="color:var(--accent)"><b>steal this:</b> '+esc(x.steal_this)+'</div>':'')
+      +(ang?'<div class="yv"><span class="copy" data-copy="'+esc(ang)+'">copy ⧉</span><span class="k">your angle</span>'+esc(ang)+'<div style="margin-top:6px">'+miniActs(ang,'radar')+'</div></div>':'')
+      +'</div>';
+  }).join('') : '<div class="tsub">The radar sweeps your niche on the next read.</div>';
+  /* live vitals — same .vit/.v/.n/.l grid as youtube */
+  var vcell=function(n,l,col){ return '<div class="v"><div class="n"'+(col?' style="color:'+col+'"':'')+'>'+n+'</div><div class="l">'+l+'</div></div>'; };
+  var vitHtml=vcell(v.avg_views!=null?nfmt(v.avg_views):'-','avg views')
+    +vcell(v.median_views!=null?nfmt(v.median_views):'-','median views')
+    +vcell((v.momentum!=null?v.momentum+'x':'-'),'momentum', v.momentum>=1?'var(--success)':(v.momentum>0?'var(--warning)':''))
+    +vcell((v.outliers!=null?v.outliers:'-'),'breakout hits', v.outliers>0?'var(--success)':'')
+    +vcell((v.cadence_days!=null?v.cadence_days+'d':'-'),'cadence')
+    +vcell((v.engagement_pct!=null?v.engagement_pct+'%':'-'),'engagement', v.engagement_pct>=3.5?'var(--success)':'');
+  /* deep signals — hidden gem + DNA gaps, in the same .rd rows */
+  var sigHtml='';
   if(ai.gem && (ai.gem.title||ai.gem.why)){
-    out+='<div class="tt-sec" style="border-color:hsl(150 60% 45% / .32);background:hsl(150 60% 45% / .07)"><div class="tt-h" style="color:hsl(150 60% 62%)">◆ hidden gem</div>'
-      +'<div class="tt-verdict" style="font-size:.9rem">'+esc(ai.gem.title||'')+'</div>'
-      +(ai.gem.why?'<div class="tt-fix-w" style="margin-top:6px">'+esc(ai.gem.why)+'</div>':'')
-      +(ai.gem.do?'<div class="tt-fix-do" style="margin-top:5px"><b>do:</b> '+esc(ai.gem.do)+'</div>':'')+'</div>';
+    sigHtml+='<div class="rd"><div class="trend"><span>◆ hidden gem</span></div>'
+      +'<div class="ev" style="color:var(--fg)">'+esc(ai.gem.title||'')+'</div>'
+      +(ai.gem.why?'<div class="ev">'+esc(ai.gem.why)+'</div>':'')
+      +(ai.gem.do?'<div class="ev" style="color:var(--accent)"><b>do:</b> '+esc(ai.gem.do)+'</div>':'')+'</div>';
   }
-  if(ai.radar && ai.radar.length){
-    out+='<div class="tt-sec"><div class="tt-h">moves in your niche</div>';
-    ai.radar.forEach(function(r){
-      out+='<div class="tt-radar"><div class="tt-radar-top"><span class="tt-radar-t">'+esc(r.trend||'')+'</span>'+(r.urgency?'<span class="tt-urg'+(String(r.urgency).indexOf('now')>=0?' now':'')+'">'+esc(r.urgency)+'</span>':'')+'</div>'
-        +(r.steal_this?'<div class="tt-fix-w"><b style="color:var(--accent)">steal:</b> '+esc(r.steal_this)+'</div>':'')
-        +(r.your_angle?'<div class="tt-fix-do"><b>your angle:</b> '+esc(r.your_angle)+'</div>':'')+'</div>';
-    });
-    out+='</div>';
-  }
-  if(ai.next_video){
-    var nv=ai.next_video;
-    out+='<div class="tt-sec"><div class="tt-h">your next post</div><div class="tt-nv">';
-    if(nv.hook) out+='<div class="tt-nv-row"><span class="tt-k">hook</span><span>'+esc(nv.hook)+'</span></div>';
-    if(nv.first_line) out+='<div class="tt-nv-row"><span class="tt-k">first line</span><span>'+esc(nv.first_line)+'</span></div>';
-    if(nv.concept) out+='<div class="tt-nv-row"><span class="tt-k">concept</span><span>'+esc(nv.concept)+'</span></div>';
-    if(nv.title_options&&nv.title_options.length) out+='<div class="tt-nv-row"><span class="tt-k">captions</span><span>'+nv.title_options.map(function(t){return '<div class="tt-cap" title="click to copy" onclick="ttCopyCap(this)">'+esc(t)+'</div>';}).join('')+'</span></div>';
-    if(nv.cover_concept) out+='<div class="tt-nv-row"><span class="tt-k">cover</span><span>'+esc(nv.cover_concept)+'</span></div>';
-    if(nv.text_overlay && nv.text_overlay!=='none') out+='<div class="tt-nv-row"><span class="tt-k">text</span><span>'+esc(nv.text_overlay)+'</span></div>';
-    if(nv.beats&&nv.beats.length) out+='<div class="tt-nv-row"><span class="tt-k">beats</span><span>'+nv.beats.map(function(b){return esc(b);}).join(' → ')+'</span></div>';
-    if(nv.why_now) out+='<div class="tt-nv-why">'+esc(nv.why_now)+'</div>';
-    out+='</div></div>';
-  }
-  if(ai.roadmap && ai.roadmap.length){
-    out+='<div class="tt-sec"><div class="tt-h">your 30 days</div><div class="tt-road">';
-    ai.roadmap.forEach(function(w){
-      out+='<div class="tt-week"><div class="tt-week-k">'+esc(w.week||'')+'</div><div class="tt-week-b"><b>'+esc(w.focus||'')+'</b>'+(w.action?'<br><span class="mut">'+esc(w.action)+'</span>':'')+'</div></div>';
-    });
-    out+='</div></div>';
-  }
-  var sch=ai.schedule||{}, dna=(ai.dna&&ai.dna.gaps)||[];
-  var hasSch=(sch.best_days&&sch.best_days.length)||(sch.best_times&&sch.best_times.length);
-  if(hasSch||dna.length){
-    out+='<div class="tt-grid2">';
-    if(hasSch){
-      out+='<div class="tt-sec"><div class="tt-h">posting windows</div>'
-        +'<div class="tt-win">'+(sch.best_days||[]).map(function(x){return '<span class="tt-chip">'+esc(x)+'</span>';}).join('')+'</div>'
-        +'<div class="tt-win">'+(sch.best_times||[]).map(function(x){return '<span class="tt-chip">'+esc(x)+'</span>';}).join('')+'</div>'
-        +(sch.reason?'<div class="tt-fix-w" style="margin-top:8px">'+esc(sch.reason)+'</div>':'')+'</div>';
-    }
-    if(dna.length){
-      out+='<div class="tt-sec"><div class="tt-h">your DNA vs viral</div>';
-      dna.forEach(function(g){ out+='<div class="tt-dna"><div class="tt-dna-a">'+esc(g.area||'')+'</div><div class="tt-dna-r"><span class="mut">you:</span> '+esc(g.yours||'')+'<br><span style="color:var(--accent)">viral:</span> '+esc(g.viral||'')+'</div></div>'; });
-      out+='</div>';
-    }
-    out+='</div>';
-  }
-  if(card.posts&&card.posts.length){
-    out+='<div class="tt-sec"><div class="tt-h">your posts</div><div class="tt-posts">';
-    card.posts.forEach(function(pp){
-      var rc=pp.ratio>=2.5?'var(--accent)':(pp.ratio<=0.4?'var(--danger)':'var(--muted)');
-      out+='<div class="tt-post"><div class="tt-post-t">'+esc(pp.t||'untitled')+'</div>'
-        +'<div class="tt-post-m"><span>'+nfmt(pp.v)+' views</span><span>'+pp.eng+'% eng</span><span style="color:'+rc+'">'+pp.ratio+'x</span></div></div>';
-    });
-    out+='</div></div>';
-  }
-  host.innerHTML=out;
+  ((ai.dna&&ai.dna.gaps)||[]).forEach(function(g){
+    sigHtml+='<div class="rd"><div class="trend"><span>'+esc(g.area||'')+'</span></div>'
+      +'<div class="ev"><span class="mut">you:</span> '+esc(g.yours||'')+'</div>'
+      +'<div class="ev" style="color:var(--accent)"><b>viral:</b> '+esc(g.viral||'')+'</div></div>';
+  });
+  if(!sigHtml) sigHtml='<div class="tsub">Signals appear once the coach reads your posts.</div>';
+  /* next order — top fix, same .tlead/.q-sev as youtube */
+  var f2=fixes[0];
+  var playHtml=f2 ? ('<div class="tlead">'+esc(f2.title||'')+(f2.severity?' <span class="q-sev '+esc((f2.severity||'').toLowerCase())+'">'+esc(f2.severity)+'</span>':'')+'</div><div class="tsub">'+esc(f2['do']||f2.why||'')+'</div>') : '<div class="tsub">Nothing flagged, keep shipping.</div>';
+  /* next video — same .nv-item/.copychip/miniActs markup as youtube */
+  var nv=ai.next_video, nextHtml;
+  if(nv && (nv.title_options||[]).length){
+    nextHtml='<div class="tsub" style="margin-bottom:8px">tap a caption to copy</div>'
+      +'<div class="chiprow" style="flex-direction:column;align-items:stretch;padding-top:0">'
+      +nv.title_options.slice(0,3).map(function(t){ return '<div class="nv-item"><div class="copychip nv-title" title="'+esc(t)+'" data-copy="'+esc(t)+'">'+esc(t)+'</div><div class="nv-acts">'+miniActs(t,'next')+'</div></div>'; }).join('')
+      +'</div>'
+      +(nv.first_line?'<div class="tsub" style="margin-top:9px"><b style="color:var(--accent)">first line:</b> "'+esc(nv.first_line)+'"</div>':(nv.hook?'<div class="tsub" style="margin-top:9px"><b style="color:var(--accent)">hook:</b> '+esc(nv.hook)+'</div>':''))
+      +(nv.cover_concept?'<div class="tsub" style="margin-top:6px"><b style="color:var(--accent)">cover:</b> '+esc(nv.cover_concept)+((nv.text_overlay&&nv.text_overlay!=='none')?' · text: "'+esc(nv.text_overlay)+'"':'')+'</div>':'')
+      +(nv.why_now?'<div class="tsub" style="margin-top:6px"><b style="color:var(--accent)">why now:</b> '+esc(nv.why_now)+'</div>':'')
+      +((nv.beats&&nv.beats.length)?'<div class="tsub" style="margin-top:6px"><b style="color:var(--accent)">the beats:</b></div><ul style="margin:4px 0 0 18px;color:var(--muted);font-size:.86rem;line-height:1.6">'+nv.beats.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ul>':'');
+  } else nextHtml='<div class="tsub">Your next post plan appears after the read.</div>';
+  /* best posting window — same .win-days/.win-day/.win-time as youtube */
+  var sch=ai.schedule||{}, winHtml;
+  if((sch.best_days||[]).length){
+    var days=['mon','tue','wed','thu','fri','sat','sun'];
+    var best=(sch.best_days||[]).map(function(x){return String(x).slice(0,3).toLowerCase();});
+    winHtml='<div class="win-days">'+days.map(function(dd){return '<span class="win-day'+(best.indexOf(dd)>=0?' on':'')+'">'+dd+'</span>';}).join('')+'</div>'
+      +'<div class="win-time">'+esc((sch.best_times||[]).join(' · ')||'-')+'</div>'
+      +(sch.reason?'<div class="tsub" style="margin-top:8px">'+esc(sch.reason)+'</div>':'');
+  } else winHtml='<div class="tsub">Your posting window shows once you have a few posts.</div>';
+  /* marching orders — all fixes as .rd rows with severity pills */
+  var ordersHtml=fixes.length ? fixes.map(function(f){
+    return '<div class="rd"><div class="trend"><span>'+esc(f.title||'')+'</span>'+(f.severity?'<span class="q-sev '+esc((f.severity||'').toLowerCase())+'">'+esc(f.severity)+'</span>':'')+'</div>'
+      +(f.why?'<div class="ev">'+esc(f.why)+'</div>':'')
+      +(f['do']?'<div class="ev" style="color:var(--accent)"><b>do:</b> '+esc(f['do'])+'</div>':'')+'</div>';
+  }).join('') : '<div class="tsub">No orders yet.</div>';
+  /* 30-day roadmap — .rd rows */
+  var roadHtml=(ai.roadmap||[]).length ? (ai.roadmap||[]).map(function(w){
+    return '<div class="rd"><div class="trend"><span>'+esc(w.week||'')+'</span></div>'
+      +'<div class="ev" style="color:var(--fg)"><b>'+esc(w.focus||'')+'</b></div>'
+      +(w.action?'<div class="ev">'+esc(w.action)+'</div>':'')+'</div>';
+  }).join('') : '<div class="tsub">Your 30-day plan appears after the read.</div>';
+  /* your posts — ranked list */
+  var postsHtml=(card.posts||[]).length ? '<div class="tt-posts">'+(card.posts||[]).map(function(pp){
+    var rc=pp.ratio>=2.5?'var(--accent)':(pp.ratio<=0.4?'var(--danger)':'var(--muted)');
+    return '<div class="tt-post"><div class="tt-post-t">'+esc(pp.t||'untitled')+'</div><div class="tt-post-m"><span>'+nfmt(pp.v)+' views</span><span>'+pp.eng+'% eng</span><span style="color:'+rc+'">'+pp.ratio+'x</span></div></div>';
+  }).join('')+'</div>' : '';
+
+  host.innerHTML=''
+    +(ai.verdict?'<section class="zone" style="--zc:var(--accent)"><div class="zone-h"><span class="zdot"></span>the read · right now</div><div class="bento"><div class="tile s6"><div class="tlead" style="font-size:1.02rem;line-height:1.5;font-weight:700">'+esc(ai.verdict)+'</div></div></div></section>':'')
+    +'<section class="zone" style="--zc:var(--primary)">'
+    +'<div class="zone-h"><span class="zdot"></span>this week · the intelligence</div>'
+    +'<div class="bento">'
+    + tile('radar s4','⚡','niche radar','niche read','<div>'+radarHtml+'</div>')
+    + tile('s2','◉','live vitals','','<div class="vit">'+vitHtml+'</div>')
+    + tile('s6','◬','deep signals','hidden gems + your DNA vs viral','<div>'+sigHtml+'</div>')
+    + tile('play s2','◆','next order','',playHtml)
+    + tile('s2','▶','next video','',nextHtml)
+    + tile('s2','◷','best posting window','',winHtml)
+    +'</div></section>'
+    +'<section class="zone" style="--zc:hsl(38 96% 60%)">'
+    +'<div class="zone-h"><span class="zdot"></span>the plan · what you do next</div>'
+    +'<div class="bento">'
+    + tile('s3','☑','marching orders','',ordersHtml)
+    + tile('s3','◎','your 30 days','',roadHtml)
+    + (postsHtml? tile('s6','▤','your posts','ranked by views',postsHtml) : '')
+    +'</div></section>';
+  try{ bindCopies(host); }catch(e){}
 }
 /* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
 function resetChannelState(){ try{ PULSE.c={}; }catch(e){} var pg=$('pulseGrid'); if(pg) pg.innerHTML=''; var tp=$('tPulse'); if(tp) tp.style.display='none'; var tg=$('tGoal'); if(tg) tg.style.display='none'; var nb=$('nicheBar'); if(nb) nb.style.display='none'; LIVE_SIG=false; WIRE_KEY=null; window._lvCh=null; window._lvAt=0; window._liveTitles=[]; }
