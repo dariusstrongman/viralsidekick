@@ -2982,8 +2982,11 @@ function blankLiveSurfaces(){
 }
 function setNoChannel(on){
   var w=$('hqWrap'), e=$('hqEmpty'); if(!w) return;
-  if(on){ w.classList.add('no-channel'); if(e) e.style.display='block';
-    var A=actIdent(); w.classList.toggle('has-socials', !!(A.tiktok||A.instagram||A.facebook)); }
+  if(on){ w.classList.add('no-channel');
+    var A=actIdent(); w.classList.toggle('has-socials', !!(A.tiktok||A.instagram||A.facebook));
+    /* the connect hero is the YouTube tab's empty state — never flash it over a social tab a
+       background refresh (goLive/loadProfile) must not re-show it while youre looking at TikTok/IG */
+    if(e) e.style.display=(PLATFORM==='youtube'||!PLATFORM)?'block':'none'; }
   else { w.classList.remove('no-channel'); w.classList.remove('has-socials'); if(e) e.style.display='none'; }
 }
 function goLive(){
