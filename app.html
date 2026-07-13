@@ -673,6 +673,38 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 /* ===== ALT PLATFORM PANEL ===== */
 .altpanel{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:16px;padding:26px}
 .altpanel .big{font-size:1.2rem;font-weight:800;margin:10px 0 4px}
+/* deep TikTok analysis (mirrors the youtube coach depth) */
+#ttDeep:empty{display:none}
+#ttDeep{margin-top:16px;display:flex;flex-direction:column;gap:14px}
+.tt-order{padding:15px 17px;border:1px solid hsl(266 90% 66% / .3);border-radius:14px;background:hsl(266 90% 60% / .07)}
+.tt-eyebrow{font-family:var(--mono);font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+.tt-verdict{font-size:.98rem;line-height:1.5;color:var(--fg);font-weight:600}
+.tt-sec{border:1px solid var(--border);border-radius:14px;padding:15px 16px;background:hsl(230 24% 5%)}
+.tt-h{font-family:var(--mono);font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:11px}
+.tt-fix{padding:10px 0;border-top:1px solid var(--border)}
+.tt-fix:first-of-type{border-top:0;padding-top:0}
+.tt-fix-t{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--fg);font-size:.9rem}
+.tt-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.tt-fix-w{color:var(--muted);font-size:.82rem;line-height:1.5;margin-top:5px}
+.tt-fix-do{font-size:.82rem;line-height:1.5;margin-top:5px;color:var(--fg)}
+.tt-fix-do b{color:var(--accent)}
+.tt-nv{display:flex;flex-direction:column;gap:9px}
+.tt-nv-row{display:flex;gap:11px;font-size:.85rem;line-height:1.45}
+.tt-nv-row .tt-k{font-family:var(--mono);font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);flex:0 0 66px;padding-top:3px}
+.tt-nv-why{margin-top:4px;font-size:.8rem;color:var(--muted);line-height:1.45;border-top:1px solid var(--border);padding-top:9px}
+.tt-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.tt-grid2{grid-template-columns:1fr}}
+.tt-win{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:7px}
+.tt-chip{font-family:var(--mono);font-size:.72rem;padding:5px 11px;border-radius:8px;background:hsl(266 90% 60% / .12);border:1px solid hsl(266 90% 66% / .3);color:var(--fg)}
+.tt-dna{padding:9px 0;border-top:1px solid var(--border)}
+.tt-dna:first-of-type{border-top:0;padding-top:0}
+.tt-dna-a{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.tt-dna-r{font-size:.82rem;line-height:1.5;color:var(--fg)}
+.tt-posts{display:flex;flex-direction:column;gap:2px}
+.tt-post{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--border)}
+.tt-post:first-child{border-top:0}
+.tt-post-t{font-size:.83rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.tt-post-m{display:flex;gap:12px;font-family:var(--mono);font-size:.72rem;color:var(--muted);flex:0 0 auto}
 .pi-yt{color:#ff4e45}
 .pi-tt{color:var(--fg)}
 .pi-ig{color:#e1306c}
@@ -1396,6 +1428,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <!-- ALT PLATFORM PANEL (tiktok / instagram) -->
       <div class="altpanel hide" id="altPanel" role="tabpanel">
         <div id="altHead"></div>
+        <div id="ttDeep"></div>
         <div class="bento" style="margin-top:18px">
           <div class="tile s3" id="tLab2">
             <h3><span class="acc" aria-hidden="true">✎</span> title lab <span class="end">works on any platform</span></h3>
@@ -1410,7 +1443,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
               <div class="tsub" style="margin-top:8px"><b style="color:var(--accent)">hook:</b> <span id="labHook2"></span></div>
             </div>
           </div>
-          <div class="tile s3">
+          <div class="tile s3" id="ttComing">
             <h3><span class="acc" aria-hidden="true">◈</span> what's coming</h3>
             <div class="tsub">Deep <span id="altName2">platform</span> analytics, outlier detection, posting windows and niche radar, are rolling out. YouTube is fully live today, and your handle is saved so your data starts building the moment they land.</div>
             <div class="chiprow" style="margin-top:auto"><a class="btn btn-ghost btn-sm" id="altLink" target="_blank" rel="noopener">Open my profile ↗</a></div>
@@ -2872,6 +2905,7 @@ function switchPlatform(p){
   if(hw && he && hw.classList.contains('no-channel')){ he.style.display = yt ? 'block' : 'none'; }
 }
 function renderAlt(p){
+  try{ if(p!=='tiktok'){ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; } }catch(e){}
   var A=actIdent(); var clean=(A[p]||'').replace(/^@/,'');
   var name=p==='tiktok'?'TikTok':(p==='facebook'?'Facebook':'Instagram');
   var url=p==='tiktok'?('https://www.tiktok.com/@'+clean):(p==='facebook'?('https://www.facebook.com/'+clean):('https://www.instagram.com/'+clean));
@@ -2904,7 +2938,8 @@ function disconnectTikTok(){
       .then(function(r){return r.json();}).then(function(){
         if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; PROFILE.tiktok_handle=null; }
         IDENT.tiktok='';
-        try{ localStorage.removeItem('vs_ttconn_'+((USER&&USER.id)||'')); }catch(e){}
+        try{ localStorage.removeItem('vs_ttconn_'+((USER&&USER.id)||'')); localStorage.removeItem('vs_ttdeep_'+((USER&&USER.id)||'')); }catch(e){}
+        try{ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; }catch(e){}
         try{ if(typeof toast==='function') toast('TikTok disconnected','ok'); }catch(e){}
         try{ renderTabs(); }catch(e){}
         try{ if($('connectModal').classList.contains('on')) openConnect(); }catch(e){}
@@ -2917,6 +2952,7 @@ function ttCard(handle){
   var host=$('altHead'); if(!host) return;
   handle=String(handle||'').replace(/^@/,'');
   if(ttConnected()){ ttConnectedCard(handle); return; }
+  try{ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; }catch(e){}
   var key='vs_ttcard_'+handle.toLowerCase();
   var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
   if(cached && cached.d){ renderTtCard(cached.d, handle, false); }
@@ -2932,6 +2968,8 @@ function ttCard(handle){
 /* connected per-video grade (Display API via the engine, refreshes the token server-side) */
 function ttConnectedCard(handle){
   var host=$('altHead'); if(!host) return;
+  try{ var _c=$('ttComing'); if(_c) _c.style.display='none'; }catch(e){}
+  ttDeep(handle);
   var key='vs_ttconn_'+((USER&&USER.id)||'');
   var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
   if(cached && cached.d){ renderTtCard(cached.d, handle, true); }
@@ -2985,6 +3023,80 @@ function renderTtCard(d, handle, connected){
     +'</div>';
 }
 
+/* deep TikTok analysis — the coach reads your connected posts (cache-first, refresh if >24h stale), like the YouTube deep scan */
+function ttDeep(handle){
+  var host=$('ttDeep'); if(!host) return;
+  if(!ttConnected()){ host.innerHTML=''; return; }
+  var key='vs_ttdeep_'+((USER&&USER.id)||'');
+  var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
+  if(cached && cached.d){ renderTtDeep(cached.d); }
+  else { host.innerHTML='<div class="tt-sec"><div class="tsub">the coach is reading your posts…</div></div>'; }
+  if(cached && cached.at && (Date.now()-cached.at)<24*3600000) return;
+  sb.auth.getSession().then(function(s){
+    var tok=(s&&s.data&&s.data.session)?s.data.session.access_token:null; if(!tok) return;
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'tt_deep',token:tok,tiktok:handle})})
+      .then(function(r){return r.json();}).then(function(d){
+        if(PLATFORM!=='tiktok'||!ttConnected()) return;
+        if(d && d.ok && d.ai && d.ai.verdict){ try{ localStorage.setItem(key, JSON.stringify({at:Date.now(),d:d})); }catch(e){} renderTtDeep(d); }
+        else if(!(cached&&cached.d)){ host.innerHTML=''; }
+      }).catch(function(){ if(!(cached&&cached.d)) host.innerHTML=''; });
+  });
+}
+function renderTtDeep(d){
+  var host=$('ttDeep'); if(!host) return;
+  var ai=d.ai||{}, card=d.card||{};
+  if(!ai.verdict && !(ai.fixes&&ai.fixes.length)){ host.innerHTML=''; return; }
+  var sev={critical:'var(--danger)',high:'var(--warning)',med:'var(--muted)'};
+  var out='';
+  if(ai.verdict){ out+='<div class="tt-order"><div class="tt-eyebrow">◆ the read</div><div class="tt-verdict">'+esc(ai.verdict)+'</div></div>'; }
+  if(ai.fixes&&ai.fixes.length){
+    out+='<div class="tt-sec"><div class="tt-h">the fixes</div>';
+    ai.fixes.forEach(function(f){
+      out+='<div class="tt-fix"><div class="tt-fix-t"><span class="tt-dot" style="background:'+(sev[f.severity]||'var(--muted)')+'"></span>'+esc(f.title||'')+'</div>'
+        +(f.why?'<div class="tt-fix-w">'+esc(f.why)+'</div>':'')
+        +(f.do?'<div class="tt-fix-do"><b>do:</b> '+esc(f.do)+'</div>':'')+'</div>';
+    });
+    out+='</div>';
+  }
+  if(ai.next_video){
+    var nv=ai.next_video;
+    out+='<div class="tt-sec"><div class="tt-h">your next post</div><div class="tt-nv">';
+    if(nv.hook) out+='<div class="tt-nv-row"><span class="tt-k">hook</span><span>'+esc(nv.hook)+'</span></div>';
+    if(nv.first_line) out+='<div class="tt-nv-row"><span class="tt-k">first line</span><span>'+esc(nv.first_line)+'</span></div>';
+    if(nv.concept) out+='<div class="tt-nv-row"><span class="tt-k">concept</span><span>'+esc(nv.concept)+'</span></div>';
+    if(nv.text_overlay && nv.text_overlay!=='none') out+='<div class="tt-nv-row"><span class="tt-k">text</span><span>'+esc(nv.text_overlay)+'</span></div>';
+    if(nv.beats&&nv.beats.length) out+='<div class="tt-nv-row"><span class="tt-k">beats</span><span>'+nv.beats.map(function(b){return esc(b);}).join(' → ')+'</span></div>';
+    if(nv.why_now) out+='<div class="tt-nv-why">'+esc(nv.why_now)+'</div>';
+    out+='</div></div>';
+  }
+  var sch=ai.schedule||{}, dna=(ai.dna&&ai.dna.gaps)||[];
+  var hasSch=(sch.best_days&&sch.best_days.length)||(sch.best_times&&sch.best_times.length);
+  if(hasSch||dna.length){
+    out+='<div class="tt-grid2">';
+    if(hasSch){
+      out+='<div class="tt-sec"><div class="tt-h">posting windows</div>'
+        +'<div class="tt-win">'+(sch.best_days||[]).map(function(x){return '<span class="tt-chip">'+esc(x)+'</span>';}).join('')+'</div>'
+        +'<div class="tt-win">'+(sch.best_times||[]).map(function(x){return '<span class="tt-chip">'+esc(x)+'</span>';}).join('')+'</div>'
+        +(sch.reason?'<div class="tt-fix-w" style="margin-top:8px">'+esc(sch.reason)+'</div>':'')+'</div>';
+    }
+    if(dna.length){
+      out+='<div class="tt-sec"><div class="tt-h">your DNA vs viral</div>';
+      dna.forEach(function(g){ out+='<div class="tt-dna"><div class="tt-dna-a">'+esc(g.area||'')+'</div><div class="tt-dna-r"><span class="mut">you:</span> '+esc(g.yours||'')+'<br><span style="color:var(--accent)">viral:</span> '+esc(g.viral||'')+'</div></div>'; });
+      out+='</div>';
+    }
+    out+='</div>';
+  }
+  if(card.posts&&card.posts.length){
+    out+='<div class="tt-sec"><div class="tt-h">your posts</div><div class="tt-posts">';
+    card.posts.forEach(function(pp){
+      var rc=pp.ratio>=2.5?'var(--accent)':(pp.ratio<=0.4?'var(--danger)':'var(--muted)');
+      out+='<div class="tt-post"><div class="tt-post-t">'+esc(pp.t||'untitled')+'</div>'
+        +'<div class="tt-post-m"><span>'+nfmt(pp.v)+' views</span><span>'+pp.eng+'% eng</span><span style="color:'+rc+'">'+pp.ratio+'x</span></div></div>';
+    });
+    out+='</div></div>';
+  }
+  host.innerHTML=out;
+}
 /* ---------- go live: card vitals now, deep intel from last scan (refresh if stale) ---------- */
 function resetChannelState(){ try{ PULSE.c={}; }catch(e){} var pg=$('pulseGrid'); if(pg) pg.innerHTML=''; var tp=$('tPulse'); if(tp) tp.style.display='none'; var tg=$('tGoal'); if(tg) tg.style.display='none'; var nb=$('nicheBar'); if(nb) nb.style.display='none'; LIVE_SIG=false; WIRE_KEY=null; window._lvCh=null; window._lvAt=0; window._liveTitles=[]; }
 /* wipe every channel-specific surface so switching space/channel never shows the
@@ -3389,8 +3501,9 @@ function openConnect(){
       if(_ts){ _ts.style.display='flex'; _ts.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to @'+esc(_th||'your tiktok')+'</b><br><span class="mut">verified, your per-video analytics are on. read-only.</span></span>'; }
       if(_tp) _tp.style.display='none'; if(_tc) _tc.style.display='none'; if(_tn) _tn.style.display='none'; if(_tl) _tl.style.display='block';
     } else {
+      /* personal TikTok = link-only, exactly like YouTube — no typing a handle, you OAuth so we get the real deep data */
       if(_ts) _ts.style.display='none';
-      if(_tp) _tp.style.display='';
+      if(_tp) _tp.style.display='none';
       if(_tc) _tc.style.display='block'; if(_tn) _tn.style.display='block';
       if(_tl) _tl.style.display='none';
     }
