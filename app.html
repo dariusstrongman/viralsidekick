@@ -1938,7 +1938,13 @@ function enterHQ(){
   /* just came back from connecting TikTok -> mark connected, stash the fresh card, jump to the tab */
   try{ if(/[?&]ttconnected=1/.test(location.search)){ history.replaceState(null,'',location.pathname);
     if(PROFILE){ PROFILE.tiktok_connected_at=PROFILE.tiktok_connected_at||new Date().toISOString(); }
-    try{ var _pc=JSON.parse(localStorage.getItem('vs_ttconn_pending')||'null'); localStorage.removeItem('vs_ttconn_pending'); if(_pc) localStorage.setItem('vs_ttconn_'+((USER&&USER.id)||''), JSON.stringify({at:Date.now(),d:_pc})); }catch(e){}
+    try{ var _pc=JSON.parse(localStorage.getItem('vs_ttconn_pending')||'null'); localStorage.removeItem('vs_ttconn_pending');
+      if(_pc){ localStorage.setItem('vs_ttconn_'+((USER&&USER.id)||''), JSON.stringify({at:Date.now(),d:_pc}));
+        /* the account you actually authorized is the source of truth -> overwrite the handle typed into edit-channels */
+        var _rh=(_pc.channel&&_pc.channel.handle)?String(_pc.channel.handle).replace(/^@/,''):'';
+        if(_rh){ if(PROFILE) PROFILE.tiktok_handle=_rh; IDENT.tiktok=_rh; try{ renderTabs(); }catch(e){} }
+      }
+    }catch(e){}
     if(typeof toast==='function') toast('TikTok connected ✓','ok');
     setTimeout(function(){ try{ switchPlatform('tiktok'); }catch(e){} }, 250);
   } }catch(e){}
@@ -2833,7 +2839,7 @@ function renderTabs(){
   var A=actIdent();
   var ych=A.yt||{}; var yname=(ych.name && !looksRaw(ych.name))?ych.name:(ych.handle||'');
   var list=[{p:'youtube',lab:'YouTube',sub:yname,st:'live',icon:IC_YT}];
-  if(A.tiktok) list.push({p:'tiktok',lab:'TikTok',sub:'@'+A.tiktok.replace(/^@/,''),st:'soon',icon:IC_TT});
+  if(A.tiktok) list.push({p:'tiktok',lab:'TikTok',sub:'@'+A.tiktok.replace(/^@/,''),st:((!A.team&&ttConnected())?'live':'soon'),icon:IC_TT});
   if(A.instagram) list.push({p:'instagram',lab:'Instagram',sub:'@'+A.instagram.replace(/^@/,''),st:'soon',icon:IC_IG});
   if(A.facebook) list.push({p:'facebook',lab:'Facebook',sub:A.facebook.replace(/^@/,''),st:'soon',icon:IC_FB});
   var out=list.map(function(c){ var on=(PLATFORM===c.p);
