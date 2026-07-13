@@ -2878,7 +2878,7 @@ function connectTikTok(handle){
   try{ localStorage.setItem('vs_tt_state',st); if(handle) localStorage.setItem('vs_tt_handle',String(handle).replace(/^@/,'')); }catch(e){}
   location.href='https://www.tiktok.com/v2/auth/authorize/'
     +'?client_key='+TT_CLIENT_KEY
-    +'&scope='+encodeURIComponent('user.info.basic,video.list')
+    +'&scope='+encodeURIComponent('user.info.basic,user.info.profile,user.info.stats,video.list')
     +'&response_type=code'
     +'&redirect_uri='+encodeURIComponent('https://viralsidekick.com/tt-callback.html')
     +'&state='+encodeURIComponent(st);
@@ -2957,8 +2957,8 @@ function renderTtCard(d, handle, connected){
         +av
         +'<div style="flex:1;min-width:0">'
           +'<div style="font-family:var(--mono);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:3px">'+eyebrow+'</div>'
-          +'<div style="font-weight:800;font-size:1.02rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(c.name||handle)+vf+'</div>'
-          +'<div style="font-family:var(--mono);font-size:.7rem;color:var(--muted)">@'+esc(handle||c.handle||'')+'</div>'
+          +'<div style="font-weight:800;font-size:1.02rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(c.name||c.handle||handle)+vf+'</div>'
+          +'<div style="font-family:var(--mono);font-size:.7rem;color:var(--muted)">@'+esc(c.handle||handle||'')+'</div>'
         +'</div>'
         +gradeRing
       +'</div>'
