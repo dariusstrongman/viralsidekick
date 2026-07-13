@@ -705,6 +705,20 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .tt-post:first-child{border-top:0}
 .tt-post-t{font-size:.83rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .tt-post-m{display:flex;gap:12px;font-family:var(--mono);font-size:.72rem;color:var(--muted);flex:0 0 auto}
+.tt-radar{padding:11px 0;border-top:1px solid var(--border)}
+.tt-radar:first-of-type{border-top:0;padding-top:0}
+.tt-radar-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.tt-radar-t{font-weight:700;color:var(--fg);font-size:.9rem}
+.tt-urg{font-family:var(--mono);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:6px;color:var(--muted);background:hsl(230 20% 12%);flex:0 0 auto}
+.tt-urg.now{color:#ffd7b0;background:hsl(28 90% 55% / .16);border:1px solid hsl(28 90% 60% / .3)}
+.tt-cap{font-size:.85rem;color:var(--fg);padding:7px 10px;margin-bottom:5px;background:hsl(230 22% 9%);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .15s}
+.tt-cap:hover{border-color:hsl(266 90% 66% / .5)}
+.tt-cap.copied{border-color:hsl(150 60% 50% / .6);color:hsl(150 60% 70%)}
+.tt-road{display:flex;flex-direction:column;gap:0}
+.tt-week{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--border)}
+.tt-week:first-child{border-top:0;padding-top:0}
+.tt-week-k{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);flex:0 0 58px;padding-top:2px}
+.tt-week-b{font-size:.84rem;line-height:1.45;color:var(--fg)}
 .pi-yt{color:#ff4e45}
 .pi-tt{color:var(--fg)}
 .pi-ig{color:#e1306c}
@@ -3042,6 +3056,7 @@ function ttDeep(handle){
       }).catch(function(){ if(!(cached&&cached.d)) host.innerHTML=''; });
   });
 }
+function ttCopyCap(el){ try{ vsCopy(el.textContent).then(function(){ el.classList.add('copied'); setTimeout(function(){ el.classList.remove('copied'); },1200); }); }catch(e){} }
 function renderTtDeep(d){
   var host=$('ttDeep'); if(!host) return;
   var ai=d.ai||{}, card=d.card||{};
@@ -3058,15 +3073,39 @@ function renderTtDeep(d){
     });
     out+='</div>';
   }
+  if(ai.gem && (ai.gem.title||ai.gem.why)){
+    out+='<div class="tt-sec" style="border-color:hsl(150 60% 45% / .32);background:hsl(150 60% 45% / .07)"><div class="tt-h" style="color:hsl(150 60% 62%)">◆ hidden gem</div>'
+      +'<div class="tt-verdict" style="font-size:.9rem">'+esc(ai.gem.title||'')+'</div>'
+      +(ai.gem.why?'<div class="tt-fix-w" style="margin-top:6px">'+esc(ai.gem.why)+'</div>':'')
+      +(ai.gem.do?'<div class="tt-fix-do" style="margin-top:5px"><b>do:</b> '+esc(ai.gem.do)+'</div>':'')+'</div>';
+  }
+  if(ai.radar && ai.radar.length){
+    out+='<div class="tt-sec"><div class="tt-h">moves in your niche</div>';
+    ai.radar.forEach(function(r){
+      out+='<div class="tt-radar"><div class="tt-radar-top"><span class="tt-radar-t">'+esc(r.trend||'')+'</span>'+(r.urgency?'<span class="tt-urg'+(String(r.urgency).indexOf('now')>=0?' now':'')+'">'+esc(r.urgency)+'</span>':'')+'</div>'
+        +(r.steal_this?'<div class="tt-fix-w"><b style="color:var(--accent)">steal:</b> '+esc(r.steal_this)+'</div>':'')
+        +(r.your_angle?'<div class="tt-fix-do"><b>your angle:</b> '+esc(r.your_angle)+'</div>':'')+'</div>';
+    });
+    out+='</div>';
+  }
   if(ai.next_video){
     var nv=ai.next_video;
     out+='<div class="tt-sec"><div class="tt-h">your next post</div><div class="tt-nv">';
     if(nv.hook) out+='<div class="tt-nv-row"><span class="tt-k">hook</span><span>'+esc(nv.hook)+'</span></div>';
     if(nv.first_line) out+='<div class="tt-nv-row"><span class="tt-k">first line</span><span>'+esc(nv.first_line)+'</span></div>';
     if(nv.concept) out+='<div class="tt-nv-row"><span class="tt-k">concept</span><span>'+esc(nv.concept)+'</span></div>';
+    if(nv.title_options&&nv.title_options.length) out+='<div class="tt-nv-row"><span class="tt-k">captions</span><span>'+nv.title_options.map(function(t){return '<div class="tt-cap" title="click to copy" onclick="ttCopyCap(this)">'+esc(t)+'</div>';}).join('')+'</span></div>';
+    if(nv.cover_concept) out+='<div class="tt-nv-row"><span class="tt-k">cover</span><span>'+esc(nv.cover_concept)+'</span></div>';
     if(nv.text_overlay && nv.text_overlay!=='none') out+='<div class="tt-nv-row"><span class="tt-k">text</span><span>'+esc(nv.text_overlay)+'</span></div>';
     if(nv.beats&&nv.beats.length) out+='<div class="tt-nv-row"><span class="tt-k">beats</span><span>'+nv.beats.map(function(b){return esc(b);}).join(' → ')+'</span></div>';
     if(nv.why_now) out+='<div class="tt-nv-why">'+esc(nv.why_now)+'</div>';
+    out+='</div></div>';
+  }
+  if(ai.roadmap && ai.roadmap.length){
+    out+='<div class="tt-sec"><div class="tt-h">your 30 days</div><div class="tt-road">';
+    ai.roadmap.forEach(function(w){
+      out+='<div class="tt-week"><div class="tt-week-k">'+esc(w.week||'')+'</div><div class="tt-week-b"><b>'+esc(w.focus||'')+'</b>'+(w.action?'<br><span class="mut">'+esc(w.action)+'</span>':'')+'</div></div>';
+    });
     out+='</div></div>';
   }
   var sch=ai.schedule||{}, dna=(ai.dna&&ai.dna.gaps)||[];
