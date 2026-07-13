@@ -3157,6 +3157,7 @@ function renderTtDeep(d){
     +'<section class="zone" style="--zc:hsl(38 96% 60%)">'
     +'<div class="zone-h"><span class="zdot"></span>the plan · what you do next</div>'
     +'<div class="bento">'
+    + tile('s6','⚡','creator tools','tiktok-native','<div class="tsub" style="margin-bottom:9px">Turn any idea into a shoot-ready TikTok package (captions + a vertical cover), or a full vertical script.</div><div class="lab-form"><input id="studioIn3" type="text" placeholder="a tiktok idea or hook…" aria-label="idea for the tools" onkeydown="if(event.key===&#39;Enter&#39;)studioGo(&#39;package&#39;,&#39;studioIn3&#39;)"><button class="btn btn-primary" style="flex:0 0 auto" onclick="studioGo(&#39;package&#39;,&#39;studioIn3&#39;)">⚡ package</button></div><div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="studioGo(&#39;script&#39;,&#39;studioIn3&#39;)">▶ full script instead</button></div>')
     + tile('s3','☑','marching orders','',ordersHtml)
     + tile('s3','◎','your 30 days','',roadHtml)
     + (postsHtml? tile('s6','▤','your posts','ranked by views',postsHtml) : '')
@@ -3449,8 +3450,8 @@ function starterPlaybook(){
     + moves.map(function(m,i){ return '<div class="q-item"><div class="q-b"><div class="t">'+(i+1)+'. '+esc(m[0])+'</div><div class="d">'+esc(m[1])+'</div></div></div>'; }).join('');
 }
 /* creator tools home: any idea or title -> package (+ thumbnail) or full script */
-function studioGo(kind){
-  var i=$('studioIn'), v=(i&&i.value.trim())||'';
+function studioGo(kind, inId){
+  var i=$(inId||'studioIn'), v=(i&&i.value.trim())||'';
   if(!v){ if(i){ i.focus(); i.placeholder='type an idea or title first…'; } return; }
   if(kind==='script') buildIt(v); else openPackage(v);
 }
@@ -4426,6 +4427,7 @@ function titleTest(inId, outId){
   $('labScore'+suf).textContent='…'; $('labVerdict'+suf).textContent='scoring against your niche'; $('labRewrites'+suf).innerHTML=''; $('labHook'+suf).textContent='';
   var _ac=(window.AbortController)?new AbortController():null; var _to=_ac?setTimeout(function(){try{_ac.abort();}catch(e){}},30000):0;
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'title',title:t,niche:niche,
+      platform:(PLATFORM==='tiktok')?'tiktok':'youtube',
       dna:(window._lastSignals&&window._lastSignals.title_dna)||null,
       power_words:(window._lastSignals&&window._lastSignals.power_words)||null,
       context:((LASTAI&&LASTAI.next_video&&LASTAI.next_video.title_options)||[]).join(' | '),
