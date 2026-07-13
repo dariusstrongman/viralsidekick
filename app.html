@@ -1508,7 +1508,14 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           <svg class="pi pi-tt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.3 2.2 1.8 3.9 4 4.1v2.7c-1.4.1-2.7-.3-4-1v6.3a6 6 0 1 1-6-6c.3 0 .5 0 .8.1v2.9a3.1 3.1 0 1 0 2.2 3V3h3z"/></svg>
           TikTok
         </label>
-        <div class="rr"><input id="cmTt" type="text" placeholder="@yourtiktok"></div>
+        <div id="cmTtStatus" style="display:none;align-items:flex-start;gap:11px;padding:12px 14px;margin-bottom:8px;background:hsl(150 60% 45% / .1);border:1px solid hsl(150 60% 45% / .32);border-radius:12px"></div>
+        <div class="rr" id="cmTtPasteRow"><input id="cmTt" type="text" placeholder="@yourtiktok"></div>
+        <button class="btn btn-primary btn-block" id="cmTtConnect" style="margin-top:12px;display:none" onclick="connectTikTok((document.getElementById('cmTt').value||'').trim())">Connect with TikTok, verify you own it</button>
+        <div class="sm mut" id="cmTtCnote" style="display:none;margin-top:7px;line-height:1.45">signs you in with TikTok and links the account you actually own. read-only, it turns on your per-video analytics and cant be faked.</div>
+        <div id="cmTtLinked" style="display:none;margin-top:12px">
+          <button class="btn btn-ghost btn-block" id="cmTtDisc" onclick="disconnectTikTok()">Disconnect this account</button>
+          <div class="sm mut" style="margin-top:6px;line-height:1.45">unlinks TikTok from your account and revokes ViralSidekick's read-only access. you can reconnect anytime.</div>
+        </div>
       </div>
       <div class="conn-row">
         <label for="cmIg">
@@ -2895,10 +2902,13 @@ function disconnectTikTok(){
     var tok=(s&&s.data&&s.data.session)?s.data.session.access_token:null; if(!tok) return;
     fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'tt_disconnect',token:tok})})
       .then(function(r){return r.json();}).then(function(){
-        if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; }
+        if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; PROFILE.tiktok_handle=null; }
+        IDENT.tiktok='';
         try{ localStorage.removeItem('vs_ttconn_'+((USER&&USER.id)||'')); }catch(e){}
         try{ if(typeof toast==='function') toast('TikTok disconnected','ok'); }catch(e){}
-        var A=actIdent(); ttCard((A.tiktok||'').replace(/^@/,''));
+        try{ renderTabs(); }catch(e){}
+        try{ if($('connectModal').classList.contains('on')) openConnect(); }catch(e){}
+        if(PLATFORM==='tiktok'){ try{ switchPlatform('youtube'); }catch(e){} }
       }).catch(function(){});
   });
 }
@@ -3368,6 +3378,23 @@ function openConnect(){
     if(_vn) _vn.style.display='none';
     if(_linked) _linked.style.display='none';
   }
+  /* TikTok: same connect/disconnect model as YouTube — personal = OAuth verified, space = paste a handle */
+  (function(){
+    var space=(_connTarget==='space'), conn=(!space && ttConnected());
+    var _ts=$('cmTtStatus'), _tp=$('cmTtPasteRow'), _tc=$('cmTtConnect'), _tn=$('cmTtCnote'), _tl=$('cmTtLinked');
+    if(space){
+      if(_ts) _ts.style.display='none'; if(_tp) _tp.style.display=''; if(_tc) _tc.style.display='none'; if(_tn) _tn.style.display='none'; if(_tl) _tl.style.display='none';
+    } else if(conn){
+      var _th=String(IDENT.tiktok||(PROFILE&&PROFILE.tiktok_handle)||'').replace(/^@/,'');
+      if(_ts){ _ts.style.display='flex'; _ts.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to @'+esc(_th||'your tiktok')+'</b><br><span class="mut">verified, your per-video analytics are on. read-only.</span></span>'; }
+      if(_tp) _tp.style.display='none'; if(_tc) _tc.style.display='none'; if(_tn) _tn.style.display='none'; if(_tl) _tl.style.display='block';
+    } else {
+      if(_ts) _ts.style.display='none';
+      if(_tp) _tp.style.display='';
+      if(_tc) _tc.style.display='block'; if(_tn) _tn.style.display='block';
+      if(_tl) _tl.style.display='none';
+    }
+  })();
   $('connectModal').classList.add('on');
   setTimeout(function(){ var f=$('connectModal').querySelector('input,button'); if(f) f.focus(); },30);
 }
