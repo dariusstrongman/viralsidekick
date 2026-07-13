@@ -2869,7 +2869,8 @@ function renderAlt(p){
   var disp=(p==='facebook'?'':'@')+esc(clean);
   $('altHead').innerHTML='<div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">connected · '+esc(name)+'</div><div class="big">'+disp+'</div><div class="tsub">This '+esc(name)+' account is linked to '+whose+'. Deep '+esc(name)+' analytics are rolling out, the handle is saved so it is ready the moment they land.</div>';
 }
-var TT_CLIENT_KEY='awh6cexulusud4f9';
+/* SANDBOX for TikTok app review demo. PROD key = awh6cexulusud4f9 — swap back here on approval. */
+var TT_CLIENT_KEY='sbawxnm2n2jdso8c5d';
 function ttConnected(){ return !!(PROFILE && (PROFILE.tiktok_open_id || PROFILE.tiktok_connected_at)); }
 /* start TikTok OAuth (Login Kit). client key is public; the secret + token exchange live server-side. */
 function connectTikTok(handle){
