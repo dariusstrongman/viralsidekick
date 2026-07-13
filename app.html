@@ -1921,6 +1921,8 @@ function bootType(){
 function _bindIdent(){
   IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
   IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||''; IDENT.facebook = PROFILE.facebook_handle||'';
+  /* one-time self-heal: IG/FB are OAuth-only now — purge any legacy typed handle so it stops showing as a "connected" tab. runs once per account, then the columns are null. */
+  if(IDENT.instagram || IDENT.facebook){ IDENT.instagram=''; IDENT.facebook=''; PROFILE.instagram_handle=null; PROFILE.facebook_handle=null; try{ persistIdentity(function(){}); }catch(e){} }
 }
 function _cacheProfile(){
   try{ if(!(USER&&USER.id)) return; var p=PROFILE||{}, keep={};
@@ -2899,8 +2901,9 @@ function renderTabs(){
   var ych=A.yt||{}; var yname=(ych.name && !looksRaw(ych.name))?ych.name:(ych.handle||'');
   var list=[{p:'youtube',lab:'YouTube',sub:yname,st:'live',icon:IC_YT}];
   if(A.tiktok) list.push({p:'tiktok',lab:'TikTok',sub:'@'+A.tiktok.replace(/^@/,''),st:((!A.team&&ttConnected())?'live':'soon'),icon:IC_TT});
-  if(A.instagram) list.push({p:'instagram',lab:'Instagram',sub:'@'+A.instagram.replace(/^@/,''),st:'soon',icon:IC_IG});
-  if(A.facebook) list.push({p:'facebook',lab:'Facebook',sub:A.facebook.replace(/^@/,''),st:'soon',icon:IC_FB});
+  /* IG/FB are OAuth-only and not live yet — only surface them for a space that pastes managed channels, never from a personal typed handle */
+  if(A.instagram && A.team) list.push({p:'instagram',lab:'Instagram',sub:'@'+A.instagram.replace(/^@/,''),st:'soon',icon:IC_IG});
+  if(A.facebook && A.team) list.push({p:'facebook',lab:'Facebook',sub:A.facebook.replace(/^@/,''),st:'soon',icon:IC_FB});
   var out=list.map(function(c){ var on=(PLATFORM===c.p);
     return '<div class="ptab'+(on?' on':'')+'" data-p="'+c.p+'" onclick="switchPlatform(\''+c.p+'\')" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();switchPlatform(\''+c.p+'\');}" role="tab" aria-selected="'+on+'" tabindex="0">'
       +c.icon+' '+c.lab+(c.sub?' <span class="pc-h">'+esc(c.sub)+'</span>':'')+' <span class="st'+(c.st==='live'?' live':'')+'">'+c.st+'</span></div>';
