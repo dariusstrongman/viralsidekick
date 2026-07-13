@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connecting TikTok… · ViralSidekick</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a0d16">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M18 2 6 18h8l-2 12L24 12h-8l2-10z' fill='%238b5cf6'/%3E%3C/svg%3E">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0a0d16;color:#e9ecf5;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
+  .card{max-width:420px}
+  .sp{width:38px;height:38px;border:3px solid rgba(139,92,246,.25);border-top-color:#8b5cf6;border-radius:50%;margin:0 auto 22px;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  h1{font-size:1.15rem;font-weight:700;margin-bottom:8px}
+  p{color:#9aa2ba;font-size:.92rem;line-height:1.5}
+  a{color:#22d3ee}
+  .err h1{color:#ff6b6b}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="sp" id="sp"></div>
+  <h1 id="h">Connecting your TikTok…</h1>
+  <p id="p">Verifying it's your account and pulling your posts. One sec.</p>
+</div>
+<script>
+(function(){
+  var SB_REF='fzlwnsoknngbdkizxpnl';
+  var API='https://n8n.stromation.com/webhook/viralsidekick-analyze';
+  var REDIRECT='https://viralsidekick.com/tt-callback.html';
+  var q=new URLSearchParams(location.search);
+  var code=q.get('code'), state=q.get('state'), err=q.get('error')||q.get('errCode');
+  function fail(msg){
+    document.getElementById('card').className='card err';
+    var sp=document.getElementById('sp'); if(sp) sp.style.display='none';
+    document.getElementById('h').textContent='Couldn’t connect TikTok';
+    document.getElementById('p').innerHTML=(msg||'Something went wrong.')+'<br><br><a href="app.html">Back to your dashboard</a>';
+  }
+  function done(){ location.replace('app.html?ttconnected=1'); }
+  if(err){ fail('TikTok returned: '+String(err).slice(0,80)+'. You can try again from the dashboard.'); return; }
+  if(!code){ fail('No authorization code came back from TikTok.'); return; }
+  // CSRF: the state must match what we stored before the redirect
+  var want=''; try{ want=localStorage.getItem('vs_tt_state')||''; }catch(e){}
+  if(want && state && want!==state){ fail('Security check failed (state mismatch). Please start the connect again.'); return; }
+  var handle=''; try{ handle=localStorage.getItem('vs_tt_handle')||''; }catch(e){}
+  try{ localStorage.removeItem('vs_tt_state'); }catch(e){}
+  // the logged-in supabase session -> so the engine binds TikTok to THIS account
+  var tok='';
+  try{ var raw=localStorage.getItem('sb-'+SB_REF+'-auth-token'); if(raw){ var s=JSON.parse(raw); tok=(s&&(s.access_token||(s.currentSession&&s.currentSession.access_token)))||''; } }catch(e){}
+  if(!tok){ fail('You’re not signed in to ViralSidekick in this browser. <a href="app.html">Sign in</a>, then connect TikTok again.'); return; }
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'tt_connect',token:tok,code:code,redirect_uri:REDIRECT,tiktok:handle})})
+    .then(function(r){return r.json();}).then(function(d){
+      if(d&&d.ok&&d.connected){ try{ if(d.card) localStorage.setItem('vs_ttconn_pending', JSON.stringify(d.card)); }catch(e){} done(); }
+      else { fail((d&&d.error==='tt_exchange_failed')?('TikTok rejected the connection'+(d.detail?(': '+String(d.detail).slice(0,90)):'')+'.'):'The connection didn’t complete. Try again from the dashboard.'); }
+    }).catch(function(){ fail('Network hiccup finishing the connection. Try again.'); });
+})();
+</script>
+</body>
+</html>

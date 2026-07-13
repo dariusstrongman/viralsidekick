@@ -1865,7 +1865,7 @@ function _bindIdent(){
 }
 function _cacheProfile(){
   try{ if(!(USER&&USER.id)) return; var p=PROFILE||{}, keep={};
-    ['id','username','display_name','plan','plan_status','youtube_verified','primary_channel_id','primary_channel_name','primary_channel_avatar','primary_channel_subs','primary_channel_handle','tiktok_handle','instagram_handle','facebook_handle','onboarded','daily_digest'].forEach(function(k){ if(p[k]!==undefined) keep[k]=p[k]; });
+    ['id','username','display_name','plan','plan_status','youtube_verified','primary_channel_id','primary_channel_name','primary_channel_avatar','primary_channel_subs','primary_channel_handle','tiktok_handle','instagram_handle','facebook_handle','tiktok_open_id','tiktok_connected_at','onboarded','daily_digest'].forEach(function(k){ if(p[k]!==undefined) keep[k]=p[k]; });
     localStorage.setItem('vs_profile_'+USER.id, JSON.stringify(keep));   /* display fields only, never tokens */
   }catch(e){}
 }
@@ -1935,6 +1935,13 @@ function enterHQ(){
   try{ var _cs=JSON.parse(localStorage.getItem('vs_spaces_'+((USER&&USER.id)||''))||'null'); if(_cs&&_cs.length){ if(!(SPACES&&SPACES.length)) SPACES=_cs; renderViewSwitch(); } }catch(e){}
   initSpace();
   celebrateUpgrade();
+  /* just came back from connecting TikTok -> mark connected, stash the fresh card, jump to the tab */
+  try{ if(/[?&]ttconnected=1/.test(location.search)){ history.replaceState(null,'',location.pathname);
+    if(PROFILE){ PROFILE.tiktok_connected_at=PROFILE.tiktok_connected_at||new Date().toISOString(); }
+    try{ var _pc=JSON.parse(localStorage.getItem('vs_ttconn_pending')||'null'); localStorage.removeItem('vs_ttconn_pending'); if(_pc) localStorage.setItem('vs_ttconn_'+((USER&&USER.id)||''), JSON.stringify({at:Date.now(),d:_pc})); }catch(e){}
+    if(typeof toast==='function') toast('TikTok connected ✓','ok');
+    setTimeout(function(){ try{ switchPlatform('tiktok'); }catch(e){} }, 250);
+  } }catch(e){}
   if(PROFILE && PROFILE.onboarded===false){ teamsApi('welcome').catch(function(){}); }
   /* let the entrance play once, then freeze tile animations so tab switches don't replay them */
   setTimeout(function(){ $('ytDeck').classList.add('no-anim'); $('altPanel').classList.add('no-anim'); }, 900);
@@ -2862,51 +2869,102 @@ function renderAlt(p){
   var disp=(p==='facebook'?'':'@')+esc(clean);
   $('altHead').innerHTML='<div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">connected · '+esc(name)+'</div><div class="big">'+disp+'</div><div class="tsub">This '+esc(name)+' account is linked to '+whose+'. Deep '+esc(name)+' analytics are rolling out, the handle is saved so it is ready the moment they land.</div>';
 }
-/* free TikTok grade (public profile signals). cache-first, refresh in the background. */
+var TT_CLIENT_KEY='awh6cexulusud4f9';
+function ttConnected(){ return !!(PROFILE && (PROFILE.tiktok_open_id || PROFILE.tiktok_connected_at)); }
+/* start TikTok OAuth (Login Kit). client key is public; the secret + token exchange live server-side. */
+function connectTikTok(handle){
+  var st='s'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+  try{ localStorage.setItem('vs_tt_state',st); if(handle) localStorage.setItem('vs_tt_handle',String(handle).replace(/^@/,'')); }catch(e){}
+  location.href='https://www.tiktok.com/v2/auth/authorize/'
+    +'?client_key='+TT_CLIENT_KEY
+    +'&scope='+encodeURIComponent('user.info.basic,video.list')
+    +'&response_type=code'
+    +'&redirect_uri='+encodeURIComponent('https://viralsidekick.com/tt-callback.html')
+    +'&state='+encodeURIComponent(st);
+}
+function disconnectTikTok(){
+  if(!confirm('Disconnect TikTok? This revokes ViralSidekick’s read access. You can reconnect anytime.')) return;
+  sb.auth.getSession().then(function(s){
+    var tok=(s&&s.data&&s.data.session)?s.data.session.access_token:null; if(!tok) return;
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'tt_disconnect',token:tok})})
+      .then(function(r){return r.json();}).then(function(){
+        if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; }
+        try{ localStorage.removeItem('vs_ttconn_'+((USER&&USER.id)||'')); }catch(e){}
+        try{ if(typeof toast==='function') toast('TikTok disconnected','ok'); }catch(e){}
+        var A=actIdent(); ttCard((A.tiktok||'').replace(/^@/,''));
+      }).catch(function(){});
+  });
+}
+/* route: connected -> per-video grade; otherwise the free public grade */
 function ttCard(handle){
   var host=$('altHead'); if(!host) return;
   handle=String(handle||'').replace(/^@/,'');
+  if(ttConnected()){ ttConnectedCard(handle); return; }
   var key='vs_ttcard_'+handle.toLowerCase();
   var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
-  if(cached && cached.d){ renderTtCard(cached.d, handle); }
+  if(cached && cached.d){ renderTtCard(cached.d, handle, false); }
   else { host.innerHTML='<div class="tsub" style="padding:16px 4px">reading <b>@'+esc(handle)+'</b> on TikTok…</div>'; }
-  if(cached && cached.at && (Date.now()-cached.at)<30*60000) return; /* fresh enough, skip the re-fetch */
+  if(cached && cached.at && (Date.now()-cached.at)<30*60000) return;
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'tt_card',tiktok:handle})})
     .then(function(r){return r.json();}).then(function(d){
-      if(PLATFORM!=='tiktok') return; /* user switched tabs while it loaded */
-      if(d && d.ok){ try{ localStorage.setItem(key, JSON.stringify({at:Date.now(),d:d})); }catch(e){} renderTtCard(d, handle); }
+      if(PLATFORM!=='tiktok') return;
+      if(d && d.ok){ try{ localStorage.setItem(key, JSON.stringify({at:Date.now(),d:d})); }catch(e){} renderTtCard(d, handle, false); }
       else if(!(cached&&cached.d)){ host.innerHTML='<div class="tsub" style="padding:16px 4px">couldnt read @'+esc(handle)+' right now'+(d&&d.error==='tiktok_unreachable'?' (tiktok blocked the read, try again shortly)':'')+'.</div>'; }
     }).catch(function(){ if(!(cached&&cached.d)) host.innerHTML='<div class="tsub" style="padding:16px 4px">network hiccup reading TikTok, try again.</div>'; });
 }
-function renderTtCard(d, handle){
+/* connected per-video grade (Display API via the engine, refreshes the token server-side) */
+function ttConnectedCard(handle){
   var host=$('altHead'); if(!host) return;
-  var c=d.channel||{}, v=d.vitals||{}, g=d.grade||'?', col=gcolor(g);
+  var key='vs_ttconn_'+((USER&&USER.id)||'');
+  var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
+  if(cached && cached.d){ renderTtCard(cached.d, handle, true); }
+  else { host.innerHTML='<div class="tsub" style="padding:16px 4px">loading your connected TikTok analytics…</div>'; }
+  if(cached && cached.at && (Date.now()-cached.at)<15*60000) return;
+  sb.auth.getSession().then(function(s){
+    var tok=(s&&s.data&&s.data.session)?s.data.session.access_token:null; if(!tok) return;
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'tt_connected',token:tok,tiktok:handle})})
+      .then(function(r){return r.json();}).then(function(d){
+        if(PLATFORM!=='tiktok') return;
+        if(d && d.ok){ try{ localStorage.setItem(key, JSON.stringify({at:Date.now(),d:d})); }catch(e){} renderTtCard(d, handle, true); }
+        else if(d && d.error==='not_connected'){ if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; } ttCard(handle); }
+        else if(!(cached&&cached.d)){ host.innerHTML='<div class="tsub" style="padding:16px 4px">couldnt load connected analytics right now, try again.</div>'; }
+      }).catch(function(){ if(!(cached&&cached.d)) host.innerHTML='<div class="tsub" style="padding:16px 4px">network hiccup loading TikTok analytics.</div>'; });
+  });
+}
+function renderTtCard(d, handle, connected){
+  var host=$('altHead'); if(!host) return;
+  var c=d.channel||{}, v=d.vitals||{}, g=d.grade||'?', col=gcolor(g), thin=!!d.thin;
   var av=c.avatar?('<img src="'+esc(c.avatar)+'" alt="" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex:0 0 auto" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">'):'';
   var vf=c.verified?' <span title="verified" style="color:var(--accent)">✓</span>':'';
   function stat(lab,val){ return '<div style="text-align:center;flex:1"><div style="font-size:1.02rem;font-weight:800;color:var(--fg)">'+val+'</div><div style="font-family:var(--mono);font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px">'+lab+'</div></div>'; }
+  var eyebrow = connected ? 'TikTok · connected ✓' : 'TikTok · free grade';
+  var statRow = connected
+    ? stat('followers', v.followers!=null?nfmt(v.followers):'-')+stat('videos', v.videos!=null?nfmt(v.videos):'-')+stat('avg views', v.avg_views!=null?nfmt(v.avg_views):'-')+stat('breakouts', v.outliers!=null?v.outliers:'-')+stat('engagement', v.engagement_pct!=null?(v.engagement_pct+'%'):'-')
+    : stat('followers', nfmt(v.followers))+stat('likes', v.likes_total!=null?nfmt(v.likes_total):'-')+stat('videos', v.videos!=null?nfmt(v.videos):'-')+stat('avg likes', v.avg_likes!=null?nfmt(v.avg_likes):'-')+stat('engagement', v.engagement_pct!=null?(v.engagement_pct+'%'):'-');
+  var gradeRing = (connected && thin) ? '' :
+      '<div style="text-align:center;flex:0 0 auto">'
+      +'<div style="width:54px;height:54px;border-radius:50%;border:3px solid '+col+';display:flex;align-items:center;justify-content:center;font-size:1.45rem;font-weight:800;color:'+col+'">'+esc(g)+'</div>'
+      +'<div style="font-family:var(--mono);font-size:.55rem;color:var(--muted);margin-top:3px">score '+(d.score!=null?d.score:'-')+'</div>'
+      +'</div>';
+  var bestLine = (connected && d.best) ? '<div class="tsub" style="margin-top:11px;padding:9px 11px;background:hsl(150 60% 45% / .08);border:1px solid hsl(150 60% 45% / .25);border-radius:10px;font-size:.78rem;line-height:1.4"><b style="color:var(--fg)">Top post</b> · '+esc(d.best.title)+' — <b>'+d.best.ratio+'x</b> your median ('+nfmt(d.best.views)+' views)</div>' : '';
+  var footer = connected
+    ? '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px"><span class="tsub" style="font-size:.7rem;color:var(--faint)">Per-video analytics, live from your connected account.</span><button class="btn btn-ghost btn-sm" onclick="disconnectTikTok()">Disconnect</button></div>'
+    : '<div style="margin-top:13px"><button class="btn btn-primary btn-block" onclick="connectTikTok(\''+esc(handle)+'\')">Connect TikTok for per-video analytics</button><div class="tsub" style="margin-top:7px;font-size:.7rem;color:var(--faint);line-height:1.45">Read-only. Verifies you own the account, then grades every post (top performers, momentum, posting windows) like YouTube.</div></div>';
   host.innerHTML=''
     +'<div style="border:1px solid var(--border);border-radius:16px;padding:18px;background:hsl(230 24% 5%)">'
       +'<div style="display:flex;align-items:center;gap:13px">'
         +av
         +'<div style="flex:1;min-width:0">'
-          +'<div style="font-family:var(--mono);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:3px">TikTok · free grade</div>'
+          +'<div style="font-family:var(--mono);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:3px">'+eyebrow+'</div>'
           +'<div style="font-weight:800;font-size:1.02rem;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(c.name||handle)+vf+'</div>'
-          +'<div style="font-family:var(--mono);font-size:.7rem;color:var(--muted)">@'+esc(handle)+'</div>'
+          +'<div style="font-family:var(--mono);font-size:.7rem;color:var(--muted)">@'+esc(handle||c.handle||'')+'</div>'
         +'</div>'
-        +'<div style="text-align:center;flex:0 0 auto">'
-          +'<div style="width:54px;height:54px;border-radius:50%;border:3px solid '+col+';display:flex;align-items:center;justify-content:center;font-size:1.45rem;font-weight:800;color:'+col+'">'+esc(g)+'</div>'
-          +'<div style="font-family:var(--mono);font-size:.55rem;color:var(--muted);margin-top:3px">score '+(d.score!=null?d.score:'-')+'</div>'
-        +'</div>'
+        +gradeRing
       +'</div>'
-      +'<div style="display:flex;justify-content:space-between;gap:6px;margin-top:15px;padding-top:13px;border-top:1px solid var(--border)">'
-        +stat('followers', nfmt(v.followers))
-        +stat('likes', v.likes_total!=null?nfmt(v.likes_total):'-')
-        +stat('videos', v.videos!=null?nfmt(v.videos):'-')
-        +stat('avg likes', v.avg_likes!=null?nfmt(v.avg_likes):'-')
-        +stat('engagement', v.engagement_pct!=null?(v.engagement_pct+'%'):'-')
-      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;gap:6px;margin-top:15px;padding-top:13px;border-top:1px solid var(--border)">'+statRow+'</div>'
       +(d.headline?'<div class="tsub" style="margin-top:14px;line-height:1.5">'+esc(d.headline)+'</div>':'')
-      +'<div class="tsub" style="margin-top:10px;font-size:.72rem;color:var(--faint);line-height:1.45">Free grade from public signals. Per-video analytics (top posts, retention, posting windows) turn on when TikTok connect lands.</div>'
+      +bestLine
+      +footer
     +'</div>';
 }
 
