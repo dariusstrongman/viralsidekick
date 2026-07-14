@@ -1975,9 +1975,9 @@ function loadProfile(){
       /* one-shot: drop the token BEFORE we call so a failing invite can never re-fire on every login. */
       try{ localStorage.removeItem('vs_pending_invite'); }catch(e){}
       teamsApi('accept',{invite:pend2}).then(function(d){
-        if(d && d.ok && d.workspace){ enterSpace(d); }
-        else normalFlow();
-      }).catch(normalFlow);
+        if(d && d.ok && d.workspace){ try{ toast('joined '+((d.workspace&&d.workspace.name)||'the space')+' ✓','ok'); }catch(e){} enterSpace(d); }
+        else { try{ toast((d&&d.error)?d.error:'that invite link is invalid or expired','err'); }catch(e){} normalFlow(); }
+      }).catch(function(){ try{ toast('could not accept the invite, try the link again','err'); }catch(e){} normalFlow(); });
     } else if(painted){
       /* already painted from cache -> reconcile cheaply. only re-run the heavy live pass if the
          channel identity actually changed since the cache (rare: connected/disconnected elsewhere). */
