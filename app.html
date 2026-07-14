@@ -2911,7 +2911,8 @@ function connectTikTok(handle){
     +'&scope='+encodeURIComponent('user.info.basic,user.info.profile,user.info.stats,video.list')
     +'&response_type=code'
     +'&redirect_uri='+encodeURIComponent('https://viralsidekick.com/tt-callback.html')
-    +'&state='+encodeURIComponent(st);
+    +'&state='+encodeURIComponent(st)
+    +'&disable_auto_auth=1'; /* always show the TikTok consent screen (never silently auto-authorize a returning user) so the permission grant is explicit — required for app review to see it */
 }
 function disconnectTikTok(){
   if(!confirm('Disconnect TikTok? This revokes ViralSidekick’s read access. You can reconnect anytime.')) return;
