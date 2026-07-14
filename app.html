@@ -312,6 +312,20 @@ footer a:hover{color:var(--fg)}
 .hqe-note{position:relative;margin-top:13px;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;color:var(--faint,#6b7280)}
 .hqe-teasers{position:relative;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:28px}
 .hqe-teasers span{font-family:var(--mono);font-size:.63rem;letter-spacing:.07em;color:var(--muted,#9aa3b2);padding:5px 12px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.02)}
+/* empty-dashboard platform picker: all four platforms, IG/FB dimmed until they ship */
+.hqe-plats{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:430px;margin:0 auto}
+@media(max-width:480px){.hqe-plats{max-width:320px}}
+.hqe-plat{display:flex;flex-direction:column;align-items:center;gap:7px;padding:18px 14px;border:1px solid var(--border);border-radius:16px;background:hsl(230 24% 5%);cursor:pointer;transition:transform .16s,border-color .16s,background .16s;font-family:inherit;text-align:center}
+.hqe-plat:not(.soon):hover{border-color:hsl(262 92% 64%);background:hsl(230 24% 7%);transform:translateY(-2px)}
+.hqe-plat:not(.soon):focus-visible{outline:2px solid hsl(262 92% 64%);outline-offset:2px}
+.hqe-plat .pi{width:30px;height:30px}
+.hqe-plat-n{font-size:.92rem;font-weight:700;color:var(--fg)}
+.hqe-plat-s{font-family:var(--mono);font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:hsl(262 92% 72%)}
+.hqe-plat.soon{cursor:default;opacity:.45}
+.hqe-plat.soon .pi{color:var(--muted)}
+.hqe-plat.soon .hqe-plat-n{color:var(--muted)}
+.hqe-plat.soon .hqe-plat-s{color:var(--faint)}
+.pi-fb{color:#1877f2}
 /* no personal channel: hide the dashboard guts, but KEEP the lens bar so a team owner/member
    can still reach their space(s) from the witty connect page. if socials (TikTok/IG/FB) are
    connected, ALSO keep the platform tabs + the "coming soon" panel so they and their soon
@@ -1106,7 +1120,24 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="hqe-eyebrow">◆ your dashboard</div>
         <h2 class="hqe-title">Connect your channel,<br>get the inside scoop</h2>
         <p class="hqe-sub">Your real grade, the fixes that actually move views, and whats about to pop off in your niche, read straight from your own numbers, retention and click-through included.</p>
-        <button class="btn btn-primary hqe-cta" onclick="verifyYouTube()">Connect with Google</button>
+        <div class="hqe-plats">
+          <button class="hqe-plat" onclick="verifyYouTube()" aria-label="connect YouTube">
+            <svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
+            <span class="hqe-plat-n">YouTube</span><span class="hqe-plat-s">connect</span>
+          </button>
+          <button class="hqe-plat" onclick="connectTikTok()" aria-label="connect TikTok">
+            <svg class="pi pi-tt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.3 2.2 1.8 3.9 4 4.1v2.7c-1.4.1-2.7-.3-4-1v6.3a6 6 0 1 1-6-6c.3 0 .5 0 .8.1v2.9a3.1 3.1 0 1 0 2.2 3V3h3z"/></svg>
+            <span class="hqe-plat-n">TikTok</span><span class="hqe-plat-s">connect</span>
+          </button>
+          <div class="hqe-plat soon" aria-disabled="true" aria-label="Instagram coming soon">
+            <svg class="pi pi-ig" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c2.7 0 3 0 4.1.1 1 0 1.6.2 2 .4.5.2.9.5 1.3.9.4.4.7.8.9 1.3.2.4.3 1 .4 2C20.9 8 21 8.3 21 11s0 3-.1 4.1c0 1-.2 1.6-.4 2a3.5 3.5 0 0 1-.9 1.3c-.4.4-.8.7-1.3.9-.4.2-1 .3-2 .4-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-1 0-1.6-.2-2-.4a3.5 3.5 0 0 1-1.3-.9 3.5 3.5 0 0 1-.9-1.3c-.2-.4-.3-1-.4-2C3 15 3 14.7 3 12s0-3 .1-4.1c0-1 .2-1.6.4-2 .2-.5.5-.9.9-1.3.4-.4.8-.7 1.3-.9.4-.2 1-.3 2-.4C8.8 3 9.1 3 12 3zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8zM17.8 6a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1z"/></svg>
+            <span class="hqe-plat-n">Instagram</span><span class="hqe-plat-s">soon</span>
+          </div>
+          <div class="hqe-plat soon" aria-disabled="true" aria-label="Facebook coming soon">
+            <svg class="pi pi-fb" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg>
+            <span class="hqe-plat-n">Facebook</span><span class="hqe-plat-s">soon</span>
+          </div>
+        </div>
         <div class="hqe-note">read-only · proves its your channel · cant be faked</div>
         <div class="hqe-teasers"><span>S → F grade</span><span>niche radar</span><span>retention &amp; CTR</span><span>your next video</span></div>
       </div>
