@@ -1883,7 +1883,8 @@ var IC_FB='<svg class="pi pi-fb" viewBox="0 0 24 24" fill="currentColor"><path d
 function nfmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e3) return (n/1e3).toFixed(n>=1e4?0:1)+'K'; return String(Math.round(n)); }
 /* localStorage namespaces so caches never bleed across accounts (shared browser) or between the mine/space views */
 function _nsU(){ return (typeof USER!=='undefined'&&USER?USER.id:'x'); }
-function _nsUV(){ return _nsU()+'_'+(typeof VIEW!=='undefined'?VIEW:'mine'); }
+/* cache namespace: personal = <uid>_mine, each space = <uid>_ws_<wsid> so two spaces never share a cache */
+function _nsUV(){ var v=(typeof VIEW!=='undefined'?VIEW:'mine'); if(v==='space'){ var w=''; try{ w=(typeof SPACE!=='undefined'&&SPACE&&SPACE.workspace&&SPACE.workspace.id)||localStorage.getItem('vs_space')||''; }catch(e){} return _nsU()+'_ws_'+w; } return _nsU()+'_'+v; }
 function gradeOf(s){ var t=[[97,'S'],[90,'A'],[80,'B'],[70,'C'],[60,'D']]; for(var i=0;i<t.length;i++){ if(s>=t[i][0]) return t[i][1]; } return 'F'; }
 function scoreColor(s){ if(s==null) return 'var(--faint)'; if(s>=75) return 'var(--success)'; if(s>=50) return 'var(--warning)'; return 'var(--danger)'; }
 function gcolor(g){ var c=(g||'')[0]; if(c==='S')return 'hsl(45 95% 62%)'; if(c==='A')return 'var(--success)'; if(c==='B')return 'var(--accent)'; if(c==='C')return 'var(--warning)'; if(c==='D')return 'hsl(24 92% 58%)'; return 'var(--danger)'; }
@@ -2254,17 +2255,40 @@ function _cacheSpaces(){ try{ if(USER&&USER.id) localStorage.setItem('vs_spaces_
 function switchSpace(wsid){
   if(!wsid) return;
   if(wsid===activeWs()){ if(VIEW!=='space') switchView('space'); return; }
-  blankLiveSurfaces();  /* clear the current space's tiles immediately so nothing bleeds into the next */
   try{ localStorage.setItem('vs_space',wsid); localStorage.setItem('vs_view','space'); }catch(e){}
   VIEW='space';
-  teamsApi('my_space',{workspace_id:wsid}).then(function(d){
-    applySpace(d);
-    try{ renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform('youtube'); }catch(e){}
+  /* OPTIMISTIC: paint the space from its cached payload instantly (no network gate), the deck itself
+     is cache-first per workspace, so the switch feels instant. then revalidate in the background. */
+  var cached=null; try{ cached=JSON.parse(localStorage.getItem('vs_spaceb_'+_nsU()+'_'+wsid)||'null'); }catch(e){}
+  if(cached && cached.workspace){
+    applySpace(cached);
+    try{ switchPlatform('youtube'); }catch(e){}
     try{ loadIdeas(); }catch(e){}
     try{ renderQueue((LASTAI&&LASTAI.fixes)||[]); }catch(e){}
+  } else {
+    blankLiveSurfaces();  /* first visit to this space, nothing cached yet - clear the old tiles */
+  }
+  teamsApi('my_space',{workspace_id:wsid}).then(function(d){
+    if(activeWs()!==wsid) return;  /* user switched again before this landed - drop the stale response */
+    if(d && d.workspace){
+      var prevCh=(cached&&cached.channel&&(cached.channel.id||cached.channel.name))||'';
+      var newCh=(d.channel&&(d.channel.id||d.channel.name))||'';
+      if(!cached || prevCh!==newCh){
+        /* first load, or the channel actually changed since the cache -> full apply */
+        applySpace(d);
+        try{ switchPlatform('youtube'); }catch(e){}
+        try{ loadIdeas(); }catch(e){}
+        try{ renderQueue((LASTAI&&LASTAI.fixes)||[]); }catch(e){}
+      } else {
+        /* same channel: just refresh the roster/header + re-cache, no second live re-scan */
+        SPACE=d; syncTeamPro();
+        try{ localStorage.setItem('vs_spaceb_'+_nsU()+'_'+wsid, JSON.stringify(d)); }catch(e){}
+        try{ renderTeamHeader(); renderViewSwitch(); }catch(e){}
+      }
+    } else if(!cached){ applySpace(d); }
   }).catch(function(){
     /* space fetch failed (network) - dont strand the user on blanked tiles in a dead space lens */
-    try{ renderNoSpace(); }catch(e){} try{ goLive(); }catch(e){}
+    if(!cached){ try{ renderNoSpace(); }catch(e){} try{ goLive(); }catch(e){} }
   });
 }
 function teamsApi(action, extra){
@@ -2327,6 +2351,8 @@ function applySpace(d){
   }
   if(!d.workspace){ SPACES=d.spaces||[]; _cacheSpaces(); renderNoSpace(); return; }
   SPACE=d; syncTeamPro();
+  /* cache the whole space payload per workspace so re-entering it is instant (revalidated in the background) */
+  try{ if(d.workspace.id) localStorage.setItem('vs_spaceb_'+_nsU()+'_'+d.workspace.id, JSON.stringify(d)); }catch(e){}
   SPACES = (d.spaces&&d.spaces.length) ? d.spaces
     : [{id:d.workspace.id,name:d.workspace.name,plan:d.workspace.plan,role:((d.members||[]).filter(function(m){return m.user_id===USER.id;})[0]||{}).role||'owner'}];
   _cacheSpaces();
