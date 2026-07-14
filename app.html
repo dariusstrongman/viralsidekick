@@ -1673,7 +1673,20 @@ var ACCESS=null;
 function route(session){
   USER = session ? session.user : null;
   ACCESS = session ? session.access_token : null;
-  if (USER){ $('authGate').classList.add('hide'); $('appHome').classList.remove('hide'); showApp(); }
+  if (USER){
+    /* DIFFERENT ACCOUNT on the same browser (session expired + re-login, or a straight account
+       swap without hitting Log out): wipe the previous account's non-namespaced globals + in-memory
+       state so their space/view/channel/tiktok can never bleed onto this user's first paint.
+       vs_pending_invite is preserved on purpose so accepting an invite as a different account works. */
+    if(window._lastRoutedUser && window._lastRoutedUser!==USER.id){
+      ['vs_space','vs_view','vs_tt_handle','vs_tt_state','vs_ttconn_pending','vs_space_bind_yt','vs_space_bind_tt'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+      SPACE=null; SPACES=[]; PROFILE=null; VIEW='mine'; LASTAI=null; LIVE=null; IS_PRO=false;
+      IDENT={ yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'', facebook:'' };
+      try{ window._appUser=null; window._ytClaimed=null; window._msPrefetch=null; window._dailyPulseDone=false; window._lvCh=null; }catch(e){}
+      try{ stopPulse(); }catch(e){}
+    }
+    window._lastRoutedUser=USER.id;
+    $('authGate').classList.add('hide'); $('appHome').classList.remove('hide'); showApp(); }
   else { $('appHome').classList.add('hide'); $('authGate').classList.remove('hide'); $('navRight').innerHTML='<a class="nav-scan" href="dashboard.html">Free scan</a>'; window._appUser=null; try{ stopPulse(); }catch(e){} }
 }
 try{
@@ -1747,7 +1760,7 @@ function emailAuth(){
   $('authBtn').disabled=true; msg('');
   var p = mode==='login'
     ? sb.auth.signInWithPassword({email:email,password:pass})
-    : sb.auth.signUp({email:email,password:pass});
+    : sb.auth.signUp({email:email,password:pass, options:{ emailRedirectTo: location.origin + location.pathname }});
   p.then(function(r){
     $('authBtn').disabled=false;
     if(r.error) return msg(r.error.message);
@@ -1838,7 +1851,14 @@ function claimYouTube(session){
         .catch(function(){ try{ toast('network hiccup setting the space channel','err'); }catch(e){} }); } }catch(e){}
       try{ if(typeof goLive==='function' && VIEW!=='space' && $('onboard') && $('onboard').classList.contains('hide')) goLive(); }catch(e){} /* re-read now that we have the real channel - but not while onboarding is still open (finishOnboard handles that) */
     } else {
-      try{ toast((d&&d.error)?d.error:'could not verify your youtube, try again','err'); }catch(e){}
+      var _em=String((d&&d.error)||'');
+      if(/scope|insufficient|permission|not.*grant|access.*denied|403/i.test(_em)){
+        /* the YouTube box got unchecked on google's consent screen, so the token has no analytics
+           scope. tell them exactly what to redo instead of dumping google's raw api error. */
+        try{ toast('almost there, the youtube permission got unchecked. hit connect again and keep the "See your YouTube account" box checked so we can read your channel.','err'); }catch(e){}
+      } else {
+        try{ toast(_em||'could not verify your youtube, try again','err'); }catch(e){}
+      }
     }
   }).catch(function(){ try{ toast('network hiccup verifying youtube','err'); }catch(e){} });
 }
@@ -1907,7 +1927,11 @@ function showApp(){
   /* prefetch the space in parallel with the profile load, so the lens bar isnt gated on
      profile-upsert -> profile-select -> my_space running one after another. skip on invite links
      (initSpace accepts those instead). */
-  try{ if(!/[?&]invite=/.test(location.search)){ var _pw=''; try{ _pw=localStorage.getItem('vs_space')||''; }catch(e){} window._msPrefetch=teamsApi('my_space',_pw?{workspace_id:_pw}:null).catch(function(){return null;}); } }catch(e){}
+  /* skip the prefetch when an invite is pending (the token lives in localStorage now, not the URL,
+     so the old location.search check was dead). otherwise this stale my_space would land after the
+     accept and yank the user back to their previous space instead of the one they just joined. */
+  try{ var _pendInv=''; try{ _pendInv=localStorage.getItem('vs_pending_invite')||''; }catch(e){}
+    if(!_pendInv){ var _pw=''; try{ _pw=localStorage.getItem('vs_space')||''; }catch(e){} window._msPrefetch=teamsApi('my_space',_pw?{workspace_id:_pw}:null).catch(function(){return null;}); } }catch(e){}
   try { migrateQueue(); } catch(e){}
   try { loadIdeas(); } catch(e){}
   try { initDigest(); } catch(e){}
@@ -1926,7 +1950,13 @@ function bootType(){
 
 /* ---------- profile: bind identity, then route ---------- */
 function _bindIdent(){
-  IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
+  /* RACE GUARD: claimYouTube (OAuth return) sets IDENT.yt + IDENT._verified immediately, but the
+     server write to the profile row may not have committed when loadProfile's select reads it back.
+     if we just verified a channel this session and the row still has none, keep the verified one
+     instead of blanking it (which stranded users on "connect your channel" right after connecting). */
+  if(!(IDENT._verified && (IDENT.yt.id||IDENT.yt.name) && !(PROFILE.primary_channel_id||PROFILE.primary_channel_name))){
+    IDENT.yt = { id:PROFILE.primary_channel_id||'', name:PROFILE.primary_channel_name||'', avatar:PROFILE.primary_channel_avatar||'', subs:PROFILE.primary_channel_subs||'', handle:PROFILE.primary_channel_handle||'' };
+  }
   IDENT.tiktok = PROFILE.tiktok_handle||''; IDENT.instagram = PROFILE.instagram_handle||''; IDENT.facebook = PROFILE.facebook_handle||'';
   /* one-time self-heal: IG/FB are OAuth-only now — purge any legacy typed handle so it stops showing as a "connected" tab. runs once per account, then the columns are null. */
   if(IDENT.instagram || IDENT.facebook){ IDENT.instagram=''; IDENT.facebook=''; PROFILE.instagram_handle=null; PROFILE.facebook_handle=null; try{ persistIdentity(function(){}); }catch(e){} }
@@ -2282,10 +2312,12 @@ function switchSpace(wsid){
       } else {
         /* same channel: just refresh the roster/header + re-cache, no second live re-scan */
         SPACE=d; syncTeamPro();
+        if(d.spaces&&d.spaces.length){ SPACES=d.spaces; _cacheSpaces(); }  /* keep the lens bar in sync (renames, new memberships) */
         try{ localStorage.setItem('vs_spaceb_'+_nsU()+'_'+wsid, JSON.stringify(d)); }catch(e){}
         try{ renderTeamHeader(); renderViewSwitch(); }catch(e){}
       }
-    } else if(!cached){ applySpace(d); }
+    } else if(d && !d.workspace){ applySpace(d); }  /* removed/deleted while we had a cache -> applySpace kicks back to personal instead of leaving them in a dead space */
+    else if(!cached){ applySpace(d); }
   }).catch(function(){
     /* space fetch failed (network) - dont strand the user on blanked tiles in a dead space lens */
     if(!cached){ try{ renderNoSpace(); }catch(e){} try{ goLive(); }catch(e){} }
@@ -2524,16 +2556,27 @@ function deletePost(id){ if(!(SPACE&&SPACE.workspace)) return; sb.from('viralsid
 function inviteMember(){
   var em=$('invEmail').value.trim(), role=$('invRole').value;
   if(!em) return;
-  teamsApi('invite',{workspace_id:SPACE.workspace.id,email:em,role:role}).then(function(d){
-    if(d&&d.ok){ $('invEmail').value=''; spaceNote('invite sent ✓'); teamsApi('my_space').then(applySpace); }
+  var wsid=SPACE.workspace.id;
+  teamsApi('invite',{workspace_id:wsid,email:em,role:role}).then(function(d){
+    if(d&&d.ok){ $('invEmail').value=''; spaceNote('invite sent ✓'); teamsApi('my_space',{workspace_id:wsid}).then(applySpace); }
     else spaceNote(d&&d.error||'invite failed');
   });
 }
+/* refetch the SAME workspace after a mutation. a bare my_space (no workspace_id) returns the
+   default space, which in a 2-space account would silently switch you to the wrong one. */
 function rmMember(uid2){
-  teamsApi('remove',{workspace_id:SPACE.workspace.id,member_user_id:uid2}).then(applySpace);
+  var wsid=SPACE.workspace.id;
+  teamsApi('remove',{workspace_id:wsid,member_user_id:uid2}).then(function(d){
+    if(d&&d.error){ spaceNote(d.error); return; }
+    teamsApi('my_space',{workspace_id:wsid}).then(applySpace);
+  });
 }
 function chRole(uid2, role){
-  teamsApi('change_role',{workspace_id:SPACE.workspace.id,member_user_id:uid2,role:role}).then(applySpace);
+  var wsid=SPACE.workspace.id;
+  teamsApi('change_role',{workspace_id:wsid,member_user_id:uid2,role:role}).then(function(d){
+    if(d&&d.error){ spaceNote(d.error); return; }
+    teamsApi('my_space',{workspace_id:wsid}).then(applySpace);
+  });
 }
 
 function celebrateUpgrade(){
@@ -2661,7 +2704,7 @@ function persistIdentity(cb){
   /* channel binding is server-side now (bind_channel: verified + cooldown).
      only the harmless fields persist directly. */
   saveProfileFields(Object.assign((PROFILE&&PROFILE.display_name)?{display_name:String(PROFILE.display_name).slice(0,40)}:{}, {
-    tiktok_handle:IDENT.tiktok||null, instagram_handle:IDENT.instagram||null, facebook_handle:IDENT.facebook||null
+    tiktok_handle:(IDENT.tiktok||(ttConnected()&&PROFILE&&PROFILE.tiktok_handle)||null), instagram_handle:IDENT.instagram||null, facebook_handle:IDENT.facebook||null
   })).then(function(){
     if(IDENT.yt && (IDENT.yt.id||IDENT.yt.name) && !IDENT._adopted && IDENT._dirty){
       teamsApi('bind_channel',{channel:IDENT.yt.id||IDENT.yt.handle||IDENT.yt.name}).then(function(d){
@@ -3315,7 +3358,7 @@ function pulseSet(key, newVal, subHTML, rounded){
 function pollPulse(){
   var _c=curCh(); var q=_c.id||_c.name; if(!q) return Promise.resolve();
   var body={ mode:'live', channel:q, website:'' };
-  if(IDENT.tiktok) body.tiktok=IDENT.tiktok;
+  var _ai=actIdent(); if(_ai.tiktok) body.tiktok=_ai.tiktok;  /* space lens = the team's TikTok, personal lens = yours */
   return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(function(r){return r.json();})
     .then(function(d){
@@ -3672,7 +3715,7 @@ function disconnectYouTube(){
           PROFILE=PROFILE||{}; PROFILE.youtube_verified=false; PROFILE.primary_channel_id=''; PROFILE.primary_channel_name=''; PROFILE.primary_channel_avatar=''; PROFILE.primary_channel_subs=''; PROFILE.primary_channel_handle='';
           try{ window._ytClaimed=null; }catch(e){}
           /* clear cached deep tiles + live pulse so nothing stale flashes for the next channel */
-          try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('vs_full_'+_nsU())===0) localStorage.removeItem(k); }); }catch(e){}
+          try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('vs_full_'+_nsU())===0 || k.indexOf('vs_card_'+_nsU())===0) localStorage.removeItem(k); }); }catch(e){}
           try{ closeConnect(); }catch(e){}
           try{ LASTAI=null; LIVE=null; }catch(e){}
           try{ renderIdentity(); renderYouBar(); renderViewSwitch(); }catch(e){}
@@ -3686,7 +3729,10 @@ function disconnectYouTube(){
 }
 function saveConnect(){
   if(_connTarget==='space') return saveSpaceChannels();
-  IDENT.tiktok=$('cmTt').value.trim(); IDENT.instagram=$('cmIg').value.trim(); IDENT.facebook=$('cmFb').value.trim();
+  /* dont wipe a TikTok connected by OAuth just because the (hidden/empty) handle box reads blank -
+     the real binding is the open_id, but the display handle would get nulled otherwise. */
+  if(!ttConnected()) IDENT.tiktok=$('cmTt').value.trim();
+  IDENT.instagram=$('cmIg').value.trim(); IDENT.facebook=$('cmFb').value.trim();
   var v=$('cmYt').value.trim();
   var changed = v && v!==(IDENT.yt.handle||'') && v!==(IDENT.yt.name||'') && v!==(IDENT.yt.id||'');
   function done(){ persistIdentity(function(){ closeConnect(); renderIdentity(); renderPlatChips(); renderTabs(); switchPlatform(PLATFORM); goLive(); }); }
