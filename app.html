@@ -1765,6 +1765,8 @@ function verifyYouTube(){
   var opts={ scopes:YT_SCOPES, redirectTo: location.origin + location.pathname + '?ytconnect=1', queryParams:{ access_type:'offline', prompt:'consent' } };
   /* the OAuth redirect leaves the page - stash the onboarding picks so they survive the round-trip */
   try{ if($('onboard') && !$('onboard').classList.contains('hide')){ localStorage.setItem('vs_ob_draft', JSON.stringify({ u:($('obName')&&$('obName').value)||'', a:_obAvatar||'', b:_obBanner||'' })); } }catch(e){}
+  /* connecting from inside a space you can edit -> this login binds the channel to the SPACE (same flow as the dashboard, no typing) */
+  try{ if(VIEW==='space' && SPACE && SPACE.workspace && canEditSpace()){ localStorage.setItem('vs_space_bind_yt', SPACE.workspace.id); } else { localStorage.removeItem('vs_space_bind_yt'); } }catch(e){}
   try{ var m=$('cmMsg'); if(m){ m.style.color=''; m.textContent='opening google…'; } }catch(e){}
   /* re-auth the account you are ALREADY on. login_hint pins it to your email so the chooser
      can never drift you onto a different google/account. only for a google you already own. */
@@ -1828,6 +1830,12 @@ function claimYouTube(session){
       try{ renderYouBar(); }catch(e){}
       try{ renderViewSwitch(); }catch(e){} /* re-enable My Dashboard now that a personal channel is verified */
       try{ toast('youtube connected + verified ✓','ok'); }catch(e){}
+      /* connected from inside a space -> also set this verified channel as the space's channel (merge, keep the other platforms) */
+      try{ var _sb=localStorage.getItem('vs_space_bind_yt')||''; if(_sb){ localStorage.removeItem('vs_space_bind_yt'); var _vch=d.channel;
+        teamsApi('my_space',{workspace_id:_sb}).then(function(sp){ var cur=(sp&&sp.channel)||{};
+          return teamsApi('space_channels',{ workspace_id:_sb, youtube:(_vch.id||_vch.handle||_vch.name||''), tiktok:cur.tiktok||'', instagram:cur.instagram||'', facebook:cur.facebook||'' }); })
+        .then(function(rr){ if(rr&&rr.ok){ try{ toast('space channel connected ✓','ok'); }catch(e){} try{ switchSpace(_sb); }catch(e){} } else { try{ toast((rr&&rr.error)||'could not set the space channel','err'); }catch(e){} } })
+        .catch(function(){ try{ toast('network hiccup setting the space channel','err'); }catch(e){} }); } }catch(e){}
       try{ if(typeof goLive==='function' && VIEW!=='space' && $('onboard') && $('onboard').classList.contains('hide')) goLive(); }catch(e){} /* re-read now that we have the real channel - but not while onboarding is still open (finishOnboard handles that) */
     } else {
       try{ toast((d&&d.error)?d.error:'could not verify your youtube, try again','err'); }catch(e){}
@@ -2002,6 +2010,11 @@ function enterHQ(){
         /* the account you actually authorized is the source of truth -> overwrite the handle typed into edit-channels */
         var _rh=(_pc.channel&&_pc.channel.handle)?String(_pc.channel.handle).replace(/^@/,''):'';
         if(_rh){ if(PROFILE) PROFILE.tiktok_handle=_rh; IDENT.tiktok=_rh; try{ renderTabs(); }catch(e){} }
+        /* connected from inside a space -> also set this TikTok as the space's channel (merge, keep the other platforms) */
+        var _stt=''; try{ _stt=localStorage.getItem('vs_space_bind_tt')||''; localStorage.removeItem('vs_space_bind_tt'); }catch(e){}
+        if(_stt && _rh){ teamsApi('my_space',{workspace_id:_stt}).then(function(sp){ var cur=(sp&&sp.channel)||{};
+            return teamsApi('space_channels',{ workspace_id:_stt, youtube:(cur.handle||cur.id||''), tiktok:_rh, instagram:cur.instagram||'', facebook:cur.facebook||'' }); })
+          .then(function(rr){ if(rr&&rr.ok){ try{ toast('space TikTok connected ✓','ok'); }catch(e){} try{ switchSpace(_stt); }catch(e){} } }).catch(function(){}); }
       }
     }catch(e){}
     if(typeof toast==='function') toast('TikTok connected ✓','ok');
@@ -2943,6 +2956,8 @@ function ttConnected(){ return !!(PROFILE && (PROFILE.tiktok_open_id || PROFILE.
 function connectTikTok(handle){
   var st='s'+Math.random().toString(36).slice(2)+Date.now().toString(36);
   try{ localStorage.setItem('vs_tt_state',st); if(handle) localStorage.setItem('vs_tt_handle',String(handle).replace(/^@/,'')); }catch(e){}
+  /* connecting from inside a space you can edit -> bind the TikTok to the SPACE, not just your personal profile */
+  try{ if(VIEW==='space' && SPACE && SPACE.workspace && canEditSpace()){ localStorage.setItem('vs_space_bind_tt', SPACE.workspace.id); } else { localStorage.removeItem('vs_space_bind_tt'); } }catch(e){}
   location.href='https://www.tiktok.com/v2/auth/authorize/'
     +'?client_key='+TT_CLIENT_KEY
     +'&scope='+encodeURIComponent('user.info.basic,user.info.profile,user.info.stats,video.list')
@@ -3536,7 +3551,7 @@ function openConnect(){
   /* YOUR identity = OAuth only (verify ownership, get real analytics); spaces (agencies) paste channels they manage */
   var _vb=$('cmYtVerify'), _vn=$('cmYtVnote'), _pr=$('cmYtPasteRow'), _st=$('cmYtStatus'), _linked=$('cmYtLinked');
   var _showV=(_connTarget==='mine');
-  if(_pr) _pr.style.display=_showV?'none':'';   /* paste row is for spaces (agencies) only; your own channel is OAuth-verified */
+  if(_pr) _pr.style.display='none';   /* no typing anymore: both your channel and a space channel connect by google login */
   if(_showV){
     /* personal channel, three states: verified (OAuth) / connected the old paste way / nothing. */
     var _has=!!(IDENT.yt && (IDENT.yt.name||IDENT.yt.id));
@@ -3564,10 +3579,18 @@ function openConnect(){
       if(_linked) _linked.style.display='none';
     }
   } else {
-    /* space channel: paste flow, no personal OAuth connect/disconnect here */
-    if(_st) _st.style.display='none';
-    if(_vb) _vb.style.display='none';
-    if(_vn) _vn.style.display='none';
+    /* space channel: connect by google login (same as the dashboard), never typing */
+    var _sc=SPACE.channel||{}, _shas=!!(_sc.id||_sc.name);
+    if(_shas){
+      if(_st){ _st.style.display='flex'; _st.style.background='hsl(150 60% 45% / .1)'; _st.style.borderColor='hsl(150 60% 45% / .32)';
+        _st.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Tracking '+esc(_sc.name||_sc.handle||'this channel')+'</b>'+(_sc.handle?(' · '+esc(_sc.handle)):'')+'<br><span class="mut">connected for the whole space. read-only.</span></span>'; }
+      if(_vb){ _vb.style.display=''; _vb.className='btn btn-ghost btn-block'; _vb.textContent='Connect a different channel'; }
+      if(_vn) _vn.style.display='none';
+    } else {
+      if(_st){ _st.style.display='none'; _st.innerHTML=''; }
+      if(_vb){ _vb.style.display=''; _vb.className='btn btn-primary btn-block'; _vb.textContent='Connect with Google, verify you own it'; }
+      if(_vn){ _vn.style.display=''; _vn.textContent='signs in with the channel’s google account and sets it as this space’s channel, everyone you invite sees it. read-only.'; }
+    }
     if(_linked) _linked.style.display='none';
   }
   /* TikTok: same connect/disconnect model as YouTube — personal = OAuth verified, space = paste a handle */
@@ -3575,7 +3598,14 @@ function openConnect(){
     var space=(_connTarget==='space'), conn=(!space && ttConnected());
     var _ts=$('cmTtStatus'), _tp=$('cmTtPasteRow'), _tc=$('cmTtConnect'), _tn=$('cmTtCnote'), _tl=$('cmTtLinked');
     if(space){
-      if(_ts) _ts.style.display='none'; if(_tp) _tp.style.display=''; if(_tc) _tc.style.display='none'; if(_tn) _tn.style.display='none'; if(_tl) _tl.style.display='none';
+      var _sct=(SPACE.channel&&SPACE.channel.tiktok)?String(SPACE.channel.tiktok).replace(/^@/,''):'';
+      if(_sct){
+        if(_ts){ _ts.style.display='flex'; _ts.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Tracking @'+esc(_sct)+'</b><br><span class="mut">connected for the whole space. read-only.</span></span>'; }
+        if(_tc){ _tc.style.display='block'; _tc.textContent='Connect a different TikTok'; } if(_tn) _tn.style.display='none';
+      } else {
+        if(_ts) _ts.style.display='none'; if(_tc){ _tc.style.display='block'; _tc.textContent='Connect with TikTok, verify you own it'; } if(_tn) _tn.style.display='block';
+      }
+      if(_tp) _tp.style.display='none'; if(_tl) _tl.style.display='none';
     } else if(conn){
       var _th=String(IDENT.tiktok||(PROFILE&&PROFILE.tiktok_handle)||'').replace(/^@/,'');
       if(_ts){ _ts.style.display='flex'; _ts.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to @'+esc(_th||'your tiktok')+'</b><br><span class="mut">verified, your per-video analytics are on. read-only.</span></span>'; }
@@ -3590,13 +3620,13 @@ function openConnect(){
   })();
   /* Instagram + Facebook: personal identity = link-only (coming soon, no typing). spaces still paste channels they manage. */
   (function(){
-    var space=(_connTarget==='space');
     [['cmIgRow','cmIgSoon'],['cmFbRow','cmFbSoon']].forEach(function(pair){
       var row=$(pair[0]), soon=$(pair[1]);
-      if(row) row.style.display=space?'':'none';
-      if(soon) soon.style.display=space?'none':'';
+      if(row) row.style.display='none';   /* no typing, ever */
+      if(soon) soon.style.display='';       /* coming soon, on your dashboard and in a space alike */
     });
   })();
+  var _sv=$('cmSave'); if(_sv) _sv.style.display=(_connTarget==='space')?'none':'';   /* space channels bind on login, there is nothing to type + save */
   $('connectModal').classList.add('on');
   setTimeout(function(){ var f=$('connectModal').querySelector('input,button'); if(f) f.focus(); },30);
 }
