@@ -1075,7 +1075,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           </label>
           <button class="btn btn-primary btn-block" id="obYtVerify" onclick="verifyYouTube()">Connect with Google, verify you own it</button>
           <div class="found" id="obFound" aria-live="polite"></div>
-          <div class="conn-note">Sign in with your channel's Google account so we pull your real numbers, retention and CTR included. This is the verified connection, it cant be faked.</div>
+          <div class="conn-note">Sign in with your channel's Google account so we read your real channel and grade it straight from your own numbers. This is the verified connection, it cant be faked.</div>
         </div>
         <div class="conn-row">
           <label for="obTt">
@@ -1119,7 +1119,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         <div class="hqe-glow" aria-hidden="true"></div>
         <div class="hqe-eyebrow">◆ your dashboard</div>
         <h2 class="hqe-title">Connect your channel,<br>get the inside scoop</h2>
-        <p class="hqe-sub">Your real grade, the fixes that actually move views, and whats about to pop off in your niche, read straight from your own numbers, retention and click-through included.</p>
+        <p class="hqe-sub">Your real grade, the fixes that actually move views, and whats about to pop off in your niche, read straight from your own channel.</p>
         <div class="hqe-plats">
           <button class="hqe-plat" onclick="verifyYouTube()" aria-label="connect YouTube">
             <svg class="pi pi-yt" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
@@ -1139,7 +1139,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           </div>
         </div>
         <div class="hqe-note">read-only · proves its your channel · cant be faked</div>
-        <div class="hqe-teasers"><span>S → F grade</span><span>niche radar</span><span>retention &amp; CTR</span><span>your next video</span></div>
+        <div class="hqe-teasers"><span>S → F grade</span><span>niche radar</span><span>posting windows</span><span>your next video</span></div>
       </div>
 
       <!-- identity header (in a space this is the space's channel; it fuses with the space card below) -->
@@ -1539,7 +1539,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
         </div>
         <div class="found" id="cmFound" aria-live="polite"></div>
         <button class="btn btn-primary btn-block" id="cmYtVerify" style="margin-top:12px;display:none" onclick="verifyYouTube()">Connect with Google, verify you own it</button>
-        <div class="sm mut" id="cmYtVnote" style="display:none;margin-top:7px;line-height:1.45">signs you in with your channel's google account and links the one you actually own. this is the verified connection, it turns on your real analytics (retention, CTR) and cant be faked.</div>
+        <div class="sm mut" id="cmYtVnote" style="display:none;margin-top:7px;line-height:1.45">signs you in with your channel's google account and links the one you actually own. this is the verified connection, your grade is read from your real numbers and cant be faked.</div>
         <div id="cmYtLinked" style="display:none;margin-top:12px">
           <button class="btn btn-ghost btn-block" id="cmYtDisc" onclick="disconnectYouTube()">Disconnect this channel</button>
           <div class="sm mut" style="margin-top:6px;line-height:1.45">unlinks the channel from your account and revokes ViralSidekick's read-only access at google. you can reconnect anytime.</div>
@@ -1773,10 +1773,15 @@ function googleAuth(){
   sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
 }
 /* ---------- connect YOUR youtube via OAuth = proven ownership (channels.list?mine=true) ---------- */
-var YT_SCOPES='openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
-/* PRE-PERMISSION PRIMER: while Google is still verifying the app, the OAuth screen throws a scary
-   "this app isnt verified" wall and most first-timers bail. priming them once - read-only, safe,
-   how to click through, keep the box checked - measurably cuts that drop-off. shows once per browser. */
+/* ONLY youtube.readonly - the one scope google APPROVED (project autotube-454123). requesting
+   any additional restricted scope (was: yt-analytics.readonly) re-triggers the "unverified app"
+   screen + the 7/100 cap for EVERY user, neutralizing the approval. re-add + re-submit
+   yt-analytics.readonly only when the retention/CTR analytics tier is actually built + used. */
+var YT_SCOPES='openid email profile https://www.googleapis.com/auth/youtube.readonly';
+/* PRE-PERMISSION PRIMER: app is now google-VERIFIED for youtube.readonly (no more "unverified" wall),
+   but google's granular-consent screen still lets users UNCHECK the YouTube box, which silently 403s
+   the read (the exact thing Lonnie hit). priming them once - read-only + keep the box checked -
+   cuts that drop-off. shows once per browser. */
 function _ytPrimer(cont){
   if(document.getElementById('ytPrimer')) return;
   var ov=document.createElement('div');
@@ -1787,9 +1792,9 @@ function _ytPrimer(cont){
     +'<div style="font-family:var(--mono,monospace);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent,#8b5cf6);margin-bottom:12px">Connecting YouTube</div>'
     +'<div style="font-size:19px;font-weight:700;color:var(--text,#eef2f7);margin-bottom:16px">Quick heads up before Google opens</div>'
     +'<ul style="margin:0 0 20px;padding:0;list-style:none;display:flex;flex-direction:column;gap:13px;font-size:14px;line-height:1.5;color:var(--muted,#9aa7b4)">'
-    +'<li>&#10003;&nbsp; We only <b style="color:var(--text,#eef2f7)">read</b> your channel and analytics. We never post, edit, or delete anything.</li>'
-    +'<li>&#9888;&nbsp; Google may flash a <b style="color:var(--text,#eef2f7)">not-verified screen</b> while we finish their review. Thats expected. Hit <b style="color:var(--text,#eef2f7)">Advanced &rarr; Continue</b>, its safe.</li>'
-    +'<li>&#9745;&nbsp; <b style="color:var(--text,#eef2f7)">Keep the YouTube boxes checked</b> or we cant read your data.</li>'
+    +'<li>&#10003;&nbsp; We only <b style="color:var(--text,#eef2f7)">read</b> your channel. We never post, edit, or delete anything.</li>'
+    +'<li>&#9745;&nbsp; On Google\'s screen, <b style="color:var(--text,#eef2f7)">keep the "See your YouTube account" box checked</b> or we cant read your data.</li>'
+    +'<li>&#128274;&nbsp; Read-only and revocable anytime in your Google account.</li>'
     +'</ul>'
     +'<div style="display:flex;gap:10px;justify-content:flex-end">'
     +'<button id="ytpNo" style="background:transparent;border:1px solid var(--line,rgba(255,255,255,.14));color:var(--muted,#9aa7b4);font-size:13px;padding:11px 16px;border-radius:8px;cursor:pointer">Not now</button>'
@@ -1882,8 +1887,9 @@ function claimYouTube(session){
     } else {
       var _em=String((d&&d.error)||'');
       if(/scope|insufficient|permission|not.*grant|access.*denied|403/i.test(_em)){
-        /* the YouTube box got unchecked on google's consent screen, so the token has no analytics
-           scope. tell them exactly what to redo instead of dumping google's raw api error. */
+        /* the "See your YouTube account" box got unchecked on google's granular-consent screen, so
+           the token has no youtube.readonly scope. tell them exactly what to redo instead of
+           dumping google's raw api error. */
         try{ toast('almost there, the youtube permission got unchecked. hit connect again and keep the "See your YouTube account" box checked so we can read your channel.','err'); }catch(e){}
       } else {
         try{ toast(_em||'could not verify your youtube, try again','err'); }catch(e){}
@@ -3666,14 +3672,14 @@ function openConnect(){
     var _sb=IDENT.yt.subs?(' · '+esc(String(IDENT.yt.subs))):'';   /* subs value may already carry the word "subscribers" */
     if(_ver){
       if(_st){ _st.style.display='flex'; _st.style.background='hsl(150 60% 45% / .1)'; _st.style.borderColor='hsl(150 60% 45% / .32)';
-        _st.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to '+_nm+'</b>'+_hd+_sb+'<br><span class="mut">verified, your real analytics (retention, CTR) are on. read-only.</span></span>'; }
+        _st.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to '+_nm+'</b>'+_hd+_sb+'<br><span class="mut">verified, your grade reads from your real numbers. read-only.</span></span>'; }
       if(_vb){ _vb.style.display=''; _vb.className='btn btn-ghost btn-block'; _vb.textContent='Reconnect a different channel'; }
       if(_vn) _vn.style.display='none';
       if(_linked) _linked.style.display='';
     } else if(_has){
       /* connected the old (paste) way: acknowledge it, but nudge to verify for real analytics */
       if(_st){ _st.style.display='flex'; _st.style.background='hsl(38 92% 55% / .1)'; _st.style.borderColor='hsl(38 92% 55% / .34)';
-        _st.innerHTML='<span style="font-size:1.1rem;line-height:1">◐</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to '+_nm+'</b>'+_hd+_sb+' <span class="mut">(basic)</span><br><span class="mut">verify with Google to prove you own it and turn on real analytics (retention, CTR).</span></span>'; }
+        _st.innerHTML='<span style="font-size:1.1rem;line-height:1">◐</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Connected to '+_nm+'</b>'+_hd+_sb+' <span class="mut">(basic)</span><br><span class="mut">verify with Google to prove you own it so your grade reads from your real numbers.</span></span>'; }
       if(_vb){ _vb.style.display=''; _vb.className='btn btn-primary btn-block'; _vb.textContent='Connect with Google, verify you own it'; }
       if(_vn) _vn.style.display='none';   /* the status line already explains it */
       if(_linked) _linked.style.display='';
