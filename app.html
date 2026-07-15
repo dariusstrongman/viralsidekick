@@ -1991,10 +1991,11 @@ function renderDeep(err){
   tile.style.display='';
   if(!IS_PRO){ body.innerHTML='<div class="tsub" style="line-height:1.5">Real retention curves, watch time and average-view-%, pulled straight from your YouTube Studio, the numbers no free tool can see. <a href="'+proHref()+'" target="_blank" rel="noopener" style="color:var(--accent)">unlock with Pro, 7-day free trial &rarr;</a></div>'; return; }
   if(DEEP && DEEP.ok){ body.innerHTML=deepHtml(DEEP); return; }
-  if(err==='analytics_scope'){ body.innerHTML='<div class="tsub" style="line-height:1.5">looks like a box got unchecked, so we couldnt read your analytics. <button class="mini-act p" onclick="connectAnalytics()">reconnect deep analytics</button></div>'; return; }
+  if(err==='analytics_scope'){ body.innerHTML='<div class="tsub" style="line-height:1.5">couldnt read your analytics, a permission box may have been unchecked. <button class="mini-act p" onclick="verifyYouTube()">reconnect youtube</button></div>'; return; }
   if(err==='analytics_unavailable'){ body.innerHTML='<div class="tsub">youtube analytics is warming up (it lags a day or two, and needs a little watch history). check back soon.</div>'; return; }
   if(_deepLoading){ body.innerHTML='<div class="tsub">reading your studio numbers…</div>'; return; }
-  if(!_deepOn()){ body.innerHTML='<div class="tsub" style="line-height:1.5">See exactly where viewers drop off, your true watch time and average-view-%, read from your real Studio data. <button class="mini-act p" onclick="connectAnalytics()">◍ turn on deep analytics</button></div>'; return; }
+  /* youtube.readonly (already google-approved) covers the Analytics API - no extra consent, no wall.
+     auto-pull the real numbers for any Pro, verified channel. */
   body.innerHTML='<div class="tsub">reading your studio numbers…</div>'; loadYtAnalytics();
 }
 
