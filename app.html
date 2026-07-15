@@ -1815,15 +1815,16 @@ function _ytPrimer(cont){
 function verifyYouTube(){
   var _primed=false; try{ _primed=!!localStorage.getItem('vs_yt_primed'); }catch(e){}
   if(!_primed){ _ytPrimer(function(){ try{ localStorage.setItem('vs_yt_primed','1'); }catch(e){} verifyYouTube(); }); return; }
-  var opts={ scopes:YT_SCOPES, redirectTo: location.origin + location.pathname + '?ytconnect=1', queryParams:{ access_type:'offline', prompt:'consent' } };
+  var opts={ scopes:YT_SCOPES, redirectTo: location.origin + location.pathname + '?ytconnect=1', queryParams:{ access_type:'offline', prompt:'select_account consent' } };
   /* the OAuth redirect leaves the page - stash the onboarding picks so they survive the round-trip */
   try{ if($('onboard') && !$('onboard').classList.contains('hide')){ localStorage.setItem('vs_ob_draft', JSON.stringify({ u:($('obName')&&$('obName').value)||'', a:_obAvatar||'', b:_obBanner||'' })); } }catch(e){}
   /* connecting from inside a space you can edit -> this login binds the channel to the SPACE (same flow as the dashboard, no typing) */
   try{ if(VIEW==='space' && SPACE && SPACE.workspace && canEditSpace()){ localStorage.setItem('vs_space_bind_yt', SPACE.workspace.id); } else { localStorage.removeItem('vs_space_bind_yt'); } }catch(e){}
   try{ var m=$('cmMsg'); if(m){ m.style.color=''; m.textContent='opening google…'; } }catch(e){}
-  /* re-auth the account you are ALREADY on. login_hint pins it to your email so the chooser
-     can never drift you onto a different google/account. only for a google you already own. */
-  var _reauth=function(){ var o2={ scopes:opts.scopes, redirectTo:opts.redirectTo, queryParams:{ access_type:'offline', prompt:'consent' } }; if(USER&&USER.email) o2.queryParams.login_hint=USER.email; sb.auth.signInWithOAuth({ provider:'google', options:o2 }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
+  /* ALWAYS show google's account chooser (prompt=select_account, no login_hint) so you can connect a
+     DIFFERENT google than your signup one, or a channel that lives on another account. login_hint used
+     to pin you to your signup gmail and skip the chooser, trapping you on that account's brand list. */
+  var _reauth=function(){ var o2={ scopes:opts.scopes, redirectTo:opts.redirectTo, queryParams:{ access_type:'offline', prompt:'select_account consent' } }; sb.auth.signInWithOAuth({ provider:'google', options:o2 }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
   if(USER && _hasGoogle()){
     /* GOOGLE-SIGNUP (or google already linked): the google identity is already on this
        account, so linkIdentity would only ever error 'already linked'. re-auth the same
