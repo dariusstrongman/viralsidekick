@@ -1776,7 +1776,9 @@ function emailAuth(){
   });
 }
 function googleAuth(){
-  sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
+  /* prompt=select_account -> always land on google's "choose an account" page, never silently
+     reuse the last-used session. lets you sign in with whichever gmail you want, every time. */
+  sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname, queryParams:{ prompt:'select_account' } } });
 }
 /* ---------- connect YOUR youtube via OAuth = proven ownership (channels.list?mine=true) ---------- */
 /* ONLY youtube.readonly - the one scope google APPROVED (project autotube-454123). requesting
