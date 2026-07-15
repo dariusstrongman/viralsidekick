@@ -1702,14 +1702,13 @@ try{
   }
 }catch(e){}
 var RECOVERY=false;
-sb.auth.getSession().then(function(r){ route(r.data.session); try{ if(r.data.session && r.data.session.provider_token) claimYouTube(r.data.session); }catch(e){} try{ if(r.data.session) claimAnalytics(r.data.session); }catch(e){} });
+sb.auth.getSession().then(function(r){ route(r.data.session); try{ if(r.data.session && r.data.session.provider_token) claimYouTube(r.data.session); }catch(e){} });
 sb.auth.onAuthStateChange(function(ev, session){
   if(ev==='PASSWORD_RECOVERY'){ RECOVERY=true; }
   route(session);
   if(RECOVERY && session){ RECOVERY=false; $('pwModal').classList.add('on'); }
   /* a fresh provider_token only appears right after a Google/YouTube OAuth return -> claim ownership */
   try{ if(session && session.provider_token) claimYouTube(session); }catch(e){}
-  try{ if(session) claimAnalytics(session); }catch(e){}
 });
 /* MONEY SAFETY NET: intercept EVERY Stripe checkout click and rebuild the URL with the
    signed-in user's client_reference_id at click time. no matter what raw href sits in the
@@ -1906,65 +1905,11 @@ function claimYouTube(session){
     }
   }).catch(function(){ try{ toast('network hiccup verifying youtube','err'); }catch(e){} });
 }
-/* ================= DEEP ANALYTICS (Pro: real YouTube Studio retention + watch-time) =================
-   incremental scope on top of the approved youtube.readonly. base connect stays clean; only a Pro
-   user who clicks "turn on deep analytics" ever requests yt-analytics.readonly (still in google review). */
-var YT_ANALYTICS_SCOPES = YT_SCOPES + ' https://www.googleapis.com/auth/yt-analytics.readonly';
+/* ================= DEEP ANALYTICS (Pro: real YouTube Studio numbers) =================
+   youtube.readonly (already google-approved) covers the YouTube Analytics API, so this needs NO
+   extra scope, consent, or wall - it auto-loads for any Pro/team verified channel. */
 var DEEP=null, _deepLoading=false;
-function _deepOn(){ try{ return !!localStorage.getItem('vs_yt_analytics_'+_nsU()); }catch(e){ return false; } }
-function _setDeepOn(v){ try{ if(v) localStorage.setItem('vs_yt_analytics_'+_nsU(),'1'); else localStorage.removeItem('vs_yt_analytics_'+_nsU()); }catch(e){} }
 function proHref(){ try{ return ($('proBtn')&&$('proBtn').href)||PRO_MONTHLY; }catch(e){ return PRO_MONTHLY; } }
-
-/* SEPARATE primer - unlike youtube.readonly (approved), yt-analytics.readonly is still in google
-   review, so the not-verified wall IS real here until they finish. keep the Advanced->Continue guidance. */
-function _ytAnalyticsPrimer(cont){
-  if(document.getElementById('ytaPrimer')) return;
-  var ov=document.createElement('div');
-  ov.id='ytaPrimer'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
-  ov.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(4,6,12,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)';
-  ov.innerHTML=''
-    +'<div style="max-width:452px;width:100%;background:var(--panel,#0e1320);border:1px solid var(--line,rgba(255,255,255,.1));border-radius:14px;padding:26px 24px;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">'
-    +'<div style="font-family:var(--mono,monospace);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent,#8b5cf6);margin-bottom:12px">Turning on deep analytics</div>'
-    +'<div style="font-size:19px;font-weight:700;color:var(--text,#eef2f7);margin-bottom:16px">This reads your private Studio numbers</div>'
-    +'<ul style="margin:0 0 20px;padding:0;list-style:none;display:flex;flex-direction:column;gap:13px;font-size:14px;line-height:1.5;color:var(--muted,#9aa7b4)">'
-    +'<li>&#10003;&nbsp; Unlocks <b style="color:var(--text,#eef2f7)">real retention and watch-time</b> only you can see in YouTube Studio. Read-only, we never post or change anything.</li>'
-    +'<li>&#9888;&nbsp; Google is still reviewing this deeper permission, so you may hit a <b style="color:var(--text,#eef2f7)">not-verified screen</b>. Thats expected. Hit <b style="color:var(--text,#eef2f7)">Advanced &rarr; Continue</b>, its safe.</li>'
-    +'<li>&#9745;&nbsp; <b style="color:var(--text,#eef2f7)">Keep every box checked</b> or we cant read your analytics.</li>'
-    +'</ul>'
-    +'<div style="display:flex;gap:10px;justify-content:flex-end">'
-    +'<button id="ytaNo" style="background:transparent;border:1px solid var(--line,rgba(255,255,255,.14));color:var(--muted,#9aa7b4);font-size:13px;padding:11px 16px;border-radius:8px;cursor:pointer">Not now</button>'
-    +'<button id="ytaGo" style="background:var(--accent,#8b5cf6);border:0;color:#fff;font-weight:700;font-size:13px;padding:11px 18px;border-radius:8px;cursor:pointer">Continue to Google</button>'
-    +'</div></div>';
-  document.body.appendChild(ov);
-  var close=function(){ try{ ov.remove(); }catch(e){} };
-  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
-  document.getElementById('ytaNo').onclick=close;
-  document.getElementById('ytaGo').onclick=function(){ close(); try{ cont&&cont(); }catch(e){} };
-}
-
-function connectAnalytics(){
-  if(!IS_PRO){ try{ toast('deep analytics is a Pro feature. start the free trial to turn it on.','err'); }catch(e){} return; }
-  var _p=false; try{ _p=!!localStorage.getItem('vs_yta_primed'); }catch(e){}
-  if(!_p){ _ytAnalyticsPrimer(function(){ try{ localStorage.setItem('vs_yta_primed','1'); }catch(e){} connectAnalytics(); }); return; }
-  var opts={ scopes:YT_ANALYTICS_SCOPES, redirectTo: location.origin + location.pathname + '?ytanalytics=1', queryParams:{ access_type:'offline', prompt:'consent' } };
-  try{ toast('opening google…','ok'); }catch(e){}
-  var _reauth=function(){ var o2={ scopes:opts.scopes, redirectTo:opts.redirectTo, queryParams:{ access_type:'offline', prompt:'consent' } }; if(USER&&USER.email) o2.queryParams.login_hint=USER.email; sb.auth.signInWithOAuth({ provider:'google', options:o2 }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
-  if(USER && _hasGoogle()){ _reauth(); }
-  else if(USER && sb.auth.linkIdentity){ sb.auth.linkIdentity({ provider:'google', options:opts }).then(function(r){ if(r&&r.error){ var em=String(r.error.message||''); if(/manual linking|already|linked|identity.*exist/i.test(em)) _reauth(); else toast(em||'could not open google','err'); } }); }
-  else { _reauth(); }
-}
-
-/* on return from the analytics consent (?ytanalytics=1): persist the richer refresh token, flag deep on, render now */
-function claimAnalytics(session){
-  if(!session || !session.provider_token) return;
-  if(location.search.indexOf('ytanalytics')<0) return;
-  if(window._ytaClaimed===session.provider_token) return;
-  window._ytaClaimed=session.provider_token;
-  try{ if(location.search.indexOf('ytanalytics')>-1) history.replaceState({}, '', location.pathname); }catch(e){}
-  try{ fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ mode:'yt_verify', token:session.access_token, provider_token:session.provider_token, provider_refresh_token:session.provider_refresh_token||'' })}); }catch(e){}
-  _setDeepOn(true);
-  loadYtAnalytics(session.provider_token);
-}
 
 function loadYtAnalytics(ptok){
   if(_deepLoading) return; _deepLoading=true;
@@ -1975,9 +1920,8 @@ function loadYtAnalytics(ptok){
     fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ mode:'yt_analytics', token:tok, provider_token:ptok||'' })})
       .then(function(r){return r.json();}).then(function(d){
         _deepLoading=false;
-        if(d && d.ok){ DEEP=d; _setDeepOn(true); }
+        if(d && d.ok){ DEEP=d; }
         else if(d && d.error==='pro_required'){ IS_PRO=false; }
-        else if(d && (d.error==='connect_analytics'||d.error==='analytics_scope')){ _setDeepOn(false); }
         try{ renderDeep(d && d.error); }catch(e){}
       }).catch(function(){ _deepLoading=false; try{ renderDeep('network'); }catch(e){} });
   }).catch(function(){ _deepLoading=false; });
