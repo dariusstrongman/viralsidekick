@@ -1261,7 +1261,12 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
           </div>
         </div>
 
-<div class="tile s6" id="tSignals" style="--tc:var(--primary)">
+<div class="tile s6" id="tDeep" style="--tc:var(--accent);display:none">
+          <h3><span class="acc" aria-hidden="true">◍</span> deep analytics <span class="end" id="deepEnd">your real studio numbers · Pro</span></h3>
+          <div id="deepBody"><div class="tsub">loading your deep analytics…</div></div>
+        </div>
+
+        <div class="tile s6" id="tSignals" style="--tc:var(--primary)">
           <h3><span class="acc" aria-hidden="true">◬</span> deep signals <span class="end">computed from every field the feed exposes</span></h3>
           <div id="signalsBody"><div class="tsub">Engagement, title DNA, power words, hidden gems, measured live off your feed.</div></div>
         </div>
@@ -1697,13 +1702,14 @@ try{
   }
 }catch(e){}
 var RECOVERY=false;
-sb.auth.getSession().then(function(r){ route(r.data.session); try{ if(r.data.session && r.data.session.provider_token) claimYouTube(r.data.session); }catch(e){} });
+sb.auth.getSession().then(function(r){ route(r.data.session); try{ if(r.data.session && r.data.session.provider_token) claimYouTube(r.data.session); }catch(e){} try{ if(r.data.session) claimAnalytics(r.data.session); }catch(e){} });
 sb.auth.onAuthStateChange(function(ev, session){
   if(ev==='PASSWORD_RECOVERY'){ RECOVERY=true; }
   route(session);
   if(RECOVERY && session){ RECOVERY=false; $('pwModal').classList.add('on'); }
   /* a fresh provider_token only appears right after a Google/YouTube OAuth return -> claim ownership */
   try{ if(session && session.provider_token) claimYouTube(session); }catch(e){}
+  try{ if(session) claimAnalytics(session); }catch(e){}
 });
 /* MONEY SAFETY NET: intercept EVERY Stripe checkout click and rebuild the URL with the
    signed-in user's client_reference_id at click time. no matter what raw href sits in the
@@ -1897,6 +1903,135 @@ function claimYouTube(session){
     }
   }).catch(function(){ try{ toast('network hiccup verifying youtube','err'); }catch(e){} });
 }
+/* ================= DEEP ANALYTICS (Pro: real YouTube Studio retention + watch-time) =================
+   incremental scope on top of the approved youtube.readonly. base connect stays clean; only a Pro
+   user who clicks "turn on deep analytics" ever requests yt-analytics.readonly (still in google review). */
+var YT_ANALYTICS_SCOPES = YT_SCOPES + ' https://www.googleapis.com/auth/yt-analytics.readonly';
+var DEEP=null, _deepLoading=false;
+function _deepOn(){ try{ return !!localStorage.getItem('vs_yt_analytics_'+_nsU()); }catch(e){ return false; } }
+function _setDeepOn(v){ try{ if(v) localStorage.setItem('vs_yt_analytics_'+_nsU(),'1'); else localStorage.removeItem('vs_yt_analytics_'+_nsU()); }catch(e){} }
+function proHref(){ try{ return ($('proBtn')&&$('proBtn').href)||PRO_MONTHLY; }catch(e){ return PRO_MONTHLY; } }
+
+/* SEPARATE primer - unlike youtube.readonly (approved), yt-analytics.readonly is still in google
+   review, so the not-verified wall IS real here until they finish. keep the Advanced->Continue guidance. */
+function _ytAnalyticsPrimer(cont){
+  if(document.getElementById('ytaPrimer')) return;
+  var ov=document.createElement('div');
+  ov.id='ytaPrimer'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(4,6,12,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)';
+  ov.innerHTML=''
+    +'<div style="max-width:452px;width:100%;background:var(--panel,#0e1320);border:1px solid var(--line,rgba(255,255,255,.1));border-radius:14px;padding:26px 24px;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">'
+    +'<div style="font-family:var(--mono,monospace);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent,#8b5cf6);margin-bottom:12px">Turning on deep analytics</div>'
+    +'<div style="font-size:19px;font-weight:700;color:var(--text,#eef2f7);margin-bottom:16px">This reads your private Studio numbers</div>'
+    +'<ul style="margin:0 0 20px;padding:0;list-style:none;display:flex;flex-direction:column;gap:13px;font-size:14px;line-height:1.5;color:var(--muted,#9aa7b4)">'
+    +'<li>&#10003;&nbsp; Unlocks <b style="color:var(--text,#eef2f7)">real retention and watch-time</b> only you can see in YouTube Studio. Read-only, we never post or change anything.</li>'
+    +'<li>&#9888;&nbsp; Google is still reviewing this deeper permission, so you may hit a <b style="color:var(--text,#eef2f7)">not-verified screen</b>. Thats expected. Hit <b style="color:var(--text,#eef2f7)">Advanced &rarr; Continue</b>, its safe.</li>'
+    +'<li>&#9745;&nbsp; <b style="color:var(--text,#eef2f7)">Keep every box checked</b> or we cant read your analytics.</li>'
+    +'</ul>'
+    +'<div style="display:flex;gap:10px;justify-content:flex-end">'
+    +'<button id="ytaNo" style="background:transparent;border:1px solid var(--line,rgba(255,255,255,.14));color:var(--muted,#9aa7b4);font-size:13px;padding:11px 16px;border-radius:8px;cursor:pointer">Not now</button>'
+    +'<button id="ytaGo" style="background:var(--accent,#8b5cf6);border:0;color:#fff;font-weight:700;font-size:13px;padding:11px 18px;border-radius:8px;cursor:pointer">Continue to Google</button>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  var close=function(){ try{ ov.remove(); }catch(e){} };
+  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
+  document.getElementById('ytaNo').onclick=close;
+  document.getElementById('ytaGo').onclick=function(){ close(); try{ cont&&cont(); }catch(e){} };
+}
+
+function connectAnalytics(){
+  if(!IS_PRO){ try{ toast('deep analytics is a Pro feature. start the free trial to turn it on.','err'); }catch(e){} return; }
+  var _p=false; try{ _p=!!localStorage.getItem('vs_yta_primed'); }catch(e){}
+  if(!_p){ _ytAnalyticsPrimer(function(){ try{ localStorage.setItem('vs_yta_primed','1'); }catch(e){} connectAnalytics(); }); return; }
+  var opts={ scopes:YT_ANALYTICS_SCOPES, redirectTo: location.origin + location.pathname + '?ytanalytics=1', queryParams:{ access_type:'offline', prompt:'consent' } };
+  try{ toast('opening google…','ok'); }catch(e){}
+  var _reauth=function(){ var o2={ scopes:opts.scopes, redirectTo:opts.redirectTo, queryParams:{ access_type:'offline', prompt:'consent' } }; if(USER&&USER.email) o2.queryParams.login_hint=USER.email; sb.auth.signInWithOAuth({ provider:'google', options:o2 }).then(function(r){ if(r&&r.error){ try{ toast(r.error.message||'could not open google','err'); }catch(e){} } }); };
+  if(USER && _hasGoogle()){ _reauth(); }
+  else if(USER && sb.auth.linkIdentity){ sb.auth.linkIdentity({ provider:'google', options:opts }).then(function(r){ if(r&&r.error){ var em=String(r.error.message||''); if(/manual linking|already|linked|identity.*exist/i.test(em)) _reauth(); else toast(em||'could not open google','err'); } }); }
+  else { _reauth(); }
+}
+
+/* on return from the analytics consent (?ytanalytics=1): persist the richer refresh token, flag deep on, render now */
+function claimAnalytics(session){
+  if(!session || !session.provider_token) return;
+  if(location.search.indexOf('ytanalytics')<0) return;
+  if(window._ytaClaimed===session.provider_token) return;
+  window._ytaClaimed=session.provider_token;
+  try{ if(location.search.indexOf('ytanalytics')>-1) history.replaceState({}, '', location.pathname); }catch(e){}
+  try{ fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ mode:'yt_verify', token:session.access_token, provider_token:session.provider_token, provider_refresh_token:session.provider_refresh_token||'' })}); }catch(e){}
+  _setDeepOn(true);
+  loadYtAnalytics(session.provider_token);
+}
+
+function loadYtAnalytics(ptok){
+  if(_deepLoading) return; _deepLoading=true;
+  try{ renderDeep(); }catch(e){}
+  sb.auth.getSession().then(function(r){
+    var tok=r&&r.data&&r.data.session&&r.data.session.access_token;
+    if(!tok){ _deepLoading=false; return; }
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ mode:'yt_analytics', token:tok, provider_token:ptok||'' })})
+      .then(function(r){return r.json();}).then(function(d){
+        _deepLoading=false;
+        if(d && d.ok){ DEEP=d; _setDeepOn(true); }
+        else if(d && d.error==='pro_required'){ IS_PRO=false; }
+        else if(d && (d.error==='connect_analytics'||d.error==='analytics_scope')){ _setDeepOn(false); }
+        try{ renderDeep(d && d.error); }catch(e){}
+      }).catch(function(){ _deepLoading=false; try{ renderDeep('network'); }catch(e){} });
+  }).catch(function(){ _deepLoading=false; });
+}
+
+function renderDeep(err){
+  var tile=$('tDeep'), body=$('deepBody'); if(!tile||!body) return;
+  var verified=!!(PROFILE && PROFILE.youtube_verified);
+  /* only on the personal YouTube dashboard with a verified (OAuth) channel */
+  if(PLATFORM!=='youtube' || VIEW==='space' || !verified){ tile.style.display='none'; return; }
+  tile.style.display='';
+  if(!IS_PRO){ body.innerHTML='<div class="tsub" style="line-height:1.5">Real retention curves, watch time and average-view-%, pulled straight from your YouTube Studio, the numbers no free tool can see. <a href="'+proHref()+'" target="_blank" rel="noopener" style="color:var(--accent)">unlock with Pro, 7-day free trial &rarr;</a></div>'; return; }
+  if(DEEP && DEEP.ok){ body.innerHTML=deepHtml(DEEP); return; }
+  if(err==='analytics_scope'){ body.innerHTML='<div class="tsub" style="line-height:1.5">looks like a box got unchecked, so we couldnt read your analytics. <button class="mini-act p" onclick="connectAnalytics()">reconnect deep analytics</button></div>'; return; }
+  if(err==='analytics_unavailable'){ body.innerHTML='<div class="tsub">youtube analytics is warming up (it lags a day or two, and needs a little watch history). check back soon.</div>'; return; }
+  if(_deepLoading){ body.innerHTML='<div class="tsub">reading your studio numbers…</div>'; return; }
+  if(!_deepOn()){ body.innerHTML='<div class="tsub" style="line-height:1.5">See exactly where viewers drop off, your true watch time and average-view-%, read from your real Studio data. <button class="mini-act p" onclick="connectAnalytics()">◍ turn on deep analytics</button></div>'; return; }
+  body.innerHTML='<div class="tsub">reading your studio numbers…</div>'; loadYtAnalytics();
+}
+
+function deepHtml(d){
+  var c=d.channel||{}, vids=d.videos||[], ret=d.retention;
+  var fmt=function(n){ n=Number(n)||0; var neg=n<0; n=Math.abs(n); var s=n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':String(Math.round(n)); return (neg?'-':'')+s; };
+  var mins=Number(c.minutes_watched)||0, hrs=mins/60, watchDisp=hrs>=1?(fmt(hrs)+' hrs'):(Math.round(mins)+' min');
+  var avd=Number(c.avg_view_seconds)||0, avdDisp=(avd>=60?(Math.floor(avd/60)+'m '+(avd%60)+'s'):(avd+'s'));
+  var net=(Number(c.subs_gained)||0)-(Number(c.subs_lost)||0);
+  var h='<div class="vit" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">'
+    +'<div class="v"><div class="n">'+(c.avg_view_pct!=null?c.avg_view_pct+'%':'-')+'</div><div class="l">avg viewed</div></div>'
+    +'<div class="v"><div class="n">'+watchDisp+'</div><div class="l">watch time · 28d</div></div>'
+    +'<div class="v"><div class="n">'+avdDisp+'</div><div class="l">avg view</div></div>'
+    +'<div class="v"><div class="n">'+(net>=0?'+':'')+fmt(net)+'</div><div class="l">net subs · 28d</div></div>'
+    +'</div>';
+  if(ret && ret.points && ret.points.length>1){
+    h+='<div style="font-size:.72rem;color:var(--faint);margin:0 0 4px;letter-spacing:.03em">retention · '+esc(String(ret.title||'your top video').slice(0,52))+'</div>'+retSpark(ret.points);
+  }
+  if(vids.length){
+    h+='<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">';
+    vids.slice(0,6).forEach(function(v){
+      var p=Number(v.avg_view_pct)||0, col=p>=50?'var(--accent)':p>=35?'var(--warning,#e0a800)':'var(--danger,#e5484d)';
+      h+='<div style="display:flex;align-items:center;gap:9px;font-size:.76rem">'
+        +'<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)">'+esc(String(v.title||'untitled').slice(0,60))+'</div>'
+        +'<div style="color:var(--faint);font-variant-numeric:tabular-nums">'+fmt(v.views)+' views</div>'
+        +'<div style="width:44px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:'+col+'">'+p+'%</div>'
+        +'</div>';
+    });
+    h+='</div>';
+  }
+  h+='<div style="margin-top:11px;font-size:.68rem;color:var(--faint)">real YouTube Studio data · last 28 days · read-only</div>';
+  return h;
+}
+function retSpark(points){
+  var w=100,hgt=30, pts=points.slice().sort(function(a,b){return (Number(a.ratio)||0)-(Number(b.ratio)||0);});
+  var max=0.01; pts.forEach(function(p){ if((Number(p.watch)||0)>max) max=Number(p.watch); });
+  var d=pts.map(function(p,i){ var x=(pts.length>1?(i/(pts.length-1)):0)*w; var y=hgt-((Number(p.watch)||0)/max)*hgt; return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1); }).join(' ');
+  return '<svg viewBox="0 0 '+w+' '+hgt+'" preserveAspectRatio="none" style="width:100%;height:38px;display:block;margin-bottom:2px" aria-hidden="true"><path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>';
+}
+
 function logout(){
   /* purge every per-account cache + reset in-memory state so nothing from this account
      can flash for the next person on a shared browser (was: signOut only). */
@@ -2393,7 +2528,7 @@ function spaceFallback(){ var e=$('tcMembers'); if(e) e.innerHTML='<div class="t
 /* single source of truth for entitlement. own paid plan (with a live status) OR a team-plan workspace.
    recomputed on every profile/space change so leaving a team actually drops Pro instead of staying stuck true. */
 function ownPro(){ return (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROFILE.plan_status==null || PROFILE.plan_status==='active' || PROFILE.plan_status==='trialing'); }
-function recomputePro(){ IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); try{ renderPro(); }catch(e){} }
+function recomputePro(){ IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); try{ renderPro(); }catch(e){} try{ renderDeep(); }catch(e){} }
 function syncTeamPro(){ recomputePro(); }
 function seatLabel(){ if(!(SPACE&&SPACE.workspace)) return ''; var n=(SPACE.members&&SPACE.members.length)||0; return (SPACE.workspace.plan==='team')?'<span style="color:hsl(45 95% 62%)">'+n+'/5 seats</span>':n+'/5 seats'; }
 /* transient status for space actions (invite sent, errors). its own line under the
@@ -3339,6 +3474,7 @@ function goLive(){
     return;
   }
   liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals();
+  try{ renderDeep(); }catch(e){} /* Pro deep-analytics tile: shows upsell / turn-on / real studio numbers */
 }
 
 /* ============ LIVE PULSE: flip odometers polling real counts ============ */
