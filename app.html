@@ -1774,7 +1774,36 @@ function googleAuth(){
 }
 /* ---------- connect YOUR youtube via OAuth = proven ownership (channels.list?mine=true) ---------- */
 var YT_SCOPES='openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
+/* PRE-PERMISSION PRIMER: while Google is still verifying the app, the OAuth screen throws a scary
+   "this app isnt verified" wall and most first-timers bail. priming them once - read-only, safe,
+   how to click through, keep the box checked - measurably cuts that drop-off. shows once per browser. */
+function _ytPrimer(cont){
+  if(document.getElementById('ytPrimer')) return;
+  var ov=document.createElement('div');
+  ov.id='ytPrimer'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(4,6,12,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)';
+  ov.innerHTML=''
+    +'<div style="max-width:440px;width:100%;background:var(--panel,#0e1320);border:1px solid var(--line,rgba(255,255,255,.1));border-radius:14px;padding:26px 24px;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">'
+    +'<div style="font-family:var(--mono,monospace);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent,#8b5cf6);margin-bottom:12px">Connecting YouTube</div>'
+    +'<div style="font-size:19px;font-weight:700;color:var(--text,#eef2f7);margin-bottom:16px">Quick heads up before Google opens</div>'
+    +'<ul style="margin:0 0 20px;padding:0;list-style:none;display:flex;flex-direction:column;gap:13px;font-size:14px;line-height:1.5;color:var(--muted,#9aa7b4)">'
+    +'<li>&#10003;&nbsp; We only <b style="color:var(--text,#eef2f7)">read</b> your channel and analytics. We never post, edit, or delete anything.</li>'
+    +'<li>&#9888;&nbsp; Google may flash a <b style="color:var(--text,#eef2f7)">not-verified screen</b> while we finish their review. Thats expected. Hit <b style="color:var(--text,#eef2f7)">Advanced &rarr; Continue</b>, its safe.</li>'
+    +'<li>&#9745;&nbsp; <b style="color:var(--text,#eef2f7)">Keep the YouTube boxes checked</b> or we cant read your data.</li>'
+    +'</ul>'
+    +'<div style="display:flex;gap:10px;justify-content:flex-end">'
+    +'<button id="ytpNo" style="background:transparent;border:1px solid var(--line,rgba(255,255,255,.14));color:var(--muted,#9aa7b4);font-size:13px;padding:11px 16px;border-radius:8px;cursor:pointer">Not now</button>'
+    +'<button id="ytpGo" style="background:var(--accent,#8b5cf6);border:0;color:#fff;font-weight:700;font-size:13px;padding:11px 18px;border-radius:8px;cursor:pointer">Continue to Google</button>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  function close(){ if(ov.parentNode) ov.parentNode.removeChild(ov); }
+  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
+  document.getElementById('ytpNo').onclick=close;
+  document.getElementById('ytpGo').onclick=function(){ close(); try{ cont&&cont(); }catch(e){} };
+}
 function verifyYouTube(){
+  var _primed=false; try{ _primed=!!localStorage.getItem('vs_yt_primed'); }catch(e){}
+  if(!_primed){ _ytPrimer(function(){ try{ localStorage.setItem('vs_yt_primed','1'); }catch(e){} verifyYouTube(); }); return; }
   var opts={ scopes:YT_SCOPES, redirectTo: location.origin + location.pathname + '?ytconnect=1', queryParams:{ access_type:'offline', prompt:'consent' } };
   /* the OAuth redirect leaves the page - stash the onboarding picks so they survive the round-trip */
   try{ if($('onboard') && !$('onboard').classList.contains('hide')){ localStorage.setItem('vs_ob_draft', JSON.stringify({ u:($('obName')&&$('obName').value)||'', a:_obAvatar||'', b:_obBanner||'' })); } }catch(e){}
@@ -3021,8 +3050,15 @@ function renderAlt(p){
 /* SANDBOX for TikTok app review demo. PROD key = awh6cexulusud4f9 — swap back here on approval. */
 var TT_CLIENT_KEY='sbawxnm2n2jdso8c5d';
 function ttConnected(){ return !!(PROFILE && (PROFILE.tiktok_open_id || PROFILE.tiktok_connected_at)); }
+/* only these accounts are allow-listed on the TikTok sandbox, so only they can complete a connect
+   while review is pending. everyone else gets the honest "in review" state, never a dead error. */
+function _ttTester(){ try{ var e=(USER&&USER.email||'').toLowerCase(); return e==='dariusstroman@gmail.com'||e==='mrstarkitsperfect@gmail.com'; }catch(_){ return false; } }
+function _ttSandbox(){ return String(TT_CLIENT_KEY).slice(0,2)==='sb'; }
 /* start TikTok OAuth (Login Kit). client key is public; the secret + token exchange live server-side. */
 function connectTikTok(handle){
+  /* GATE: on the sandbox key (review pending) a non-tester who authorizes just hits a TikTok error.
+     show the honest state instead. auto-disables the instant the prod key is swapped in (no 'sb' prefix). */
+  if(_ttSandbox() && !_ttTester()){ try{ toast('TikTok deep-connect is in final review with TikTok. your free TikTok grade works right now, and connect flips on the moment they approve.','ok'); }catch(e){} return; }
   var st='s'+Math.random().toString(36).slice(2)+Date.now().toString(36);
   try{ localStorage.setItem('vs_tt_state',st); if(handle) localStorage.setItem('vs_tt_handle',String(handle).replace(/^@/,'')); }catch(e){}
   /* connecting from inside a space you can edit -> bind the TikTok to the SPACE, not just your personal profile */
