@@ -1943,41 +1943,76 @@ function renderDeep(err){
   body.innerHTML='<div class="tsub">reading your studio numbers…</div>'; loadYtAnalytics();
 }
 
+function _dFmt(n){ n=Number(n)||0; var neg=n<0; n=Math.abs(n); var s=n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':String(Math.round(n)); return (neg?'-':'')+s; }
+function _dClamp(p){ p=Number(p)||0; return p>100?100:(p<0?0:p); }
+function _dStat(val,label){ return '<div style="display:flex;flex-direction:column;gap:1px"><div style="font-size:1.15rem;font-weight:700;color:var(--fg,#eef2f7);font-variant-numeric:tabular-nums;line-height:1.1">'+val+'</div><div style="font-size:.62rem;color:var(--faint,#6b7280);letter-spacing:.02em">'+label+'</div></div>'; }
 function deepHtml(d){
-  var c=d.channel||{}, vids=d.videos||[], ret=d.retention;
-  var fmt=function(n){ n=Number(n)||0; var neg=n<0; n=Math.abs(n); var s=n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':String(Math.round(n)); return (neg?'-':'')+s; };
-  var mins=Number(c.minutes_watched)||0, hrs=mins/60, watchDisp=hrs>=1?(fmt(hrs)+' hrs'):(Math.round(mins)+' min');
-  var avd=Number(c.avg_view_seconds)||0, avdDisp=(avd>=60?(Math.floor(avd/60)+'m '+(avd%60)+'s'):(avd+'s'));
+  var c=d.channel||{}, vids=(d.videos||[]).slice(0,6), ret=d.retention;
+  var mins=Number(c.minutes_watched)||0, hrs=mins/60, watchDisp=hrs>=1?(_dFmt(Math.round(hrs))+' hrs'):(Math.round(mins)+' min');
+  var avd=Number(c.avg_view_seconds)||0, avdDisp=(avd>=60?(Math.floor(avd/60)+'m '+('0'+(avd%60)).slice(-2)+'s'):(avd+'s'));
   var net=(Number(c.subs_gained)||0)-(Number(c.subs_lost)||0);
-  var h='<div class="vit" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">'
-    +'<div class="v"><div class="n">'+(c.avg_view_pct!=null?c.avg_view_pct+'%':'-')+'</div><div class="l">avg viewed</div></div>'
-    +'<div class="v"><div class="n">'+watchDisp+'</div><div class="l">watch time · 28d</div></div>'
-    +'<div class="v"><div class="n">'+avdDisp+'</div><div class="l">avg view</div></div>'
-    +'<div class="v"><div class="n">'+(net>=0?'+':'')+fmt(net)+'</div><div class="l">net subs · 28d</div></div>'
-    +'</div>';
-  if(ret && ret.points && ret.points.length>1){
-    h+='<div style="font-size:.72rem;color:var(--faint);margin:0 0 4px;letter-spacing:.03em">retention · '+esc(String(ret.title||'your top video').slice(0,52))+'</div>'+retSpark(ret.points);
-  }
+  var avp=_dClamp(c.avg_view_pct);
+  var band=avp>=50?{c:'var(--accent)',t:'elite hold'}:avp>=40?{c:'var(--accent)',t:'strong hold'}:avp>=30?{c:'var(--warning,#e0a800)',t:'about average'}:{c:'var(--danger,#e5484d)',t:'losing them early'};
+  /* hero: the one number that matters + a plain-english verdict, secondary stats to the side */
+  var h='<div style="display:flex;gap:16px 26px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">'
+    +'<div style="display:flex;flex-direction:column;gap:3px">'
+      +'<div style="font-size:2.7rem;font-weight:800;line-height:.95;color:'+band.c+';font-variant-numeric:tabular-nums">'+(c.avg_view_pct!=null?avp.toFixed(0)+'%':'—')+'</div>'
+      +'<div style="font-size:.72rem;color:var(--muted,#9aa7b4);letter-spacing:.01em">avg watched per video · <b style="color:'+band.c+'">'+band.t+'</b></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:24px;margin-left:auto;flex-wrap:wrap">'
+      +_dStat(watchDisp,'watch time · 28d')+_dStat(avdDisp,'avg view length')+_dStat((net>=0?'+':'')+_dFmt(net),'net subs · 28d')+_dStat(_dFmt(c.views),'views · 28d')
+    +'</div>'
+  +'</div>';
+  /* the hero viz: real retention curve, or a graceful unlock note for small/new videos */
+  if(ret && ret.points && ret.points.length>2){ h+=retChart(ret.points, ret.title); }
+  else { h+='<div style="border:1px dashed var(--line,rgba(255,255,255,.13));border-radius:11px;padding:13px 15px;margin-bottom:15px;display:flex;gap:11px;align-items:center">'
+      +'<div style="font-size:1.3rem;line-height:1">📉</div>'
+      +'<div style="font-size:.78rem;color:var(--muted,#9aa7b4);line-height:1.5">Second-by-second <b style="color:var(--fg,#eef2f7)">retention curves</b> switch on once a video clears ~100 views, YouTube hides the drop-off graph below that. Your real numbers above are live now, the curve fills in as videos grow.</div>'
+    +'</div>'; }
+  /* per-video attention leaderboard with real bars */
   if(vids.length){
-    h+='<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">';
-    vids.slice(0,6).forEach(function(v){
-      var p=Number(v.avg_view_pct)||0, col=p>=50?'var(--accent)':p>=35?'var(--warning,#e0a800)':'var(--danger,#e5484d)';
-      h+='<div style="display:flex;align-items:center;gap:9px;font-size:.76rem">'
-        +'<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)">'+esc(String(v.title||'untitled').slice(0,60))+'</div>'
-        +'<div style="color:var(--faint);font-variant-numeric:tabular-nums">'+fmt(v.views)+' views</div>'
-        +'<div style="width:44px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:'+col+'">'+p+'%</div>'
-        +'</div>';
+    h+='<div style="font-size:.66rem;color:var(--faint,#6b7280);letter-spacing:.07em;text-transform:uppercase;margin:2px 0 9px">how each video holds attention</div>'
+      +'<div style="display:flex;flex-direction:column;gap:10px">';
+    vids.forEach(function(v){
+      var p=_dClamp(v.avg_view_pct), col=p>=45?'var(--accent)':p>=30?'var(--warning,#e0a800)':'var(--danger,#e5484d)';
+      h+='<div style="display:flex;align-items:center;gap:12px">'
+        +'<div style="flex:1;min-width:0"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.78rem;color:var(--fg,#eef2f7);margin-bottom:5px">'+esc(String(v.title||'untitled'))+'</div>'
+          +'<div style="height:6px;border-radius:4px;background:var(--line,rgba(255,255,255,.09));overflow:hidden"><div style="height:100%;width:'+p.toFixed(0)+'%;background:'+col+';border-radius:4px"></div></div></div>'
+        +'<div style="text-align:right;min-width:74px"><div style="font-weight:800;font-size:.95rem;color:'+col+';font-variant-numeric:tabular-nums;line-height:1">'+p.toFixed(0)+'%</div><div style="font-size:.62rem;color:var(--faint,#6b7280);margin-top:2px">'+_dFmt(v.views)+' views</div></div>'
+      +'</div>';
     });
     h+='</div>';
   }
-  h+='<div style="margin-top:11px;font-size:.68rem;color:var(--faint)">real YouTube Studio data · last 28 days · read-only</div>';
+  h+='<div style="margin-top:14px;padding-top:11px;border-top:1px solid var(--line,rgba(255,255,255,.07));font-size:.65rem;color:var(--faint,#6b7280);letter-spacing:.03em">◍ real YouTube Studio data · last 28 days · read-only · cant be faked</div>';
   return h;
 }
-function retSpark(points){
-  var w=100,hgt=30, pts=points.slice().sort(function(a,b){return (Number(a.ratio)||0)-(Number(b.ratio)||0);});
-  var max=0.01; pts.forEach(function(p){ if((Number(p.watch)||0)>max) max=Number(p.watch); });
-  var d=pts.map(function(p,i){ var x=(pts.length>1?(i/(pts.length-1)):0)*w; var y=hgt-((Number(p.watch)||0)/max)*hgt; return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1); }).join(' ');
-  return '<svg viewBox="0 0 '+w+' '+hgt+'" preserveAspectRatio="none" style="width:100%;height:38px;display:block;margin-bottom:2px" aria-hidden="true"><path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>';
+function retChart(points, title){
+  var pts=points.slice().sort(function(a,b){return (Number(a.ratio)||0)-(Number(b.ratio)||0);});
+  var n=pts.length, W=600, H=132, padX=3, padTop=12, padBot=16;
+  var maxW=1; pts.forEach(function(p){ var w=Number(p.watch)||0; if(w>maxW) maxW=w; });
+  var xs=function(i){ return padX+(n>1?i/(n-1):0)*(W-2*padX); };
+  var ys=function(w){ return padTop+(1-(Math.min(Number(w)||0,maxW)/maxW))*(H-padTop-padBot); };
+  var line='', area='M'+xs(0).toFixed(1)+' '+(H-padBot).toFixed(1);
+  pts.forEach(function(p,i){ var x=xs(i),y=ys(p.watch); line+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' '; area+=' L'+x.toFixed(1)+' '+y.toFixed(1); });
+  area+=' L'+xs(n-1).toFixed(1)+' '+(H-padBot).toFixed(1)+' Z';
+  var maxDrop=0, dropI=-1;
+  for(var i=1;i<n;i++){ var dd=(Number(pts[i-1].watch)||0)-(Number(pts[i].watch)||0); if(dd>maxDrop){ maxDrop=dd; dropI=i; } }
+  var marker='', caption='';
+  if(dropI>0 && maxDrop>0.03){ var dx=xs(dropI), dy=ys(pts[dropI].watch), at=Math.round((Number(pts[dropI].ratio)||0)*100);
+    marker='<line x1="'+dx.toFixed(1)+'" y1="'+dy.toFixed(1)+'" x2="'+dx.toFixed(1)+'" y2="'+(H-padBot).toFixed(1)+'" style="stroke:var(--danger,#e5484d);stroke-width:1;stroke-dasharray:3 3" opacity=".7"/><circle cx="'+dx.toFixed(1)+'" cy="'+dy.toFixed(1)+'" r="3.6" style="fill:var(--danger,#e5484d)"/>';
+    caption='biggest fall-off around <b style="color:var(--danger,#e5484d)">'+at+'% in</b> — thats the beat to tighten';
+  }
+  return '<div style="margin-bottom:15px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><div style="font-size:.66rem;color:var(--faint,#6b7280);letter-spacing:.07em;text-transform:uppercase">audience retention</div><div style="font-size:.68rem;color:var(--muted,#9aa7b4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:56%">'+esc(String(title||'your top video'))+'</div></div>'
+    +'<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="width:100%;height:112px;display:block" aria-hidden="true">'
+      +'<defs><linearGradient id="retGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--accent);stop-opacity:.4"/><stop offset="1" style="stop-color:var(--accent);stop-opacity:0"/></linearGradient></defs>'
+      +'<path d="'+area+'" style="fill:url(#retGrad)"/>'
+      +'<path d="'+line+'" style="fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round"/>'
+      +marker
+    +'</svg>'
+    +'<div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--faint,#6b7280);margin-top:2px"><span>start</span><span>halfway</span><span>end</span></div>'
+    +(caption?'<div style="font-size:.75rem;color:var(--muted,#9aa7b4);margin-top:7px;line-height:1.5">'+caption+'</div>':'')
+  +'</div>';
 }
 
 function logout(){
