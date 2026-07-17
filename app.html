@@ -1278,6 +1278,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
             <input id="rivalIn" type="text" aria-label="add a competitor channel" placeholder="add a competitor… @handle or URL" style="flex:1;padding:9px 12px;background:hsl(230 24% 4%);border:1px solid var(--border2);border-radius:11px;color:var(--fg);font-family:var(--sans);font-size:.86rem" onkeydown="if(event.key==='Enter')addRival()">
             <button class="btn btn-ghost" style="flex:0 0 auto" onclick="addRival()">Add</button>
           </div>
+          <div id="rivalMsg" role="status" aria-live="polite" style="display:none;margin-top:7px;color:var(--danger,#e5484d);font-size:.72rem;line-height:1.4"></div>
         </div>
 
         <div class="tile play s2" id="tPlay">
@@ -1504,7 +1505,7 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
       <div class="ied-field" id="iedFmtField"><label for="iedFmt">format</label>
         <select id="iedFmt"><option value="">not sure yet</option><option value="short">short · 30-60s vertical</option><option value="longform">long-form · 8-12 min</option></select></div>
       <div class="ied-field"><label for="iedNotes">notes · angle, hook, anything to remember</label>
-        <textarea id="iedNotes" maxlength="4000" aria-label="idea notes" placeholder="the hook, the twist, b-roll you need, why it'll work…"></textarea></div>
+        <textarea id="iedNotes" maxlength="4000" aria-label="idea notes" placeholder="the hook, the twist, b-roll you need, why itll work…"></textarea></div>
       <div class="ied-field"><label>script</label>
         <div id="iedScriptWrap"></div></div>
       <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:4px">
@@ -1688,6 +1689,7 @@ function route(session){
       SPACE=null; SPACES=[]; PROFILE=null; VIEW='mine'; LASTAI=null; LIVE=null; IS_PRO=false;
       IDENT={ yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'', facebook:'' };
       try{ window._appUser=null; window._ytClaimed=null; window._msPrefetch=null; window._dailyPulseDone=false; window._lvCh=null; }catch(e){}
+      try{ _deepReset(); }catch(e){} /* never let one creator's private studio analytics paint for the next */
       try{ stopPulse(); }catch(e){}
     }
     window._lastRoutedUser=USER.id;
@@ -1870,27 +1872,37 @@ function claimYouTube(session){
   try{ localStorage.removeItem('vs_yt_intent'); }catch(e){} /* wipe any legacy stale flag */
   if(!_intended) return;
   window._ytClaimed=session.provider_token; /* provider_token is one-shot; only claim it once */
+  var _spaceBind=''; try{ _spaceBind=localStorage.getItem('vs_space_bind_yt')||''; }catch(e){}
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    mode:'yt_verify', token:session.access_token, provider_token:session.provider_token, provider_refresh_token:session.provider_refresh_token||''
+    mode:'yt_verify', token:session.access_token, provider_token:session.provider_token, provider_refresh_token:session.provider_refresh_token||'', space_bind:(_spaceBind?1:0)
   })}).then(function(r){return r.json();}).then(function(d){
     try{ if(location.search.indexOf('ytconnect')>-1) history.replaceState({}, '', location.pathname); }catch(e){}
     if(d && d.ok && d.channel){
+      if(_spaceBind){
+        /* connecting a channel FOR a space (e.g. an agency binding a CLIENT's channel) -> attach it to
+           the WORKSPACE only. never overwrite the owner's own verified identity, and the engine
+           (space_bind:1) skips persisting the channel + refresh token onto the owner's profile. */
+        try{ localStorage.removeItem('vs_space_bind_yt'); }catch(e){}
+        try{ closeConnect(); }catch(e){}
+        var _vch=d.channel;
+        teamsApi('my_space',{workspace_id:_spaceBind}).then(function(sp){ var cur=(sp&&sp.channel)||{};
+          return teamsApi('space_channels',{ workspace_id:_spaceBind, youtube:(_vch.id||_vch.handle||_vch.name||''), tiktok:cur.tiktok||'', instagram:cur.instagram||'', facebook:cur.facebook||'' }); })
+        .then(function(rr){ if(rr&&rr.ok){ try{ toast('space channel connected ✓','ok'); }catch(e){} try{ switchSpace(_spaceBind); }catch(e){} } else { try{ toast((rr&&rr.error)||'could not set the space channel','err'); }catch(e){} } })
+        .catch(function(){ try{ toast('network hiccup setting the space channel','err'); }catch(e){} });
+        return;
+      }
+      /* personal connect: adopt this channel as YOUR verified identity */
       IDENT.yt={ id:d.channel.id||'', name:d.channel.name||'', avatar:d.channel.avatar||'', subs:d.channel.subs||'', handle:d.channel.handle||'' };
       IDENT._adopted=false; IDENT._verified=true; IDENT._dirty=false; /* verified-owned = the opposite of adopted; keeps My Dashboard enabled */
       PROFILE=PROFILE||{}; PROFILE.youtube_verified=true;
       PROFILE.primary_channel_id=d.channel.id; PROFILE.primary_channel_name=d.channel.name; PROFILE.primary_channel_avatar=d.channel.avatar; PROFILE.primary_channel_subs=d.channel.subs; PROFILE.primary_channel_handle=d.channel.handle;
+      try{ _deepReset(); }catch(e){} /* new personal channel -> drop any prior channel's cached deep analytics */
       try{ closeConnect(); }catch(e){}
       try{ var of=$('obFound'); if(of){ of.style.display='flex'; of.innerHTML='<div class="fn">'+esc(d.channel.name||'your channel')+' ✓ connected + verified</div>'; } var bv=$('obYtVerify'); if(bv) bv.textContent='✓ connected, reconnect a different account'; }catch(e){}
       try{ renderIdentity(); }catch(e){}
       try{ renderYouBar(); }catch(e){}
       try{ renderViewSwitch(); }catch(e){} /* re-enable My Dashboard now that a personal channel is verified */
       try{ toast('youtube connected + verified ✓','ok'); }catch(e){}
-      /* connected from inside a space -> also set this verified channel as the space's channel (merge, keep the other platforms) */
-      try{ var _sb=localStorage.getItem('vs_space_bind_yt')||''; if(_sb){ localStorage.removeItem('vs_space_bind_yt'); var _vch=d.channel;
-        teamsApi('my_space',{workspace_id:_sb}).then(function(sp){ var cur=(sp&&sp.channel)||{};
-          return teamsApi('space_channels',{ workspace_id:_sb, youtube:(_vch.id||_vch.handle||_vch.name||''), tiktok:cur.tiktok||'', instagram:cur.instagram||'', facebook:cur.facebook||'' }); })
-        .then(function(rr){ if(rr&&rr.ok){ try{ toast('space channel connected ✓','ok'); }catch(e){} try{ switchSpace(_sb); }catch(e){} } else { try{ toast((rr&&rr.error)||'could not set the space channel','err'); }catch(e){} } })
-        .catch(function(){ try{ toast('network hiccup setting the space channel','err'); }catch(e){} }); } }catch(e){}
       try{ if(typeof goLive==='function' && VIEW!=='space' && $('onboard') && $('onboard').classList.contains('hide')) goLive(); }catch(e){} /* re-read now that we have the real channel - but not while onboarding is still open (finishOnboard handles that) */
     } else {
       var _em=String((d&&d.error)||'');
@@ -1909,10 +1921,19 @@ function claimYouTube(session){
    youtube.readonly (already google-approved) covers the YouTube Analytics API, so this needs NO
    extra scope, consent, or wall - it auto-loads for any Pro/team verified channel. */
 var DEEP=null, _deepLoading=false;
+var DEEP_TTL=6*3600000; /* youtube analytics updates ~daily and lags ~2 days, so a 6h cache is safe */
 function proHref(){ try{ return ($('proBtn')&&$('proBtn').href)||PRO_MONTHLY; }catch(e){ return PRO_MONTHLY; } }
+function _deepCurCid(){ try{ var c=curCh(); return (c&&c.id)||''; }catch(e){ return ''; } }
+function _deepKey(cid){ return 'vs_deep_'+_nsU()+'_'+(cid||''); }
+/* DEEP holds ONE channel's private studio numbers. it must never render for a different channel
+   or account, so it is stamped with the channel id it was loaded for and only trusted when that
+   still matches the current verified channel. this is what stops cross-account analytics bleed. */
+function _deepValid(){ return !!(DEEP && DEEP.ok && _deepCurCid() && DEEP._cid===_deepCurCid()); }
+function _deepReset(){ DEEP=null; _deepLoading=false; }
 
 function loadYtAnalytics(ptok){
   if(_deepLoading) return; _deepLoading=true;
+  var cid=_deepCurCid();
   try{ renderDeep(); }catch(e){}
   sb.auth.getSession().then(function(r){
     var tok=r&&r.data&&r.data.session&&r.data.session.access_token;
@@ -1920,7 +1941,7 @@ function loadYtAnalytics(ptok){
     fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ mode:'yt_analytics', token:tok, provider_token:ptok||'' })})
       .then(function(r){return r.json();}).then(function(d){
         _deepLoading=false;
-        if(d && d.ok){ DEEP=d; }
+        if(d && d.ok){ d._cid=cid; DEEP=d; try{ localStorage.setItem(_deepKey(cid), JSON.stringify({ at:Date.now(), d:d })); }catch(e){} }
         else if(d && d.error==='pro_required'){ IS_PRO=false; }
         try{ renderDeep(d && d.error); }catch(e){}
       }).catch(function(){ _deepLoading=false; try{ renderDeep('network'); }catch(e){} });
@@ -1934,13 +1955,16 @@ function renderDeep(err){
   if(PLATFORM!=='youtube' || VIEW==='space' || !verified){ tile.style.display='none'; return; }
   tile.style.display='';
   if(!IS_PRO){ body.innerHTML='<div class="tsub" style="line-height:1.5">Real retention curves, watch time and average-view-%, pulled straight from your YouTube Studio, the numbers no free tool can see. <a href="'+proHref()+'" target="_blank" rel="noopener" style="color:var(--accent)">unlock with Pro, 7-day free trial &rarr;</a></div>'; return; }
-  if(DEEP && DEEP.ok){ body.innerHTML=deepHtml(DEEP); return; }
+  if(DEEP && !_deepValid()) _deepReset();   /* wrong-channel/account DEEP must never paint */
+  /* hydrate from a per-user, per-channel cache before firing the 7-hop google waterfall */
+  if(!DEEP && !_deepLoading && !err){ try{ var raw=localStorage.getItem(_deepKey(_deepCurCid())); if(raw){ var cc=JSON.parse(raw); if(cc && cc.d && cc.d.ok && (Date.now()-(cc.at||0))<DEEP_TTL){ cc.d._cid=_deepCurCid(); DEEP=cc.d; } } }catch(e){} }
+  if(_deepValid()){ body.innerHTML=deepHtml(DEEP); return; }
   if(err==='analytics_scope'){ body.innerHTML='<div class="tsub" style="line-height:1.5">couldnt read your analytics, a permission box may have been unchecked. <button class="mini-act p" onclick="verifyYouTube()">reconnect youtube</button></div>'; return; }
   if(err==='analytics_unavailable'){ body.innerHTML='<div class="tsub">youtube analytics is warming up (it lags a day or two, and needs a little watch history). check back soon.</div>'; return; }
-  if(_deepLoading){ body.innerHTML='<div class="tsub">reading your studio numbers…</div>'; return; }
+  if(_deepLoading){ body.innerHTML='<div class="tsub"><span class="spin"></span> reading your studio numbers…</div>'; return; }
   /* youtube.readonly (already google-approved) covers the Analytics API - no extra consent, no wall.
      auto-pull the real numbers for any Pro, verified channel. */
-  body.innerHTML='<div class="tsub">reading your studio numbers…</div>'; loadYtAnalytics();
+  body.innerHTML='<div class="tsub"><span class="spin"></span> reading your studio numbers…</div>'; loadYtAnalytics();
 }
 
 function _dFmt(n){ n=Number(n)||0; var neg=n<0; n=Math.abs(n); var s=n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':String(Math.round(n)); return (neg?'-':'')+s; }
@@ -2000,7 +2024,7 @@ function retChart(points, title){
   var marker='', caption='';
   if(dropI>0 && maxDrop>0.03){ var dx=xs(dropI), dy=ys(pts[dropI].watch), at=Math.round((Number(pts[dropI].ratio)||0)*100);
     marker='<line x1="'+dx.toFixed(1)+'" y1="'+dy.toFixed(1)+'" x2="'+dx.toFixed(1)+'" y2="'+(H-padBot).toFixed(1)+'" style="stroke:var(--danger,#e5484d);stroke-width:1;stroke-dasharray:3 3" opacity=".7"/><circle cx="'+dx.toFixed(1)+'" cy="'+dy.toFixed(1)+'" r="3.6" style="fill:var(--danger,#e5484d)"/>';
-    caption='biggest fall-off around <b style="color:var(--danger,#e5484d)">'+at+'% in</b> — thats the beat to tighten';
+    caption='biggest fall-off around <b style="color:var(--danger,#e5484d)">'+at+'% in</b>. thats the beat to tighten';
   }
   return '<div style="margin-bottom:15px">'
     +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><div style="font-size:.66rem;color:var(--faint,#6b7280);letter-spacing:.07em;text-transform:uppercase">audience retention</div><div style="font-size:.68rem;color:var(--muted,#9aa7b4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:56%">'+esc(String(title||'your top video'))+'</div></div>'
@@ -2022,6 +2046,7 @@ function logout(){
   SPACE=null; SPACES=[]; PROFILE=null; VIEW='mine'; LASTAI=null; LIVE=null; IS_PRO=false;
   IDENT={ yt:{id:'',name:'',avatar:'',subs:'',handle:''}, tiktok:'', instagram:'', facebook:'' };
   try{ window._appUser=null; window._ytClaimed=null; window._dailyPulseDone=false; window._autoRev=false; window._lvCh=null; window._msPrefetch=null; }catch(e){}
+  try{ _deepReset(); }catch(e){}
   try{ stopPulse(); }catch(e){}
   sb.auth.signOut();
 }
@@ -2952,7 +2977,7 @@ function bannerBg(val){
   return 'linear-gradient(90deg,hsl(230 30% 4% / .82),hsl(230 30% 4% / .32)),'+img;
 }
 function paintAvatar(av, val, initial){
-  if(val && val.indexOf('data:')===0){ av.style.background=''; av.innerHTML='<img src="'+val+'" alt="" loading="lazy">'; return true; }
+  if(val && /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i.test(val)){ av.style.background=''; av.innerHTML='<img src="'+val+'" alt="" loading="lazy">'; return true; }
   if(val && val.indexOf('preset:char-')===0){ var uc=charUri(val.slice(12)); if(uc){ av.style.background=''; av.innerHTML='<img src="'+uc+'" alt="" loading="lazy">'; return true; } }
   if(val && val.indexOf('preset:icon-')===0){ var u=avUri(val.slice(12)); if(u){ av.style.background=''; av.innerHTML='<img src="'+u+'" alt="" loading="lazy">'; return true; } }
   if(val && val.indexOf('preset:')===0){ av.innerHTML=''; av.style.background=presetCss(AV_PRESETS, val.slice(7)); av.textContent=(initial||'Y'); return true; }
@@ -3203,7 +3228,7 @@ function disconnectTikTok(){
       .then(function(r){return r.json();}).then(function(){
         if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; PROFILE.tiktok_handle=null; }
         IDENT.tiktok='';
-        try{ localStorage.removeItem('vs_ttconn_'+((USER&&USER.id)||'')); localStorage.removeItem('vs_ttdeep2_'+((USER&&USER.id)||'')); }catch(e){}
+        try{ localStorage.removeItem('vs_ttconn_'+((USER&&USER.id)||'')); var _ttp='vs_ttdeep2_'+((USER&&USER.id)||''); Object.keys(localStorage).forEach(function(k){ if(k.indexOf(_ttp)===0) localStorage.removeItem(k); }); }catch(e){}
         try{ var _dd=$('ttDeep'); if(_dd) _dd.innerHTML=''; var _c=$('ttComing'); if(_c) _c.style.display=''; var _ap=$('altPanel'); if(_ap) _ap.classList.remove('deep'); }catch(e){}
         try{ if(typeof toast==='function') toast('TikTok disconnected','ok'); }catch(e){}
         try{ renderTabs(); }catch(e){}
@@ -3304,7 +3329,7 @@ function renderTtCard(d, handle, connected){
 function ttDeep(handle){
   var host=$('ttDeep'); if(!host) return;
   if(!ttConnected()){ host.innerHTML=''; return; }
-  var key='vs_ttdeep2_'+((USER&&USER.id)||'');
+  var key='vs_ttdeep2_'+((USER&&USER.id)||'')+'_'+String(handle||'').toLowerCase().replace(/[^a-z0-9_.]/g,''); /* per-handle so a different tiktok account never shows the last one's posts */
   var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
   if(cached && cached.d){ renderTtDeep(cached.d); }
   else { host.innerHTML='<div class="tt-sec"><div class="tsub">the coach is reading your posts…</div></div>'; }
@@ -3876,7 +3901,7 @@ function disconnectYouTube(){
           PROFILE=PROFILE||{}; PROFILE.youtube_verified=false; PROFILE.primary_channel_id=''; PROFILE.primary_channel_name=''; PROFILE.primary_channel_avatar=''; PROFILE.primary_channel_subs=''; PROFILE.primary_channel_handle='';
           try{ window._ytClaimed=null; }catch(e){}
           /* clear cached deep tiles + live pulse so nothing stale flashes for the next channel */
-          try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('vs_full_'+_nsU())===0 || k.indexOf('vs_card_'+_nsU())===0) localStorage.removeItem(k); }); }catch(e){}
+          try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('vs_full_'+_nsU())===0 || k.indexOf('vs_card_'+_nsU())===0 || k.indexOf('vs_deep_'+_nsU())===0) localStorage.removeItem(k); }); }catch(e){} try{ _deepReset(); }catch(e){}
           try{ closeConnect(); }catch(e){}
           try{ LASTAI=null; LIVE=null; }catch(e){}
           try{ renderIdentity(); renderYouBar(); renderViewSwitch(); }catch(e){}
@@ -4065,22 +4090,24 @@ function loadRivals(){
     try{ if(typeof loadTrends==='function') loadTrends(window._wireNiche||''); }catch(e){} /* fold tracked rivals into the lane */
   });
 }
+function _rivMsg(t){ var m=$('rivalMsg'); if(!m) return; if(t){ m.textContent=t; m.style.display=''; } else { m.textContent=''; m.style.display='none'; } }
 function addRival(){
   var v=$('rivalIn').value.trim(); if(!v) return;
-  if(RIVALS.length>=5){ $('rivalEnd').textContent='max 5'; return; }
-  $('rivalEnd').textContent='resolving…';
+  if(RIVALS.length>=5){ _rivMsg('youre already tracking the max of 5'); return; }
+  _rivMsg(''); $('rivalEnd').textContent='resolving…';
   fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'connect',channel:v})})
     .then(function(r){return r.json();})
     .then(function(d){
-      if(!d||!d.ok||!d.channel||!d.channel.id){ $('rivalEnd').textContent='not found'; return; }
+      $('rivalEnd').textContent=RIVALS.length+' tracked';
+      if(!d||!d.ok||!d.channel||!d.channel.id){ _rivMsg('channel not found, check the @handle or URL'); return; }
       var row={ channel_id:d.channel.id, handle:d.channel.handle||null, title:d.channel.name||null, is_competitor:true, user_id:USER.id };
       if(VIEW==='space' && SPACE && SPACE.workspace) row.workspace_id=SPACE.workspace.id;
       sb.from('viralsidekick_channels').insert(row).then(function(rr){
-        if(rr.error){ $('rivalEnd').textContent=(rr.error.message||'').indexOf('policy')>=0?'viewers cannot edit':'already tracked?'; return; }
-        $('rivalIn').value=''; try{ localStorage.removeItem('vs_cmp_'+_nsUV()); }catch(e){}
+        if(rr.error){ _rivMsg((rr.error.message||'').indexOf('policy')>=0?'only owners and admins can add competitors':'youre already tracking that one'); return; }
+        $('rivalIn').value=''; _rivMsg(''); try{ localStorage.removeItem('vs_cmp_'+_nsUV()); }catch(e){}
         loadRivals();
       });
-    }).catch(function(){ $('rivalEnd').textContent='network hiccup'; });
+    }).catch(function(){ $('rivalEnd').textContent=RIVALS.length+' tracked'; _rivMsg('couldnt reach youtube, try again'); });
 }
 function delRival(id){
   var q=sb.from('viralsidekick_channels').delete().eq('id',id);
@@ -4216,7 +4243,7 @@ function renderIdeas(rows){
       +'</div>'
       +'<div style="font-size:.88rem;line-height:1.4;margin-bottom:6px;cursor:pointer" onclick="openIdeaEditor(\''+x.id+'\')" title="open">'+esc(x.text)+'</div>'
       +(x.status==='shipped'&&x.result_views!=null?shipResultHTML(x,med):'')
-      +(x.video_url?'<div style="margin-top:6px"><a href="'+esc(x.video_url)+'" target="_blank" rel="noopener" style="font-size:.74rem;color:var(--accent)">view the video →</a></div>':'')
+      +((x.video_url && /^https?:\/\//i.test(x.video_url))?'<div style="margin-top:6px"><a href="'+esc(x.video_url)+'" target="_blank" rel="noopener" style="font-size:.74rem;color:var(--accent)">view the video →</a></div>':'')
       +'<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:'+(x.video_url?'6px':'2px')+'">'
       +(!done?'<span class="mini-act" onclick="openIdeaEditor(\''+x.id+'\')">✎ open</span><span class="mini-act p" data-pkg="'+e+'">⚡ package</span><span class="mini-act b" data-bp="'+e+'">▶ script</span>':'')
       +(x.status!=='shipped'?'<span class="mini-act" onclick="markIdea(\''+x.id+'\',\'shipped\')">✓ shipped</span>':'')
@@ -4834,7 +4861,7 @@ function renderNicheBanner(){
 /* honest model: we log the REAL polled subscriber count over time (one anchor per ~3h so the
    series spans days), fit a least-squares line to get subs/day, and project the date the goal
    is hit. flat or too-little-data states never fabricate an ETA. */
-function _gkey(pfx){ var c=curCh()||{}; return pfx+(c.id||c.handle||c.name||'x'); }
+function _gkey(pfx){ var c=curCh()||{}; return pfx+_nsU()+'_'+(c.id||c.handle||c.name||'x'); } /* namespaced per user so two accounts on one browser dont share a goal/series */
 function goalTarget(){ try{ var g=JSON.parse(localStorage.getItem(_gkey('vs_goal_'))||'null'); if(g&&g.target>0) return g.target; }catch(e){} return null; }
 function nextMilestone(v){ var t=[1e3,2500,5e3,1e4,25e3,5e4,1e5,25e4,5e5,1e6,25e5,5e6,1e7,25e6,5e7,1e8]; for(var i=0;i<t.length;i++){ if(t[i]>v) return t[i]; } return Math.ceil((v+1)/1e6)*1e6; }
 function loadSubsSeries(){ try{ var s=JSON.parse(localStorage.getItem(_gkey('vs_subs_'))||'[]'); return Array.isArray(s)?s:[]; }catch(e){ return []; } }
