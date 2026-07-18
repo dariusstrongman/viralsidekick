@@ -330,8 +330,8 @@ footer a:hover{color:var(--fg)}
    can still reach their space(s) from the witty connect page. if socials (TikTok/IG/FB) are
    connected, ALSO keep the platform tabs + the "coming soon" panel so they and their soon
    banner stay reachable without a YouTube channel. */
-#hqWrap.no-channel:not(.has-socials) > *:not(#youBar):not(#hqEmpty):not(#lensBar){display:none !important}
-#hqWrap.no-channel.has-socials > *:not(#youBar):not(#hqEmpty):not(#lensBar):not(#ptabs):not(#altPanel){display:none !important}
+#hqWrap.no-channel:not(.has-socials) > *:not(#youBar):not(#hqEmpty):not(#lensBar):not(#teamsBanner){display:none !important}
+#hqWrap.no-channel.has-socials > *:not(#youBar):not(#hqEmpty):not(#lensBar):not(#ptabs):not(#altPanel):not(#teamsBanner){display:none !important}
 #hqWrap.no-channel #lensBar{margin-bottom:6px}
 /* on the no-channel page, order the visible pieces: profile, lens bar, THEN the platform tabs,
    then the connect hero / soon panel (so the tab bar sits up top, not under the hero) */
@@ -341,6 +341,7 @@ footer a:hover{color:var(--fg)}
 #hqWrap.no-channel > #ptabs{order:3;margin-top:2px}
 #hqWrap.no-channel > #hqEmpty{order:4}
 #hqWrap.no-channel > #altPanel{order:4}
+#hqWrap.no-channel > #teamsBanner{order:5;margin-top:16px}   /* space with no channel: connect hero on top, team card below */
 .yb-eyebrow{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mine-txt,hsl(260 90% 72%));margin-bottom:5px}
 .yb-name{font-weight:800;font-size:clamp(1.3rem,3vw,1.75rem);letter-spacing:-.02em;line-height:1.1;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idhead.chan::before{background:radial-gradient(240px 170px at 0% 50%,hsl(45 95% 60%),transparent 70%);opacity:.1}
@@ -3463,26 +3464,48 @@ function setNoChannel(on){
   var w=$('hqWrap'), e=$('hqEmpty'); if(!w) return;
   if(on){ w.classList.add('no-channel');
     var A=actIdent(); w.classList.toggle('has-socials', !!(A.tiktok||A.instagram||A.facebook));
+    try{ _emptyCopy(); }catch(e2){}
     /* the connect hero is the YouTube tab's empty state — never flash it over a social tab a
        background refresh (goLive/loadProfile) must not re-show it while youre looking at TikTok/IG */
     if(e) e.style.display=(PLATFORM==='youtube'||!PLATFORM)?'block':'none'; }
   else { w.classList.remove('no-channel'); w.classList.remove('has-socials'); if(e) e.style.display='none'; }
+}
+/* the connect hero doubles as the empty state for both the personal dashboard AND a space with no
+   verified channel - swap the copy to match the lens (and hide the picker for a space viewer who cant edit). */
+function _emptyCopy(){
+  var e=$('hqEmpty'); if(!e) return;
+  var eb=e.querySelector('.hqe-eyebrow'), ti=e.querySelector('.hqe-title'), su=e.querySelector('.hqe-sub'), pl=e.querySelector('.hqe-plats'), nt=e.querySelector('.hqe-note');
+  var inSpace=(VIEW==='space' && SPACE && SPACE.workspace);
+  if(inSpace){
+    if(eb) eb.textContent='⬡ '+((SPACE.workspace&&SPACE.workspace.name)||'this space');
+    if(canEditSpace()){
+      if(ti) ti.innerHTML='Link this space’s channel';
+      if(su) su.textContent='Connect the channel this space tracks with google. everyone you invite sees it, verified and read from real numbers, not a public guess.';
+      if(pl) pl.style.display='';
+      if(nt) nt.textContent='read-only · proves you own it · everyone in the space sees it';
+    } else {
+      if(ti) ti.innerHTML='No channel linked yet';
+      if(su) su.textContent='an owner or admin needs to link this space’s channel with google. once they do, the grade, radar and plan show up right here.';
+      if(pl) pl.style.display='none';
+      if(nt) nt.textContent='';
+    }
+  } else {
+    if(eb) eb.textContent='◆ your dashboard';
+    if(ti) ti.innerHTML='Connect your channel,<br>get the inside scoop';
+    if(su) su.textContent='Your real grade, the fixes that actually move views, and whats about to pop off in your niche, read straight from your own channel.';
+    if(pl) pl.style.display='';
+    if(nt) nt.textContent='read-only · proves its your channel · cant be faked';
+  }
 }
 function goLive(){
   _coerceView();
   resetChannelState();
   blankLiveSurfaces();
   setNoChannel(false);
-  /* personal dashboard with nothing connected -> show the connect hero, don't try to scan */
-  if(VIEW!=='space' && !(IDENT.yt && (IDENT.yt.id||IDENT.yt.name))){ setNoChannel(true); return; }
-  /* an unconfigured space must NOT scan the personal channel — prompt setup and stop */
-  if(VIEW==='space' && SPACE && SPACE.workspace && !spaceHasChannel()){
-    var msg = canEditSpace()
-      ? 'link this space’s channels (Set up channels, above) and the live read, radar and plan appear here'
-      : 'this space has no channels linked yet. an owner or admin sets them up';
-    ['radarBody','nextBody','roadBody','signalsBody','winBody'].forEach(function(id){ var el=$(id); if(el) el.innerHTML='<div class="tsub">'+msg+'</div>'; });
-    return;
-  }
+  /* nothing linked - personal, OR a space with no google-verified channel -> show the SAME connect
+     hero the dashboard uses (asking you to link a channel). in a space the picker routes to the space
+     connect and the team card stays below it. don't try to scan the personal channel. */
+  if((VIEW!=='space' && !(IDENT.yt && (IDENT.yt.id||IDENT.yt.name))) || (VIEW==='space' && SPACE && SPACE.workspace && !spaceHasChannel())){ setNoChannel(true); return; }
   liveVitals(); loadLatestFull(); loadHistory(); startPulse(); if(typeof loadRivals==='function'&&USER) loadRivals();
   try{ renderDeep(); }catch(e){} /* Pro deep-analytics tile: shows upsell / turn-on / real studio numbers */
 }
