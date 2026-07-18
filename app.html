@@ -1886,7 +1886,7 @@ function claimYouTube(session){
         try{ closeConnect(); }catch(e){}
         var _vch=d.channel;
         teamsApi('my_space',{workspace_id:_spaceBind}).then(function(sp){ var cur=(sp&&sp.channel)||{};
-          return teamsApi('space_channels',{ workspace_id:_spaceBind, youtube:(_vch.id||_vch.handle||_vch.name||''), tiktok:cur.tiktok||'', instagram:cur.instagram||'', facebook:cur.facebook||'' }); })
+          return teamsApi('space_channels',{ workspace_id:_spaceBind, youtube:(_vch.id||_vch.handle||_vch.name||''), yt_verified:1, yt_refresh_token:(session.provider_refresh_token||''), tiktok:cur.tiktok||'', instagram:cur.instagram||'', facebook:cur.facebook||'' }); })
         .then(function(rr){ if(rr&&rr.ok){ try{ toast('space channel connected ✓','ok'); }catch(e){} try{ switchSpace(_spaceBind); }catch(e){} } else { try{ toast((rr&&rr.error)||'could not set the space channel','err'); }catch(e){} } })
         .catch(function(){ try{ toast('network hiccup setting the space channel','err'); }catch(e){} });
         return;
@@ -2238,11 +2238,13 @@ function enterHQ(){
 var TEAMS_API='https://n8n.stromation.com/webhook/viralsidekick-teams';
 var VIEW = 'mine';  /* 'mine' = your channel+data, 'space' = the team's shared brain */
 function curCh(){
-  /* a space uses its OWN channel only, never the personal one. empty {} until it is set up */
-  if(VIEW==='space' && SPACE && SPACE.workspace) return (SPACE.channel && (SPACE.channel.id||SPACE.channel.name)) ? SPACE.channel : {};
+  /* a space uses its OWN channel only, never the personal one. a space channel counts ONLY when it
+     was verified through the google connect (channel.verified) - a public/unverified binding reads as
+     unset so the space prompts to link it properly. empty {} until it is set up */
+  if(VIEW==='space' && SPACE && SPACE.workspace) return (SPACE.channel && (SPACE.channel.id||SPACE.channel.name) && SPACE.channel.verified) ? SPACE.channel : {};
   return IDENT.yt;
 }
-function spaceHasChannel(){ return !!(SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name)); }
+function spaceHasChannel(){ return !!(SPACE && SPACE.channel && (SPACE.channel.id||SPACE.channel.name) && SPACE.channel.verified); }
 /* the active identity for the current lens: the team channel (incl its TikTok/Instagram)
    in a team lens, your own connected platforms in the personal lens. keeps every platform
    in lockstep with YouTube so a teammate sees the team's socials, not their own */
@@ -3834,17 +3836,22 @@ function openConnect(){
       if(_linked) _linked.style.display='none';
     }
   } else {
-    /* space channel: connect by google login (same as the dashboard), never typing */
-    var _sc=SPACE.channel||{}, _shas=!!(_sc.id||_sc.name);
+    /* space channel: connect by google login (same as the dashboard), never typing. it only counts
+       once verified through google - a channel present but unverified nudges to link it for real. */
+    var _sc=SPACE.channel||{}, _sHere=!!(_sc.id||_sc.name), _shas=!!(_sHere && _sc.verified), _sPending=!!(_sHere && !_sc.verified);
     if(_shas){
       if(_st){ _st.style.display='flex'; _st.style.background='hsl(150 60% 45% / .1)'; _st.style.borderColor='hsl(150 60% 45% / .32)';
-        _st.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Tracking '+esc(_sc.name||_sc.handle||'this channel')+'</b>'+(_sc.handle?(' · '+esc(_sc.handle)):'')+'<br><span class="mut">connected for the whole space. read-only.</span></span>'; }
+        _st.innerHTML='<span style="font-size:1.15rem;line-height:1">✓</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">Tracking '+esc(_sc.name||_sc.handle||'this channel')+'</b>'+(_sc.handle?(' · '+esc(_sc.handle)):'')+'<br><span class="mut">verified with google, connected for the whole space. read-only.</span></span>'; }
       if(_vb){ _vb.style.display=''; _vb.className='btn btn-ghost btn-block'; _vb.textContent='Connect a different channel'; }
       if(_vn) _vn.style.display='none';
     } else {
-      if(_st){ _st.style.display='none'; _st.innerHTML=''; }
-      if(_vb){ _vb.style.display=''; _vb.className='btn btn-primary btn-block'; _vb.textContent='Connect with Google, verify you own it'; }
-      if(_vn){ _vn.style.display=''; _vn.textContent='signs in with the channel’s google account and sets it as this space’s channel, everyone you invite sees it. read-only.'; }
+      if(_st){
+        if(_sPending){ _st.style.display='flex'; _st.style.background='hsl(38 92% 55% / .1)'; _st.style.borderColor='hsl(38 92% 55% / .34)';
+          _st.innerHTML='<span style="font-size:1.1rem;line-height:1">◐</span><span class="sm" style="line-height:1.45"><b style="color:var(--fg)">'+esc(_sc.name||_sc.handle||'this channel')+'</b> isnt linked with google yet<br><span class="mut">connect the channel’s google account to verify ownership and make it this space’s real channel.</span></span>'; }
+        else { _st.style.display='none'; _st.innerHTML=''; }
+      }
+      if(_vb){ _vb.style.display=''; _vb.className='btn btn-primary btn-block'; _vb.textContent=_sPending?'Link it with Google, verify ownership':'Connect with Google, verify you own it'; }
+      if(_vn){ _vn.style.display=_sPending?'none':''; if(!_sPending) _vn.textContent='signs in with the channel’s google account and sets it as this space’s channel, everyone you invite sees it. read-only.'; }
     }
     if(_linked) _linked.style.display='none';
   }
