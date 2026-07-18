@@ -807,6 +807,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .tc-hint a{color:hsl(45 95% 66%);font-weight:600}
 .tc-label{font-family:var(--mono);font-size:.55rem;letter-spacing:.24em;text-transform:uppercase;color:var(--faint);margin:18px 0 9px;display:flex;align-items:center;gap:9px}
 .tc-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.tc-rtog{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:color .15s}
+.tc-rtog:hover{color:var(--muted)}
+.tc-rtog .tc-car{font-size:.7rem;color:var(--faint);width:.7em;text-align:center}
 .tc-members{display:flex;flex-direction:column;gap:6px}
 /* space lens: the channel header is moved INSIDE the space card and becomes its header */
 #teamsBanner > .idhead{border:none!important;border-bottom:1px solid var(--border)!important;background:transparent!important;margin:0 0 15px;padding:0 0 16px;border-radius:0}
@@ -2419,7 +2422,8 @@ function renderTeamHeader(){
       hint.innerHTML='Next: <a href="#" onclick="openConnect();return false">link this space’s channels</a>, then invite your team below.';
     } else hint.style.display='none';
   }
-  var rl=$('tcRosterLabel'); if(rl){ var lbl='Roster · '+mem.length+(inv.length?' + '+inv.length+' pending':''); if(rl.childNodes[0]&&rl.childNodes[0].nodeType===3) rl.childNodes[0].nodeValue=lbl; else rl.textContent=lbl; }
+  var rosterOpen=false; try{ rosterOpen=(localStorage.getItem('vs_roster_open')==='1'); }catch(e){}
+  var rl=$('tcRosterLabel'); if(rl){ var lbl='Roster · '+mem.length+(inv.length?' + '+inv.length+' pending':''); rl.innerHTML='<button type="button" class="tc-rtog" onclick="toggleRoster()" aria-expanded="'+rosterOpen+'"><span class="tc-car" aria-hidden="true">'+(rosterOpen?'▾':'▸')+'</span> '+esc(lbl)+'</button>'; }
   var mb=$('tcMembers');
   if(mb){
     var h=mem.map(roleChip).join('');
@@ -2428,7 +2432,7 @@ function renderTeamHeader(){
         +'<span class="tcm-nm">'+esc(i.email)+'</span>'
         +'<span class="tcm-role invited">invited</span></div>';
     });
-    mb.innerHTML=h;
+    mb.innerHTML=h; mb.style.display=rosterOpen?'':'none';
   }
   var mg=$('tcManage');
   if(mg){
@@ -2451,6 +2455,12 @@ function renderTeamHeader(){
     mg.innerHTML=m;
   }
   var tu=$('tTeamUp'); if(tu) tu.style.display = isTeam ? 'none' : '';
+}
+function toggleRoster(){
+  var open=false; try{ open=(localStorage.getItem('vs_roster_open')==='1'); }catch(e){}
+  open=!open; try{ localStorage.setItem('vs_roster_open', open?'1':'0'); }catch(e){}
+  var mb=$('tcMembers'); if(mb) mb.style.display=open?'':'none';
+  var rl=$('tcRosterLabel'); if(rl){ var car=rl.querySelector('.tc-car'); var b=rl.querySelector('.tc-rtog'); if(car) car.textContent=open?'▾':'▸'; if(b) b.setAttribute('aria-expanded',open); }
 }
 function spaceScans(){
   /* two clean scopes: MY view = my private scans (never a workspace row); SPACE view = the team's shared record only */
@@ -3092,8 +3102,8 @@ function saveUsernameProfile(uname, fields){
 }
 function renderIdentity(){
   var inSpace=(VIEW==='space' && SPACE && SPACE.workspace);
-  var spCh=inSpace && SPACE.channel && (SPACE.channel.id||SPACE.channel.name);
-  var emptySpace=inSpace && !spCh;                 /* a space with no channels linked yet */
+  var spCh=inSpace && SPACE.channel && (SPACE.channel.id||SPACE.channel.name) && SPACE.channel.verified; /* only a google-verified channel counts, same gate as spaceHasChannel/curCh */
+  var emptySpace=inSpace && !spCh;                 /* a space with no verified channel linked yet */
   var yt = spCh ? SPACE.channel : (inSpace ? {} : IDENT.yt);
   var av=$('idAvatar');
   var display = emptySpace ? (SPACE.workspace.name||'your space')
