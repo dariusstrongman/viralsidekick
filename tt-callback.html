@@ -46,15 +46,31 @@
   if(want && state && want!==state){ fail('Security check failed (state mismatch). Please start the connect again.'); return; }
   var handle=''; try{ handle=localStorage.getItem('vs_tt_handle')||''; }catch(e){}
   try{ localStorage.removeItem('vs_tt_state'); }catch(e){}
-  // the logged-in supabase session -> so the engine binds TikTok to THIS account
-  var tok='';
-  try{ var raw=localStorage.getItem('sb-'+SB_REF+'-auth-token'); if(raw){ var s=JSON.parse(raw); tok=(s&&(s.access_token||(s.currentSession&&s.currentSession.access_token)))||''; } }catch(e){}
+  // the logged-in supabase session -> so the engine binds TikTok to THIS account.
+  var ANON='sb_publishable_K81b73rtZnF0fR6B5mnDWQ_I2CO_OK6';
+  var s=null, sess=null;
+  try{ var raw=localStorage.getItem('sb-'+SB_REF+'-auth-token'); if(raw){ s=JSON.parse(raw); sess=(s&&s.currentSession)?s.currentSession:s; } }catch(e){}
+  var tok=sess&&sess.access_token, rtok=sess&&sess.refresh_token, expAt=sess&&(sess.expires_at||0), now=Math.floor(Date.now()/1000);
+  function connect(accessToken){
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'tt_connect',token:accessToken,code:code,redirect_uri:REDIRECT,tiktok:handle})})
+      .then(function(r){return r.json();}).then(function(d){
+        if(d&&d.ok&&d.connected){ try{ if(d.card) localStorage.setItem('vs_ttconn_pending', JSON.stringify(d.card)); }catch(e){} done(); }
+        else if(d&&d.error==='not_signed_in'){ fail('Your session expired. <a href="app.html">Open the dashboard</a> and connect TikTok again.'); }
+        else { fail((d&&d.error==='tt_exchange_failed')?('TikTok rejected the connection'+(d.detail?(': '+String(d.detail).slice(0,90)):'')+'.'):'The connection didn’t complete. Try again from the dashboard.'); }
+      }).catch(function(){ fail('Network hiccup finishing the connection. Try again.'); });
+  }
   if(!tok){ fail('You’re not signed in to ViralSidekick in this browser. <a href="app.html">Sign in</a>, then connect TikTok again.'); return; }
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'tt_connect',token:tok,code:code,redirect_uri:REDIRECT,tiktok:handle})})
-    .then(function(r){return r.json();}).then(function(d){
-      if(d&&d.ok&&d.connected){ try{ if(d.card) localStorage.setItem('vs_ttconn_pending', JSON.stringify(d.card)); }catch(e){} done(); }
-      else { fail((d&&d.error==='tt_exchange_failed')?('TikTok rejected the connection'+(d.detail?(': '+String(d.detail).slice(0,90)):'')+'.'):'The connection didn’t complete. Try again from the dashboard.'); }
-    }).catch(function(){ fail('Network hiccup finishing the connection. Try again.'); });
+  // the supabase access token lives ~1h; the TikTok consent detour can outlast it -> refresh it first
+  // (and write the rotated session back so the app doesnt end up with a stale refresh token).
+  if(rtok && expAt && expAt < now+60){
+    fetch('https://'+SB_REF+'.supabase.co/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'apikey':ANON,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:rtok})})
+      .then(function(r){return r.json();}).then(function(nd){
+        if(nd&&nd.access_token){
+          try{ var ns={}; for(var k in sess) ns[k]=sess[k]; for(var k2 in nd) ns[k2]=nd[k2]; var store=(s&&s.currentSession)?(function(){var o={};for(var kk in s)o[kk]=s[kk];o.currentSession=ns;return o;})():ns; localStorage.setItem('sb-'+SB_REF+'-auth-token', JSON.stringify(store)); }catch(e){}
+          connect(nd.access_token);
+        } else { connect(tok); }
+      }).catch(function(){ connect(tok); });
+  } else { connect(tok); }
 })();
 </script>
 </body>

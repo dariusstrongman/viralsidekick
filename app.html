@@ -3359,22 +3359,24 @@ function ttCard(handle){
 function ttConnectedCard(handle){
   var host=$('altHead'); if(!host) return;
   try{ var _c=$('ttComing'); if(_c) _c.style.display='none'; var _ap=$('altPanel'); if(_ap) _ap.classList.add('deep'); }catch(e){}
-  ttDeep(handle);
   var key='vs_ttconn_'+((USER&&USER.id)||'');
   var cached=null; try{ cached=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
   if(cached && cached.d){ renderTtCard(cached.d, handle, true); }
   else { host.innerHTML='<div class="tsub" style="padding:16px 4px">loading your connected TikTok analytics…</div>'; }
-  if(cached && cached.at && (Date.now()-cached.at)<15*60000) return;
+  /* serialize the two TikTok token refreshes: tt_connected first, THEN ttDeep - firing both at once
+     made them race on the same rotating refresh_token (one would clobber/invalidate the other). */
+  var _deepRan=false; var runDeep=function(){ if(_deepRan) return; _deepRan=true; try{ ttDeep(handle); }catch(e){} };
+  if(cached && cached.at && (Date.now()-cached.at)<15*60000){ runDeep(); return; }
   sb.auth.getSession().then(function(s){
-    var tok=(s&&s.data&&s.data.session)?s.data.session.access_token:null; if(!tok) return;
+    var tok=(s&&s.data&&s.data.session)?s.data.session.access_token:null; if(!tok){ runDeep(); return; }
     fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'tt_connected',token:tok,tiktok:handle})})
       .then(function(r){return r.json();}).then(function(d){
         if(PLATFORM!=='tiktok') return;
-        if(d && d.ok){ try{ localStorage.setItem(key, JSON.stringify({at:Date.now(),d:d})); }catch(e){} renderTtCard(d, handle, true); }
+        if(d && d.ok){ try{ localStorage.setItem(key, JSON.stringify({at:Date.now(),d:d})); }catch(e){} renderTtCard(d, handle, true); runDeep(); }
         else if(d && (d.error==='not_connected'||d.error==='tt_reconnect')){ /* dead/expired grant -> drop to the free grade + Connect CTA instead of a forever "try again" */ if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; PROFILE.tiktok_handle=null; } IDENT.tiktok=''; try{ localStorage.removeItem(key); }catch(e){} ttCard(handle); }
-        else if(!(cached&&cached.d)){ host.innerHTML='<div class="tsub" style="padding:16px 4px">couldnt load connected analytics right now, try again.</div>'; }
-      }).catch(function(){ if(!(cached&&cached.d)) host.innerHTML='<div class="tsub" style="padding:16px 4px">network hiccup loading TikTok analytics.</div>'; });
-  });
+        else { if(!(cached&&cached.d)){ host.innerHTML='<div class="tsub" style="padding:16px 4px">couldnt load connected analytics right now, try again.</div>'; } runDeep(); }
+      }).catch(function(){ if(!(cached&&cached.d)) host.innerHTML='<div class="tsub" style="padding:16px 4px">network hiccup loading TikTok analytics.</div>'; runDeep(); });
+  }).catch(function(){ runDeep(); });
 }
 function renderTtCard(d, handle, connected){
   var host=$('altHead'); if(!host) return;
