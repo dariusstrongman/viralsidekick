@@ -3443,12 +3443,18 @@ function renderTtDeep(d){
   }).join('') : '<div class="tsub">The radar sweeps your niche on the next read.</div>';
   /* live vitals — same .vit/.v/.n/.l grid as youtube */
   var vcell=function(n,l,col){ return '<div class="v"><div class="n"'+(col?' style="color:'+col+'"':'')+'>'+n+'</div><div class="l">'+l+'</div></div>'; };
-  var vitHtml=vcell(v.avg_views!=null?nfmt(v.avg_views):'-','avg views')
+  var _dur=function(s){ s=Number(s)||0; return s>=60?(Math.floor(s/60)+'m'+(s%60?(' '+(s%60)+'s'):'')):(s+'s'); };
+  /* reach multiplier (avg views / followers) is the most TikTok-native metric the Display API gives:
+     >1x = the FYP is pushing you past your own audience. lead with it. */
+  var vitHtml=(v.reach_mult!=null?vcell(v.reach_mult+'x','reach vs followers', v.reach_mult>=1?'var(--success)':'var(--warning)'):'')
+    +vcell(v.avg_views!=null?nfmt(v.avg_views):'-','avg views')
     +vcell(v.median_views!=null?nfmt(v.median_views):'-','median views')
     +vcell((v.momentum!=null?v.momentum+'x':'-'),'momentum', v.momentum>=1?'var(--success)':(v.momentum>0?'var(--warning)':''))
     +vcell((v.outliers!=null?v.outliers:'-'),'breakout hits', v.outliers>0?'var(--success)':'')
-    +vcell((v.cadence_days!=null?v.cadence_days+'d':'-'),'cadence')
-    +vcell((v.engagement_pct!=null?v.engagement_pct+'%':'-'),'engagement', v.engagement_pct>=3.5?'var(--success)':'');
+    +(v.share_rate!=null?vcell(v.share_rate+'%','share rate', v.share_rate>=1?'var(--success)':''):'')
+    +vcell((v.engagement_pct!=null?v.engagement_pct+'%':'-'),'engagement', v.engagement_pct>=3.5?'var(--success)':'')
+    +(v.avg_duration!=null?vcell(_dur(v.avg_duration),'avg length'):'')
+    +vcell((v.cadence_days!=null?v.cadence_days+'d':'-'),'cadence');
   /* deep signals — hidden gem + DNA gaps, in the same .rd rows */
   var sigHtml='';
   if(ai.gem && (ai.gem.title||ai.gem.why)){
