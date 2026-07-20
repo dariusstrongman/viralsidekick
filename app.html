@@ -1963,11 +1963,17 @@ function renderDeep(err){
   /* hydrate from a per-user, per-channel cache before firing the 7-hop google waterfall */
   if(!DEEP && !_deepLoading && !err){ try{ var raw=localStorage.getItem(_deepKey(_deepCurCid())); if(raw){ var cc=JSON.parse(raw); if(cc && cc.d && cc.d.ok && (Date.now()-(cc.at||0))<DEEP_TTL){ cc.d._cid=_deepCurCid(); DEEP=cc.d; } } }catch(e){} }
   if(_deepValid()){ body.innerHTML=deepHtml(DEEP); return; }
-  if(err==='analytics_scope'){ body.innerHTML='<div class="tsub" style="line-height:1.5">couldnt read your analytics, a permission box may have been unchecked. <button class="mini-act p" onclick="verifyYouTube()">reconnect youtube</button></div>'; return; }
+  /* a dead/expired/revoked google grant (or a linkIdentity user who never got a refresh token) -> tell
+     them to reconnect. these MUST be terminal: without a return here renderDeep falls through to the
+     auto-load and re-fires loadYtAnalytics on every error response = an eternal spinner + a retry loop
+     that hammers google's token endpoint. */
+  if(err==='analytics_scope' || err==='google_auth' || err==='connect_analytics'){ body.innerHTML='<div class="tsub" style="line-height:1.5">your google connection needs a refresh (it may have expired or a permission box got unchecked). <button class="mini-act p" onclick="try{_deepReset()}catch(e){} verifyYouTube()">reconnect youtube</button></div>'; return; }
   if(err==='analytics_unavailable'){ body.innerHTML='<div class="tsub">youtube analytics is warming up (it lags a day or two, and needs a little watch history). check back soon.</div>'; return; }
+  if(err==='network'){ body.innerHTML='<div class="tsub" style="line-height:1.5">couldnt reach youtube analytics. <button class="mini-act p" onclick="try{_deepReset()}catch(e){} loadYtAnalytics()">try again</button></div>'; return; }
+  if(err){ body.innerHTML='<div class="tsub">couldnt load your analytics right now, try again in a bit.</div>'; return; } /* ANY other typed error is terminal - never auto-loop */
   if(_deepLoading){ body.innerHTML='<div class="tsub"><span class="spin"></span> reading your studio numbers…</div>'; return; }
   /* youtube.readonly (already google-approved) covers the Analytics API - no extra consent, no wall.
-     auto-pull the real numbers for any Pro, verified channel. */
+     auto-pull the real numbers for any Pro, verified channel. ONLY when there is no error (guarded above). */
   body.innerHTML='<div class="tsub"><span class="spin"></span> reading your studio numbers…</div>'; loadYtAnalytics();
 }
 
@@ -3222,6 +3228,10 @@ function connectTikTok(handle){
   /* GATE: on the sandbox key (review pending) a non-tester who authorizes just hits a TikTok error.
      show the honest state instead. auto-disables the instant the prod key is swapped in (no 'sb' prefix). */
   if(_ttSandbox() && !_ttTester()){ try{ toast('TikTok deep-connect is in final review with TikTok. your free TikTok grade works right now, and connect flips on the moment they approve.','ok'); }catch(e){} return; }
+  /* GUARD: the engine's tt_connect has no space-bind branch yet, so connecting inside a space would write
+     the TikTok token onto the OPERATOR's personal profile (clobbering their own). block it until the
+     workspace-scoped TikTok bind is built - the space keeps its free public TikTok grade meanwhile. */
+  if(VIEW==='space' && SPACE && SPACE.workspace){ try{ toast('connecting a TikTok for a space is coming soon. connect it on your personal dashboard for now.','ok'); }catch(e){} try{ localStorage.removeItem('vs_space_bind_tt'); }catch(e){} return; }
   var st='s'+Math.random().toString(36).slice(2)+Date.now().toString(36);
   try{ localStorage.setItem('vs_tt_state',st); if(handle) localStorage.setItem('vs_tt_handle',String(handle).replace(/^@/,'')); }catch(e){}
   /* connecting from inside a space you can edit -> bind the TikTok to the SPACE, not just your personal profile */
@@ -3580,6 +3590,7 @@ function pulseSet(key, newVal, subHTML, rounded){
 function pollPulse(){
   var _c=curCh(); var q=_c.id||_c.name; if(!q) return Promise.resolve();
   var body={ mode:'live', channel:q, website:'' };
+  var _cid=_c.id||_c.name||''; if(PULSE.firstCid!==_cid){ body.first=1; PULSE.firstCid=_cid; } /* exact subs/views enrich once per channel, NOT every 45s poll - protects the shared Data-API quota */
   var _ai=actIdent(); if(_ai.tiktok) body.tiktok=_ai.tiktok;  /* space lens = the team's TikTok, personal lens = yours */
   return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(function(r){return r.json();})
