@@ -1980,6 +1980,7 @@ function renderDeep(err){
 function _dFmt(n){ n=Number(n)||0; var neg=n<0; n=Math.abs(n); var s=n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':String(Math.round(n)); return (neg?'-':'')+s; }
 function _dClamp(p){ p=Number(p)||0; return p>100?100:(p<0?0:p); }
 function _dStat(val,label){ return '<div style="display:flex;flex-direction:column;gap:1px"><div style="font-size:1.15rem;font-weight:700;color:var(--fg,#eef2f7);font-variant-numeric:tabular-nums;line-height:1.1">'+val+'</div><div style="font-size:.62rem;color:var(--faint,#6b7280);letter-spacing:.02em">'+label+'</div></div>'; }
+function _dLabel(t){ return '<div style="font-size:.66rem;color:var(--faint,#6b7280);letter-spacing:.07em;text-transform:uppercase;margin:2px 0 9px">'+t+'</div>'; }
 function deepHtml(d){
   var c=d.channel||{}, vids=(d.videos||[]).slice(0,6), ret=d.retention;
   var mins=Number(c.minutes_watched)||0, hrs=mins/60, watchDisp=hrs>=1?(_dFmt(Math.round(hrs))+' hrs'):(Math.round(mins)+' min');
@@ -1997,12 +1998,68 @@ function deepHtml(d){
       +_dStat(watchDisp,'watch time · 28d')+_dStat(avdDisp,'avg view length')+_dStat((net>=0?'+':'')+_dFmt(net),'net subs · 28d')+_dStat(_dFmt(c.views),'views · 28d')
     +'</div>'
   +'</div>';
+  /* exact engagement (real API numbers, not RSS estimates) */
+  if(c.likes!=null || c.comments!=null || c.shares!=null){
+    h+='<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:.72rem;color:var(--muted,#9aa7b4);margin:-4px 0 15px">'
+      +'<span>♥ <b style="color:var(--fg,#eef2f7)">'+_dFmt(c.likes)+'</b> likes</span>'
+      +'<span>◇ <b style="color:var(--fg,#eef2f7)">'+_dFmt(c.comments)+'</b> comments</span>'
+      +'<span>↗ <b style="color:var(--fg,#eef2f7)">'+_dFmt(c.shares)+'</b> shares</span>'
+      +(c.playlist_adds?'<span>+ <b style="color:var(--fg,#eef2f7)">'+_dFmt(c.playlist_adds)+'</b> saved</span>':'')
+    +'</div>';
+  }
   /* the hero viz: real retention curve, or a graceful unlock note for small/new videos */
   if(ret && ret.points && ret.points.length>2){ h+=retChart(ret.points, ret.title); }
   else { h+='<div style="border:1px dashed var(--line,rgba(255,255,255,.13));border-radius:11px;padding:13px 15px;margin-bottom:15px;display:flex;gap:11px;align-items:center">'
       +'<div style="font-size:1.3rem;line-height:1">📉</div>'
       +'<div style="font-size:.78rem;color:var(--muted,#9aa7b4);line-height:1.5">Second-by-second <b style="color:var(--fg,#eef2f7)">retention curves</b> switch on once a video clears ~100 views, YouTube hides the drop-off graph below that. Your real numbers above are live now, the curve fills in as videos grow.</div>'
     +'</div>'; }
+  /* relative retention: how this video holds vs comparable youtube videos (we already fetch it) */
+  if(ret && ret.points && ret.points.length){
+    var rels=ret.points.map(function(p){return Number(p.rel)||0;}).filter(function(x){return x>0;});
+    if(rels.length){ rels.sort(function(a,b){return a-b;}); var medRel=rels[Math.floor(rels.length/2)], pctBetter=Math.round(_dClamp(medRel*100));
+      h+='<div style="margin:-4px 0 15px;font-size:.76rem;color:var(--muted,#9aa7b4);line-height:1.5">holds viewers <b style="color:'+(pctBetter>=50?'var(--accent)':'var(--warning,#e0a800)')+'">better than '+pctBetter+'%</b> of comparable youtube videos</div>'; }
+  }
+  /* traffic sources - where the algorithm/audience finds you */
+  var ts=(d.traffic_sources||[]).filter(function(x){return (Number(x.pct)||0)>=1;});
+  if(ts.length){
+    h+=_dLabel('where your views come from');
+    var tmax=Math.max.apply(null, ts.map(function(x){return Number(x.pct)||0;}).concat([1]));
+    h+='<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">';
+    ts.forEach(function(s){ var pct=Number(s.pct)||0;
+      h+='<div style="display:flex;align-items:center;gap:11px;font-size:.78rem">'
+        +'<div style="width:150px;flex:0 0 auto;color:var(--muted,#9aa7b4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(String(s.source))+'</div>'
+        +'<div style="flex:1;height:7px;border-radius:4px;background:var(--line,rgba(255,255,255,.08));overflow:hidden"><div style="height:100%;width:'+Math.round(pct/tmax*100)+'%;background:var(--accent);border-radius:4px"></div></div>'
+        +'<div style="width:44px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:var(--fg,#eef2f7)">'+pct.toFixed(0)+'%</div>'
+      +'</div>';
+    });
+    h+='</div>';
+  }
+  /* reach: subscribers vs non-subscribers - are you breaking out of your base */
+  var rc=d.reach;
+  if(rc && (rc.sub_views||rc.non_views)){
+    var nonPct=_dClamp(rc.non_pct);
+    h+=_dLabel('reach');
+    h+='<div style="margin-bottom:16px">'
+      +'<div style="display:flex;height:26px;border-radius:7px;overflow:hidden;border:1px solid var(--line,rgba(255,255,255,.08))">'
+        +'<div style="width:'+nonPct.toFixed(0)+'%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:#08111a;white-space:nowrap;overflow:hidden">'+(nonPct>=16?nonPct.toFixed(0)+'% new':'')+'</div>'
+        +'<div style="flex:1;background:hsl(230 24% 15%);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--muted);white-space:nowrap;overflow:hidden">'+((100-nonPct)>=16?(100-nonPct).toFixed(0)+'% subs':'')+'</div>'
+      +'</div>'
+      +'<div style="font-size:.74rem;color:var(--muted,#9aa7b4);margin-top:7px;line-height:1.5">'+(nonPct>=55?'<b style="color:var(--accent)">'+nonPct.toFixed(0)+'% from non-subscribers</b>, youre breaking out of your base':(nonPct>=30?nonPct.toFixed(0)+'% of views come from new (non-subscriber) viewers':'<b style="color:var(--warning,#e0a800)">mostly your own subscribers</b>, the algorithm isnt spreading you wide yet'))+'</div>'
+    +'</div>';
+  }
+  /* audience demographics (youtube only exposes it above a size threshold) */
+  var dm=d.demographics;
+  if(dm && dm.age && dm.age.length){
+    h+=_dLabel('who watches');
+    var amax=Math.max.apply(null, dm.age.map(function(x){return Number(x.pct)||0;}).concat([1]));
+    h+='<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:16px"><div style="flex:1;min-width:190px;display:flex;flex-direction:column;gap:6px">';
+    dm.age.forEach(function(a){ var pct=Number(a.pct)||0;
+      h+='<div style="display:flex;align-items:center;gap:9px;font-size:.72rem"><div style="width:54px;flex:0 0 auto;color:var(--muted,#9aa7b4)">'+esc(String(a.age))+'</div><div style="flex:1;height:6px;border-radius:4px;background:var(--line,rgba(255,255,255,.08));overflow:hidden"><div style="height:100%;width:'+Math.round(pct/amax*100)+'%;background:var(--accent);border-radius:4px"></div></div><div style="width:38px;text-align:right;color:var(--fg,#eef2f7);font-weight:600">'+pct.toFixed(0)+'%</div></div>';
+    });
+    h+='</div>';
+    if(dm.male||dm.female){ h+='<div style="flex:0 0 auto;font-size:.74rem;color:var(--muted,#9aa7b4);text-align:right"><b style="color:var(--fg,#eef2f7)">'+Math.round(dm.male)+'%</b> male<br><b style="color:var(--fg,#eef2f7)">'+Math.round(dm.female)+'%</b> female</div>'; }
+    h+='</div>';
+  }
   /* per-video attention leaderboard with real bars */
   if(vids.length){
     h+='<div style="font-size:.66rem;color:var(--faint,#6b7280);letter-spacing:.07em;text-transform:uppercase;margin:2px 0 9px">how each video holds attention</div>'
