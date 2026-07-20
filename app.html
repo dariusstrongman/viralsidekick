@@ -3209,8 +3209,9 @@ function renderAlt(p){
   var disp=(p==='facebook'?'':'@')+esc(clean);
   $('altHead').innerHTML='<div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">connected · '+esc(name)+'</div><div class="big">'+disp+'</div><div class="tsub">This '+esc(name)+' account is linked to '+whose+'. Deep '+esc(name)+' analytics are rolling out, the handle is saved so it is ready the moment they land.</div>';
 }
-/* SANDBOX for TikTok app review demo. PROD key = awh6cexulusud4f9 — swap back here on approval. */
-var TT_CLIENT_KEY='sbawxnm2n2jdso8c5d';
+/* PROD - TikTok app APPROVED 2026-07-20, deep-connect is live for everyone (sandbox was sbawxnm2n2jdso8c5d).
+   flipping off 'sb' also disables the _ttSandbox() tester-only gate below. */
+var TT_CLIENT_KEY='awh6cexulusud4f9';
 function ttConnected(){ return !!(PROFILE && (PROFILE.tiktok_open_id || PROFILE.tiktok_connected_at)); }
 /* only these accounts are allow-listed on the TikTok sandbox, so only they can complete a connect
    while review is pending. everyone else gets the honest "in review" state, never a dead error. */
