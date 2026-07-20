@@ -1981,6 +1981,17 @@ function _dFmt(n){ n=Number(n)||0; var neg=n<0; n=Math.abs(n); var s=n>=1e6?(n/1
 function _dClamp(p){ p=Number(p)||0; return p>100?100:(p<0?0:p); }
 function _dStat(val,label){ return '<div style="display:flex;flex-direction:column;gap:1px"><div style="font-size:1.15rem;font-weight:700;color:var(--fg,#eef2f7);font-variant-numeric:tabular-nums;line-height:1.1">'+val+'</div><div style="font-size:.62rem;color:var(--faint,#6b7280);letter-spacing:.02em">'+label+'</div></div>'; }
 function _dLabel(t){ return '<div style="font-size:.66rem;color:var(--faint,#6b7280);letter-spacing:.07em;text-transform:uppercase;margin:2px 0 9px">'+t+'</div>'; }
+function _growthChart(daily){
+  var pts=daily.map(function(x){return Number(x.views)||0;});
+  var n=pts.length, W=600, H=64, padX=2, padTop=6, padBot=4;
+  var max=Math.max.apply(null, pts.concat([1]));
+  var xs=function(i){ return padX+(n>1?i/(n-1):0)*(W-2*padX); };
+  var ys=function(v){ return padTop+(1-(v/max))*(H-padTop-padBot); };
+  var line='', area='M'+xs(0).toFixed(1)+' '+(H-padBot).toFixed(1);
+  pts.forEach(function(v,i){ var x=xs(i),y=ys(v); line+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' '; area+=' L'+x.toFixed(1)+' '+y.toFixed(1); });
+  area+=' L'+xs(n-1).toFixed(1)+' '+(H-padBot).toFixed(1)+' Z';
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="width:100%;height:56px;display:block" aria-hidden="true"><defs><linearGradient id="grGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--accent);stop-opacity:.32"/><stop offset="1" style="stop-color:var(--accent);stop-opacity:0"/></linearGradient></defs><path d="'+area+'" style="fill:url(#grGrad)"/><path d="'+line+'" style="fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linejoin:round"/></svg>';
+}
 function deepHtml(d){
   var c=d.channel||{}, vids=(d.videos||[]).slice(0,6), ret=d.retention;
   var mins=Number(c.minutes_watched)||0, hrs=mins/60, watchDisp=hrs>=1?(_dFmt(Math.round(hrs))+' hrs'):(Math.round(mins)+' min');
@@ -2059,6 +2070,14 @@ function deepHtml(d){
     h+='</div>';
     if(dm.male||dm.female){ h+='<div style="flex:0 0 auto;font-size:.74rem;color:var(--muted,#9aa7b4);text-align:right"><b style="color:var(--fg,#eef2f7)">'+Math.round(dm.male)+'%</b> male<br><b style="color:var(--fg,#eef2f7)">'+Math.round(dm.female)+'%</b> female</div>'; }
     h+='</div>';
+  }
+  /* 28-day daily views trend + net subs (the growth line) */
+  var dl=(d.daily||[]).filter(function(x){return x&&x.date;});
+  if(dl.length>=4){
+    var tvw=dl.reduce(function(s,x){return s+(Number(x.views)||0);},0), nsub=dl.reduce(function(s,x){return s+(Number(x.subs_net)||0);},0);
+    h+=_dLabel('last 28 days')
+      +'<div style="font-size:.74rem;color:var(--muted,#9aa7b4);margin-bottom:6px">'+_dFmt(tvw)+' views · <b style="color:'+(nsub>=0?'var(--accent)':'var(--danger,#e5484d)')+'">'+(nsub>=0?'+':'')+_dFmt(nsub)+' subscribers</b></div>'
+      +'<div style="margin-bottom:16px">'+_growthChart(dl)+'</div>';
   }
   /* per-video attention leaderboard with real bars */
   if(vids.length){
