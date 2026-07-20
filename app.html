@@ -3352,7 +3352,7 @@ function ttConnectedCard(handle){
       .then(function(r){return r.json();}).then(function(d){
         if(PLATFORM!=='tiktok') return;
         if(d && d.ok){ try{ localStorage.setItem(key, JSON.stringify({at:Date.now(),d:d})); }catch(e){} renderTtCard(d, handle, true); }
-        else if(d && d.error==='not_connected'){ if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; } ttCard(handle); }
+        else if(d && (d.error==='not_connected'||d.error==='tt_reconnect')){ /* dead/expired grant -> drop to the free grade + Connect CTA instead of a forever "try again" */ if(PROFILE){ PROFILE.tiktok_open_id=null; PROFILE.tiktok_connected_at=null; PROFILE.tiktok_handle=null; } IDENT.tiktok=''; try{ localStorage.removeItem(key); }catch(e){} ttCard(handle); }
         else if(!(cached&&cached.d)){ host.innerHTML='<div class="tsub" style="padding:16px 4px">couldnt load connected analytics right now, try again.</div>'; }
       }).catch(function(){ if(!(cached&&cached.d)) host.innerHTML='<div class="tsub" style="padding:16px 4px">network hiccup loading TikTok analytics.</div>'; });
   });
