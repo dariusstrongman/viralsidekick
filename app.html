@@ -5013,6 +5013,17 @@ function logSubs(v){
   try{ localStorage.setItem(_gkey('vs_subs_'), JSON.stringify(s)); }catch(e){}
 }
 function predictSubs(cur, target){
+  var remaining0=target-cur;
+  if(remaining0<=0) return {status:'reached'};
+  /* AUTHORITATIVE: connected YouTube deep analytics gives REAL daily subscribers gained/lost.
+     use that rate instead of the noisy scraped live counts (which is what the goal tile used to fit). */
+  try{
+    if(typeof DEEP!=='undefined' && DEEP && DEEP.ok && DEEP.daily && DEEP.daily.length>=7 && (typeof PLATFORM==='undefined'||PLATFORM==='youtube')){
+      var _dd=DEEP.daily, _net=_dd.reduce(function(a,x){return a+(Number(x.subs_net)||0);},0), _pd=_net/_dd.length;
+      if(_pd>0.02) return {status:'ok', perDay:_pd, days:remaining0/_pd, span:_dd.length, remaining:remaining0, src:'api'};
+      return {status:'flat', span:_dd.length, src:'api'};
+    }
+  }catch(e){}
   var s=loadSubsSeries().slice();
   if(!s.length || s[s.length-1].v!==cur) s=s.concat([{t:Date.now(),v:cur}]);
   if(s.length<2) return {status:'warming', span:0};
