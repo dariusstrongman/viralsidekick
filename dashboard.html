@@ -234,10 +234,12 @@ canvas.med{width:100%;height:160px;display:block}
 .heatgrid .hourlab span{text-align:center;overflow:hidden}
 /* on phones keep the 24-hour cells legible and let the grid scroll instead of crushing */
 @media(max-width:560px){
-  /* the top nav (logo + new scan / Log in / Go Pro) overflowed 375px screens -> tighten it to fit */
+  /* the top nav (logo + new scan / Log in / Go Pro) overflowed 375px screens -> tighten it + drop the
+     secondary Log in link on phones (Go Pro routes to app.html which has login) so it always fits. */
   nav.top .wrap{gap:10px}
   nav.top .nav-right{gap:7px}
   nav.top .nav-right .btn-sm{padding:7px 11px;font-size:.78rem}
+  nav.top .nav-right a.btn-ghost{display:none}
   .heatgrid{grid-template-columns:22px repeat(24,minmax(0,1fr));gap:2px}
   .heatgrid .hourlab{grid-template-columns:repeat(24,minmax(0,1fr));gap:2px}
   /* channel vitals: grid instead of a flex row so dividers dont dangle on wrap */
