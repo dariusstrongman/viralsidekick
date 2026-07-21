@@ -3529,7 +3529,10 @@ function renderTtDeep(d){
   /* your posts — ranked list */
   var postsHtml=(card.posts||[]).length ? '<div class="tt-posts">'+(card.posts||[]).map(function(pp){
     var rc=pp.ratio>=2.5?'var(--accent)':(pp.ratio<=0.4?'var(--danger)':'var(--muted)');
-    return '<div class="tt-post"><div class="tt-post-t">'+esc(pp.t||'untitled')+'</div><div class="tt-post-m"><span>'+nfmt(pp.v)+' views</span><span>'+pp.eng+'% eng</span><span style="color:'+rc+'">'+pp.ratio+'x</span></div></div>';
+    var thumb=pp.cover?'<img src="'+esc(pp.cover)+'" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:36px;height:48px;border-radius:6px;object-fit:cover;flex:0 0 auto" onerror="this.style.display=\'none\'">':'';
+    var durS=pp.dur?('<span>'+(pp.dur>=60?(Math.floor(pp.dur/60)+'m'+(pp.dur%60?(' '+(pp.dur%60)+'s'):'')):(pp.dur+'s'))+'</span>'):'';
+    var inner='<div class="tt-post" style="display:flex;gap:10px;align-items:center">'+thumb+'<div style="flex:1;min-width:0"><div class="tt-post-t">'+esc(pp.t||'untitled')+'</div><div class="tt-post-m"><span>'+nfmt(pp.v)+' views</span>'+durS+'<span>'+pp.eng+'% eng</span><span style="color:'+rc+'">'+pp.ratio+'x</span></div></div></div>';
+    return (pp.url && /^https?:\/\//i.test(pp.url))?('<a href="'+esc(pp.url)+'" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block">'+inner+'</a>'):inner;
   }).join('')+'</div>' : '';
 
   host.innerHTML=''
