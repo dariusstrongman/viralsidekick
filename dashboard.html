@@ -595,9 +595,11 @@ var pageT = Date.now();
 
 /* ---------- state machine ---------- */
 function show(state){
-  $('stateInput').style.display  = state==='input'  ? '' : 'none';
-  $('stateScan').style.display   = state==='scan'   ? '' : 'none';
-  $('stateReport').style.display = state==='report' ? '' : 'none';
+  /* stateScan + stateReport are display:none in CSS, so '' would revert to none (report stays hidden,
+     canvas 0-sized). set an explicit display to actually show the active state. */
+  $('stateInput').style.display  = state==='input'  ? 'block' : 'none';
+  $('stateScan').style.display   = state==='scan'   ? 'block' : 'none';
+  $('stateReport').style.display = state==='report' ? 'block' : 'none';
   $('newScanBtn').style.display  = state==='report' ? '' : 'none';
   scrollTo(0,0);
 }
