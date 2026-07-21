@@ -731,7 +731,7 @@ function renderReport(d){
     + esc((d.ai && d.ai.niche) || 'creator') + ' · scanned just now';
   var score = (d.ai && d.ai.score) != null ? d.ai.score : 50;
   $('rScore').textContent = score;
-  drawDial(score);
+  try{ drawDial(score); }catch(e){}
   var gl = gradeOf(score), gc = gradeColor(gl);
   var gp = $('rGrade'); if (gp){ gp.textContent = gl; gp.style.color = gc; gp.title = 'viral-readiness grade. S 97+, A 90+, B 80+, C 70+, D 60+, F below 60. read from your outliers, dead zones and momentum, not your subscriber count.'; }
   var cl = $('rCardLink'); if (cl){ var _cid = ch.id || ch.handle || ($('fC')&&$('fC').value.trim()); if(_cid) cl.href = 'c.html?ch=' + encodeURIComponent(_cid); }
@@ -905,8 +905,15 @@ function stat(n, l, cls){ return '<div class="stat"><div class="n '+(cls||'')+'"
 /* ---------- canvases ---------- */
 function ctx2(c){ var d = devicePixelRatio||1, w = c.clientWidth*d, h = c.clientHeight*d; c.width=w; c.height=h; return [c.getContext('2d'),w,h,d]; }
 function drawDial(score){
-  var c = $('dial'), r = ctx2(c), ctx=r[0], W=r[1], H=r[2], d=r[3];
-  var cx=W/2, cy=H/2, rad=Math.min(W,H)/2 - 8*d;
+  var c = $('dial'); if(!c) return;
+  var cw=c.clientWidth||0, chh=c.clientHeight||0;
+  /* the canvas can be 0-sized when this runs (report just shown, flex parent not laid out yet).
+     rad would go negative and arc() would THROW, aborting the whole report render. retry next frame
+     until it has a real size (capped), and clamp rad so it can never throw. */
+  if(cw<2 || chh<2){ if((drawDial._r=(drawDial._r||0)+1)<=30){ requestAnimationFrame(function(){ drawDial(score); }); } return; }
+  drawDial._r=0;
+  var d=devicePixelRatio||1, W=cw*d, H=chh*d; c.width=W; c.height=H; var ctx=c.getContext('2d');
+  var cx=W/2, cy=H/2, rad=Math.max(1, Math.min(W,H)/2 - 8*d);
   ctx.lineWidth = 9*d; ctx.lineCap='round';
   ctx.strokeStyle='hsl(228,14%,16%)';
   ctx.beginPath(); ctx.arc(cx,cy,rad, Math.PI*0.75, Math.PI*2.25); ctx.stroke();
