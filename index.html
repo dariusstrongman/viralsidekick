@@ -154,6 +154,10 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
 #bottom .lnks a:hover{color:var(--white)}
 #bottom .cp{width:100%;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
 @media(max-width:760px){.feats{grid-template-columns:1fr}}
+/* premium scroll-reveal: below-fold content fades + rises into view. only active when JS adds
+   .reveal-on to <html>, so if the script never runs nothing is ever hidden. */
+.reveal-on .reveal{opacity:0;transform:translateY(26px)}
+.reveal-on .reveal.in{opacity:1;transform:none;transition:opacity .85s cubic-bezier(.2,.7,.3,1),transform .85s cubic-bezier(.2,.7,.3,1)}
 
 /* ---------- portal spin (sign-in transition) ---------- */
 #portal{position:fixed;z-index:90;width:120px;height:120px;border-radius:50%;pointer-events:none;opacity:0;
@@ -336,6 +340,22 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
 <script>
 var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
 var APP = 'app.html';
+
+/* ---------- premium scroll-reveal (below-fold content fades + rises in) ---------- */
+(function(){
+  if(REDUCE) return;
+  try{
+    var els=[].slice.call(document.querySelectorAll('.sec .klabel, .sec h2, .sec .lede, .datacard, .feats, .tiers'));
+    if(!els.length) return;
+    document.documentElement.classList.add('reveal-on');
+    els.forEach(function(el){ el.classList.add('reveal'); });
+    var revealAll=function(){ els.forEach(function(el){ el.classList.add('in'); }); };
+    if(!('IntersectionObserver' in window)){ revealAll(); return; }
+    var io=new IntersectionObserver(function(ents){ ents.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin:'0px 0px -7% 0px', threshold:0.05 });
+    els.forEach(function(el){ io.observe(el); });
+    setTimeout(revealAll, 2600); /* absolute fail-safe: reveal everything no matter what */
+  }catch(e){ try{ document.documentElement.classList.remove('reveal-on'); }catch(_){} }
+})();
 
 /* ---------- living hero: seamless loop video over the still ---------- */
 (function(){
