@@ -159,6 +159,110 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
 .reveal-on .reveal{opacity:0;transform:translateY(26px)}
 .reveal-on .reveal.in{opacity:1;transform:none;transition:opacity .85s cubic-bezier(.2,.7,.3,1),transform .85s cubic-bezier(.2,.7,.3,1)}
 
+/* ================= $1M storefront: product showcase ================= */
+.wide{max-width:1180px}
+.showsec{background:
+  radial-gradient(120% 80% at 82% 0%,rgba(139,92,246,.10),transparent 55%),
+  radial-gradient(90% 70% at 8% 100%,rgba(34,211,238,.07),transparent 55%),var(--ink)}
+.showgrid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(28px,4vw,58px);align-items:center;margin-top:26px}
+.showcopy h2{margin-bottom:16px}
+.showcopy .lede{margin-bottom:26px}
+.mini-list{display:flex;flex-direction:column;gap:15px;margin-top:6px}
+.mini-list .mi{display:flex;gap:13px;align-items:flex-start}
+.mini-list .mi svg{width:17px;height:17px;color:var(--cyan);flex:0 0 auto;margin-top:3px}
+.mini-list .mi b{font-weight:500;color:var(--white);font-size:14.5px}
+.mini-list .mi span{color:var(--muted);font-size:14px;line-height:1.55}
+
+/* the app-window mock */
+.window{position:relative;border-radius:16px;border:1px solid rgba(238,240,247,.11);
+  background:linear-gradient(180deg,#0c0e17,#080a11);
+  box-shadow:0 50px 110px -40px rgba(0,0,0,.9),0 0 0 1px rgba(139,92,246,.08),inset 0 1px 0 rgba(255,255,255,.05);
+  overflow:hidden}
+.window::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(139,92,246,.05),transparent 30%)}
+.winbar{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(238,240,247,.07);background:rgba(255,255,255,.015)}
+.dots{display:flex;gap:7px}
+.dots i{width:11px;height:11px;border-radius:50%;background:#2a2e3d}
+.dots i:nth-child(1){background:#ff5f57}.dots i:nth-child(2){background:#febc2e}.dots i:nth-child(3){background:#28c840}
+.urlpill{flex:1;font-family:var(--mono);font-size:11px;color:var(--faint);background:rgba(0,0,0,.35);border:1px solid rgba(238,240,247,.06);border-radius:7px;padding:5px 12px;text-align:center;letter-spacing:.04em}
+.livedot{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#28c840}
+.livedot i{width:6px;height:6px;border-radius:50%;background:#28c840;box-shadow:0 0 8px #28c840;animation:blink 2s infinite}
+.winbody{padding:clamp(16px,2.2vw,22px);display:flex;flex-direction:column;gap:14px}
+.chanrow{display:flex;align-items:center;gap:12px}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--violet),#6d3fe0);display:flex;align-items:center;justify-content:center;font-family:var(--heading);font-size:19px;color:#fff;flex:0 0 auto}
+.chanrow .nm{font-weight:500;font-size:15px;color:var(--white)}
+.chanrow .hd{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.gradeblock{display:flex;gap:18px;align-items:center;background:linear-gradient(135deg,rgba(139,92,246,.10),rgba(34,211,238,.04));border:1px solid rgba(139,92,246,.2);border-radius:14px;padding:16px 18px}
+.ring{position:relative;width:96px;height:96px;flex:0 0 auto}
+.ring svg{transform:rotate(-90deg)}
+.ring .rt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .g{font-family:var(--heading);font-size:34px;line-height:1;color:#fff}
+.ring .gl{font-family:var(--mono);font-size:7.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-top:3px}
+.gradetext .gt-h{font-weight:500;font-size:15px;color:var(--white);margin-bottom:5px}
+.gradetext .gt-p{font-size:12.5px;color:var(--muted);line-height:1.5}
+.mvit{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.mvit .v{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.008));border:1px solid rgba(238,240,247,.07);border-radius:11px;padding:11px 12px}
+.mvit .v .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.mvit .v .n{font-family:var(--heading);font-size:21px;color:var(--white);margin-top:5px;line-height:1}
+.mvit .v .n em{font-style:normal;font-size:12px;color:var(--cyan);font-family:var(--mono)}
+.retbox{border:1px solid rgba(238,240,247,.07);border-radius:12px;padding:13px 15px;background:rgba(255,255,255,.012)}
+.retbox .rh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+.retbox .rh .t{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.retbox .rh .d{font-family:var(--mono);font-size:10px;color:var(--cyan)}
+.coachcard{display:flex;gap:11px;align-items:flex-start;border:1px solid rgba(34,211,238,.22);background:rgba(34,211,238,.05);border-radius:11px;padding:12px 14px}
+.coachcard svg{width:16px;height:16px;color:var(--cyan);flex:0 0 auto;margin-top:2px}
+.coachcard p{font-size:12.8px;line-height:1.5;color:var(--white-dim)}
+.coachcard b{color:#fff;font-weight:500}
+
+/* ================= how it works ================= */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px;position:relative}
+.step{position:relative;border:1px solid rgba(238,240,247,.08);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.006));border-radius:16px;padding:28px 24px}
+.step .num{font-family:var(--heading);font-size:15px;color:var(--ink);width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:400;margin-bottom:16px;box-shadow:0 8px 22px -6px var(--violet-glow)}
+.step h3{font-weight:500;font-size:16.5px;color:var(--white);margin-bottom:9px}
+.step p{font-size:14px;line-height:1.6;color:var(--muted)}
+
+/* ================= proof band ================= */
+.statband{border-top:1px solid rgba(238,240,247,.07);border-bottom:1px solid rgba(238,240,247,.07);
+  background:radial-gradient(80% 120% at 50% 0%,rgba(139,92,246,.06),transparent);}
+.stats{max-width:1020px;margin:0 auto;padding:clamp(38px,6vh,62px) clamp(22px,6vw,84px);display:grid;grid-template-columns:repeat(4,1fr);gap:22px;text-align:center}
+.stat .num{font-family:var(--heading);font-weight:300;font-size:clamp(30px,4vw,46px);line-height:1;background:linear-gradient(115deg,var(--violet) 20%,var(--cyan) 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:12px;line-height:1.5}
+
+/* ================= faq ================= */
+.faqwrap{margin-top:32px;border-top:1px solid rgba(238,240,247,.08)}
+.qa{border-bottom:1px solid rgba(238,240,247,.08)}
+.qa summary{list-style:none;cursor:pointer;padding:22px 4px;display:flex;justify-content:space-between;align-items:center;gap:18px;font-weight:500;font-size:16.5px;color:var(--white)}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary .pm{flex:0 0 auto;width:22px;height:22px;position:relative;transition:transform .3s}
+.qa summary .pm::before,.qa summary .pm::after{content:'';position:absolute;background:var(--cyan);border-radius:2px;top:50%;left:50%;transform:translate(-50%,-50%)}
+.qa summary .pm::before{width:14px;height:2px}
+.qa summary .pm::after{width:2px;height:14px;transition:transform .3s}
+.qa[open] summary .pm::after{transform:translate(-50%,-50%) scaleY(0)}
+.qa .ans{padding:0 4px 24px;font-size:14.5px;line-height:1.72;color:var(--muted);max-width:78ch}
+.qa .ans a{color:var(--cyan);border-bottom:1px solid rgba(34,211,238,.4)}
+
+/* ================= finale ================= */
+.finale{position:relative;text-align:center;padding:clamp(70px,11vh,120px) clamp(22px,6vw,84px);overflow:hidden;background:
+  radial-gradient(70% 130% at 50% 0%,rgba(139,92,246,.14),transparent 60%),#05060a;border-top:1px solid rgba(238,240,247,.08)}
+.finale h2{font-family:var(--heading);font-weight:300;font-size:clamp(30px,4.6vw,54px);line-height:1.08;letter-spacing:-.01em;margin:0 auto 18px;max-width:16ch}
+.finale h2 em{font-style:italic;background:linear-gradient(115deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.finale p{font-size:16px;color:var(--white-dim);max-width:52ch;margin:0 auto 34px;line-height:1.65}
+.finale .ctas{justify-content:center;display:flex;gap:14px;flex-wrap:wrap}
+.finale .sm{margin-top:18px;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+
+/* condensed, honest trust card */
+.trustcard{border:1px solid rgba(238,240,247,.1);background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.005));border-radius:20px;padding:clamp(24px,4vw,40px)}
+
+@media(max-width:900px){
+  .showgrid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr);gap:30px 22px}
+}
+@media(max-width:560px){
+  .mvit{grid-template-columns:repeat(3,1fr)}
+  .gradeblock{flex-direction:row}
+}
+
 /* ---------- portal spin (sign-in transition) ---------- */
 #portal{position:fixed;z-index:90;width:120px;height:120px;border-radius:50%;pointer-events:none;opacity:0;
   background:conic-gradient(from 0deg,var(--violet),var(--cyan),transparent 35%,var(--violet) 60%,var(--cyan),transparent 90%,var(--violet));
@@ -277,8 +381,109 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
       </div>
       <div class="feat">
         <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>Live analytics</h3>
-        <p>Connect your channel and we read your retention, click-through rate, and impressions so the coaching is based on real audience behavior.</p>
+        <p>Connect your channel and we read your real retention, watch time, traffic sources, and audience, so the coaching is grounded in how people actually watch you.</p>
       </div>
+    </div>
+  </section>
+
+  <section class="sec wide showsec" id="see">
+    <div class="showgrid">
+      <div class="showcopy">
+        <div class="klabel"><span class="dot"></span>the dashboard</div>
+        <h2>Your channel, <em>read like a story</em></h2>
+        <p class="lede">The moment you connect, ViralSidekick turns your raw numbers into one grade, a retention curve with the exact second people leave, and the next move written out. This is a live preview.</p>
+        <div class="mini-list">
+          <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div><b>One number, not a spreadsheet.</b> <span>An S to F grade that says how primed you are to break out.</span></div></div>
+          <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div><b>The drop-off, pinpointed.</b> <span>See the exact second retention falls and what to change.</span></div></div>
+          <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div><b>A move, not a metric.</b> <span>Every read ends in the specific thing to do on your next upload.</span></div></div>
+        </div>
+      </div>
+
+      <div class="window" aria-hidden="true">
+        <div class="winbar">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="urlpill">app.viralsidekick.com</div>
+          <span class="livedot"><i></i>live</span>
+        </div>
+        <div class="winbody">
+          <div class="chanrow">
+            <div class="avatar">N</div>
+            <div><div class="nm">Northpaw Studio</div><div class="hd">@northpaw · 84.2k subscribers</div></div>
+          </div>
+          <div class="gradeblock">
+            <div class="ring">
+              <svg width="96" height="96" viewBox="0 0 96 96">
+                <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+                <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(238,240,247,.08)" stroke-width="7"/>
+                <circle class="ringfill" cx="48" cy="48" r="40" fill="none" stroke="url(#rg)" stroke-width="7" stroke-linecap="round" stroke-dasharray="216 251" stroke-dashoffset="0"/>
+              </svg>
+              <div class="rt"><span class="g">A−</span><span class="gl">primed</span></div>
+            </div>
+            <div class="gradetext">
+              <div class="gt-h">Breaking out is close</div>
+              <div class="gt-p">Your outlier rate and cadence are strong. Consistency is the one lever holding your grade under an A.</div>
+            </div>
+          </div>
+          <div class="mvit">
+            <div class="v"><div class="k">Outlier rate</div><div class="n">2.4<em>×</em></div></div>
+            <div class="v"><div class="k">Avg retention</div><div class="n">61<em>%</em></div></div>
+            <div class="v"><div class="k">Cadence</div><div class="n">3.1<em>/wk</em></div></div>
+          </div>
+          <div class="retbox">
+            <div class="rh"><span class="t">Retention · last upload</span><span class="d">drop at 0:14</span></div>
+            <svg width="100%" height="64" viewBox="0 0 320 64" preserveAspectRatio="none">
+              <defs><linearGradient id="ret" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(139,92,246,.45)"/><stop offset="1" stop-color="rgba(139,92,246,0)"/></linearGradient></defs>
+              <path d="M0,6 L40,10 L70,44 L110,30 L160,34 L220,40 L270,46 L320,52 L320,64 L0,64 Z" fill="url(#ret)"/>
+              <path d="M0,6 L40,10 L70,44 L110,30 L160,34 L220,40 L270,46 L320,52" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+              <line x1="70" y1="0" x2="70" y2="64" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>
+            </svg>
+          </div>
+          <div class="coachcard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+            <p><b>Next move:</b> your last cold-open ran 12 seconds. Cut it to 4. Every upload that dropped under your median opened slow, the winners hit the payoff first.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="how">
+    <div class="klabel"><span class="dot"></span>how it works</div>
+    <h2>Three steps to your <em>next move</em></h2>
+    <p class="lede">No setup, no spreadsheets, no guessing. From connect to plan in about thirty seconds.</p>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><h3>Connect your channel</h3><p>Sign in with Google or TikTok. It is read-only, verified, and takes one click. Or paste any handle to grade a channel with public data first.</p></div>
+      <div class="step"><div class="num">2</div><h3>We autopsy the real data</h3><p>Every upload is read against your own median, your retention curve is mapped, and your niche is swept for what is breaking out right now.</p></div>
+      <div class="step"><div class="num">3</div><h3>Get your grade and plan</h3><p>One grade, the reason behind every over and under performer, and the exact move for your next video, written for your channel.</p></div>
+    </div>
+  </section>
+
+  <div class="statband">
+    <div class="stats">
+      <div class="stat"><div class="num">S<span style="font-family:var(--body);font-weight:300;font-size:.6em;color:var(--muted)">→</span>F</div><div class="lbl">one-number<br>channel grade</div></div>
+      <div class="stat"><div class="num"><span data-count="30">30</span>s</div><div class="lbl">to your first<br>free grade</div></div>
+      <div class="stat"><div class="num"><span data-count="28">28</span>-day</div><div class="lbl">retention &amp; growth<br>read live</div></div>
+      <div class="stat"><div class="num">read-only</div><div class="lbl">we never post, edit<br>or delete anything</div></div>
+    </div>
+  </div>
+
+  <section class="sec" id="data">
+    <div class="trustcard">
+      <div class="klabel"><span class="dot"></span>your youtube access, in plain english</div>
+      <h2>Read-only, yours alone, <em>only to build your dashboard</em></h2>
+      <p class="lede" style="margin-bottom:6px">When you connect your channel, ViralSidekick asks Google for a single read-only permission. We never post, edit, or delete anything.</p>
+      <div class="scope">
+        <div class="mono">https://www.googleapis.com/auth/youtube.readonly</div>
+        <h4>Confirm you own the channel, and read it to build your dashboard</h4>
+        <p>We verify through the YouTube Data API that the Google account signing in actually owns the channel, so nobody can bind a channel they do not control. Then we read that channel, its videos, and your own YouTube Analytics, views, watch time, retention, traffic sources, and audience, to generate your grade and coaching. Everything stays in your private dashboard.</p>
+      </div>
+      <div class="promises">
+        <span class="promise"><span class="d"></span>Read-only, we never change your channel</span>
+        <span class="promise"><span class="d"></span>Shown only to you, in your private dashboard</span>
+        <span class="promise"><span class="d"></span>Never sold or shared</span>
+        <span class="promise"><span class="d"></span>Revoke anytime, in-app or in your Google account</span>
+      </div>
+      <p class="pp">Our use of information received from Google APIs follows the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements, and the YouTube API Services Terms of Service. Full detail is in our <a href="privacy.html">privacy policy</a>.</p>
     </div>
   </section>
 
@@ -317,7 +522,31 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
       <div class="tier"><div class="nm">Team</div><div class="amt">$39.99<small> /mo</small></div><p>One shared space, 5 seats, roles and a shared board. Everything in Pro for the whole team.</p><a class="go" href="app.html">get team →</a></div>
     </div>
   </section>
+
+  <section class="sec" id="faq">
+    <div class="klabel"><span class="dot"></span>questions</div>
+    <h2>The honest <em>answers</em></h2>
+    <div class="faqwrap">
+      <details class="qa"><summary>Is the free scan actually free?<span class="pm"></span></summary><div class="ans">Yes. Paste any channel and get a full grade and breakdown from public data, no signup and no card. Connecting your own channel for live analytics and unlimited coaching is the Pro tier, which starts with a 7-day free trial.</div></details>
+      <details class="qa"><summary>Do you post or change anything on my channel?<span class="pm"></span></summary><div class="ans">Never. We ask Google for a single read-only permission, purely to verify you own the channel and read your numbers. We cannot post, edit, or delete, and you can revoke access anytime from the app or your Google account.</div></details>
+      <details class="qa"><summary>What do I get that YouTube Studio does not give me?<span class="pm"></span></summary><div class="ans">Studio hands you raw charts. ViralSidekick reads every upload against your own median, turns it into one grade, tells you the exact second retention drops, sweeps your niche for what is breaking out right now, and ends every read with the specific move for your next video.</div></details>
+      <details class="qa"><summary>Does it work for small channels?<span class="pm"></span></summary><div class="ans">Yes. Everything is measured relative to your own median, not your subscriber count, so a 500-subscriber channel gets the same real coaching as a million-subscriber one.</div></details>
+      <details class="qa"><summary>Do you support TikTok too?<span class="pm"></span></summary><div class="ans">Yes. Connect TikTok alongside or instead of YouTube to read your reach, share rate, and posting performance in the same dashboard.</div></details>
+      <details class="qa"><summary>What does Pro cost?<span class="pm"></span></summary><div class="ans">Pro is $19 a month or $190 a year with a 7-day free trial. Team is $39.99 a month for one shared space with 5 seats. Grading channels stays free forever.</div></details>
+    </div>
+  </section>
 </div>
+
+<section class="finale">
+  <div class="klabel" style="justify-content:center"><span class="dot"></span>stop guessing</div>
+  <h2>Your next upload is a guess. <em>Make it a plan.</em></h2>
+  <p>Grade your channel in about thirty seconds, free, no signup. See the number, then come build the whole dashboard.</p>
+  <div class="ctas">
+    <a class="btn btn-fill" href="dashboard.html">Grade my channel free <span class="arr">→</span></a>
+    <button class="btn btn-line" data-signin>Sign in <span class="arr">→</span></button>
+  </div>
+  <div class="sm">no card · read-only · revoke anytime</div>
+</section>
 
 <footer id="bottom">
   <a class="brand" href="/" aria-label="ViralSidekick home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12L24 12h-8l2-10z" fill="#8b5cf6"/></svg>ViralSidekick</a>
@@ -345,16 +574,45 @@ var APP = 'app.html';
 (function(){
   if(REDUCE) return;
   try{
-    var els=[].slice.call(document.querySelectorAll('.sec .klabel, .sec h2, .sec .lede, .datacard, .feats, .tiers'));
+    var els=[].slice.call(document.querySelectorAll('.sec .klabel, .sec h2, .sec .lede, .datacard, .trustcard, .feats, .showgrid, .mini-list, .steps, .stat, .tiers, .faqwrap, .finale h2, .finale p, .finale .ctas'));
     if(!els.length) return;
     document.documentElement.classList.add('reveal-on');
     els.forEach(function(el){ el.classList.add('reveal'); });
-    var revealAll=function(){ els.forEach(function(el){ el.classList.add('in'); }); };
+    var revealAll=function(){ [].forEach.call(document.querySelectorAll('.reveal'),function(el){ el.classList.add('in'); }); };
     if(!('IntersectionObserver' in window)){ revealAll(); return; }
     var io=new IntersectionObserver(function(ents){ ents.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin:'0px 0px -7% 0px', threshold:0.05 });
     els.forEach(function(el){ io.observe(el); });
     setTimeout(revealAll, 2600); /* absolute fail-safe: reveal everything no matter what */
   }catch(e){ try{ document.documentElement.classList.remove('reveal-on'); }catch(_){} }
+})();
+
+/* ---------- count-up on the proof band + grade ring sweep ---------- */
+(function(){
+  try{
+    var band=document.querySelector('.statband'); if(!band) return;
+    function run(){
+      [].forEach.call(band.querySelectorAll('[data-count]'),function(el){
+        var to=parseInt(el.getAttribute('data-count'),10)||0;
+        if(REDUCE){ el.textContent=to; return; }
+        var t0=null, dur=900;
+        (function step(ts){ if(t0==null)t0=ts; var p=Math.min(1,(ts-t0)/dur); el.textContent=Math.round(to*(1-Math.pow(1-p,3))); if(p<1)requestAnimationFrame(step); })(0+performance.now());
+      });
+    }
+    if(!('IntersectionObserver' in window)){ run(); return; }
+    var io=new IntersectionObserver(function(e){ if(e[0].isIntersecting){ run(); io.disconnect(); } },{threshold:.4});
+    io.observe(band);
+  }catch(e){}
+})();
+(function(){
+  try{
+    var ring=document.querySelector('.ringfill'); if(!ring||REDUCE) return;
+    ring.style.transition='none'; ring.style.strokeDasharray='0 251';
+    var win=document.querySelector('.window');
+    var fire=function(){ ring.style.transition='stroke-dasharray 1.4s cubic-bezier(.2,.7,.3,1)'; ring.style.strokeDasharray='216 251'; };
+    if(!('IntersectionObserver' in window)){ fire(); return; }
+    var io=new IntersectionObserver(function(e){ if(e[0].isIntersecting){ setTimeout(fire,180); io.disconnect(); } },{threshold:.3});
+    io.observe(win||ring);
+  }catch(e){}
 })();
 
 /* ---------- living hero: seamless loop video over the still ---------- */
