@@ -112,10 +112,13 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
 .sec h2 em{font-style:italic;background:linear-gradient(115deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sec .lede{font-size:16px;line-height:1.7;color:var(--white-dim);max-width:62ch}
 .feats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:34px}
-.feat{border:1px solid rgba(238,240,247,.08);background:rgba(255,255,255,.02);border-radius:16px;padding:24px}
-.feat h3{font-family:var(--body);font-weight:500;font-size:17px;margin-bottom:9px;display:flex;align-items:center;gap:11px;color:var(--white)}
-.feat h3 svg{width:22px;height:22px;color:var(--violet);flex:0 0 auto}
-.feat p{font-size:14.5px;line-height:1.6;color:var(--muted)}
+.feat{position:relative;border:1px solid rgba(238,240,247,.08);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.008));border-radius:16px;padding:26px;transition:transform .35s cubic-bezier(.2,.7,.3,1),border-color .35s,box-shadow .35s;overflow:hidden}
+.feat::before{content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(139,92,246,.55),transparent 42%,transparent 58%,rgba(34,211,238,.4));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .35s;pointer-events:none}
+.feat:hover{transform:translateY(-5px);border-color:transparent;box-shadow:0 24px 55px -22px rgba(139,92,246,.4)}
+.feat:hover::before{opacity:1}
+.feat h3{font-family:var(--body);font-weight:500;font-size:17px;margin-bottom:10px;display:flex;align-items:center;gap:12px;color:var(--white)}
+.feat h3 svg{width:20px;height:20px;color:var(--violet);flex:0 0 auto;padding:8px;box-sizing:content-box;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.22);border-radius:11px}
+.feat p{font-size:14.5px;line-height:1.62;color:var(--muted)}
 .datacard{border:1px solid var(--violet-glow);background:linear-gradient(180deg,rgba(139,92,246,.09),rgba(139,92,246,.02));border-radius:22px;padding:clamp(24px,4vw,42px);margin-top:6px}
 .scope{border-top:1px solid rgba(238,240,247,.1);padding:20px 0}
 .scope:first-of-type{border-top:none;padding-top:6px}
@@ -127,13 +130,22 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
 .promise .d{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
 .pp{margin-top:20px;font-size:14px;color:var(--muted);line-height:1.6}
 .pp a{color:var(--cyan);border-bottom:1px solid rgba(34,211,238,.4)}
-.tiers{display:flex;gap:16px;flex-wrap:wrap;margin-top:32px}
-.tier{flex:1;min-width:210px;border:1px solid rgba(238,240,247,.09);background:rgba(255,255,255,.02);border-radius:18px;padding:26px}
+.tiers{display:flex;gap:18px;flex-wrap:wrap;margin-top:38px;align-items:stretch}
+.tier{position:relative;flex:1;min-width:210px;border:1px solid rgba(238,240,247,.09);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.006));border-radius:18px;padding:30px 26px;transition:transform .35s cubic-bezier(.2,.7,.3,1),border-color .35s,box-shadow .35s;display:flex;flex-direction:column}
+.tier:hover{transform:translateY(-5px);border-color:rgba(238,240,247,.2);box-shadow:0 26px 60px -26px rgba(0,0,0,.7)}
 .tier .nm{font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--faint)}
-.tier .amt{font-family:var(--heading);font-size:34px;font-weight:300;margin:10px 0 4px;color:var(--white)}
-.tier .amt small{font-family:var(--body);font-size:14px;color:var(--muted)}
-.tier p{font-size:14px;line-height:1.55;color:var(--muted)}
-.tier .go{display:inline-block;margin-top:16px;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:var(--cyan);border-bottom:1px dotted rgba(34,211,238,.4);padding-bottom:2px}
+.tier .amt{font-family:var(--heading);font-size:38px;font-weight:300;margin:12px 0 6px;color:var(--white);line-height:1}
+.tier .amt small{font-family:var(--body);font-size:14px;color:var(--muted);font-weight:300}
+.tier p{font-size:14px;line-height:1.6;color:var(--muted);flex:1}
+.tier .go{align-self:flex-start;margin-top:20px;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:var(--cyan);border-bottom:1px dotted rgba(34,211,238,.4);padding-bottom:2px;transition:color .2s,border-color .2s}
+.tier .go:hover{color:#fff;border-color:#fff}
+.tier.featured{border-color:rgba(139,92,246,.5);background:linear-gradient(180deg,rgba(139,92,246,.13),rgba(139,92,246,.02));box-shadow:0 30px 70px -28px var(--violet-glow),inset 0 1px 0 rgba(255,255,255,.07)}
+.tier.featured:hover{transform:translateY(-6px);box-shadow:0 38px 84px -28px var(--violet-glow),inset 0 1px 0 rgba(255,255,255,.07)}
+.tier.featured .nm{color:var(--violet)}
+.tier.featured .amt{color:#fff}
+.tier .tag{position:absolute;top:-11px;left:26px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#fff;background:linear-gradient(120deg,var(--violet),#6d3fe0);padding:5px 12px;border-radius:99px;box-shadow:0 8px 22px var(--violet-glow)}
+.tier.featured .go{align-self:stretch;text-align:center;margin-top:22px;font-family:var(--body);font-weight:500;font-size:13.5px;letter-spacing:.01em;color:#fff;background:linear-gradient(120deg,var(--violet),#6d3fe0);border:0;border-radius:99px;padding:12px 22px;box-shadow:0 10px 30px var(--violet-glow)}
+.tier.featured .go:hover{border:0;transform:translateY(-1px);box-shadow:0 14px 38px var(--violet-glow)}
 #bottom{position:relative;z-index:5;background:#05060a;border-top:1px solid rgba(238,240,247,.08);padding:38px clamp(22px,6vw,84px);display:flex;flex-wrap:wrap;gap:14px 30px;justify-content:space-between;align-items:center}
 #bottom .brand{display:flex;align-items:center;gap:9px;font-family:var(--heading);font-size:18px;color:var(--white)}
 #bottom .brand svg{width:20px;height:20px}
@@ -297,7 +309,7 @@ h1 em{font-style:italic;background:linear-gradient(115deg,var(--violet) 25%,var(
     <p class="lede">Grade any channel free with public data. Connect your own channel and go Pro for live analytics, blueprints, and deeper coaching.</p>
     <div class="tiers">
       <div class="tier"><div class="nm">Free</div><div class="amt">$0</div><p>A full channel scan and grade from public data, no signup.</p><a class="go" href="dashboard.html">run a free scan →</a></div>
-      <div class="tier"><div class="nm">Pro</div><div class="amt">$19<small> /mo</small></div><p>Your connected channel, live analytics, blueprints, unlimited coaching. 7-day free trial.</p><a class="go" href="app.html">start pro →</a></div>
+      <div class="tier featured"><div class="tag">Most popular</div><div class="nm">Pro</div><div class="amt">$19<small> /mo</small></div><p>Your connected channel, live analytics, blueprints, unlimited coaching. 7-day free trial.</p><a class="go" href="app.html">Start Pro free →</a></div>
       <div class="tier"><div class="nm">Team</div><div class="amt">$39.99<small> /mo</small></div><p>One shared space, 5 seats, roles and a shared board. Everything in Pro for the whole team.</p><a class="go" href="app.html">get team →</a></div>
     </div>
   </section>
