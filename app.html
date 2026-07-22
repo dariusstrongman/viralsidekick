@@ -20,8 +20,9 @@
 /* ===== DESIGN TOKENS ===== */
 :root{
   --bg:hsl(230 24% 5%); --card:hsl(228 18% 8%); --card2:hsl(228 16% 11%);
-  --fg:hsl(220 12% 96%); --muted:hsl(220 10% 68%); --faint:hsl(220 9% 52%);
+  --fg:hsl(220 12% 96%); --muted:hsl(220 10% 68%); --faint:hsl(220 11% 60%);
   --border:hsl(228 14% 16%); --border2:hsl(228 14% 24%);
+  /* --faint bumped 52%->60% for legible contrast on the sub-.7rem mono labels (WCAG) */
   --primary:hsl(260 90% 66%); --primary-soft:hsl(260 90% 66% / .14);
   --accent:hsl(190 92% 56%); --success:hsl(160 84% 50%); --warning:hsl(38 96% 60%); --danger:hsl(0 84% 60%);
   --mine:hsl(260 90% 66%); --mine-txt:hsl(260 90% 72%); --team:hsl(45 95% 62%); --team-txt:hsl(45 95% 66%);
@@ -924,6 +925,9 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 .pf-swatch.chan{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.48rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:hsl(230 24% 6%);border:1px dashed var(--border2);text-align:center;line-height:1.2}
 .lens-desc{font-size:.74rem;color:var(--faint);margin-top:7px;font-family:var(--mono);letter-spacing:.02em}
 .shared-pill{font-family:var(--mono);font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;color:hsl(45 95% 62%);background:hsl(45 95% 62% / .12);border:1px solid hsl(45 95% 62% / .35);padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle}
+/* ============ ACCESSIBILITY: visible keyboard focus on every interactive element ============ */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[role="button"]:focus-visible,[role="checkbox"]:focus-visible,[tabindex]:focus-visible,.mini-act:focus-visible,.copychip:focus-visible,.copy:focus-visible,.plat-chip:focus-visible,.vsw:focus-visible,.lens-btn:focus-visible,.tcm-x:focus-visible,.tc-rtog:focus-visible{outline:2px solid var(--accent,#22d3ee);outline-offset:2px;border-radius:6px}
+.a11y-btn{cursor:pointer}
 </style>
 </head>
 <body>
@@ -5095,6 +5099,46 @@ function renderGoal(){
 }
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+/* ==================== ACCESSIBILITY LAYER ====================
+   the app renders a lot of clickable <span>/<div> "buttons" (coach actions, copy chips, platform
+   tabs, lens switches). make them keyboard + screen-reader operable: focusable, role=button,
+   Enter/Space activates. plus Escape closes the top open modal/overlay. */
+(function(){
+  var SEL='.mini-act,.copychip,.copy,.plat-chip,.vsw,.lens-btn,.tcm-x,.tc-rtog';
+  var NATIVE={A:1,BUTTON:1,INPUT:1,SELECT:1,TEXTAREA:1};
+  function a11yize(scope){
+    try{ (scope||document).querySelectorAll(SEL).forEach(function(el){
+      if(NATIVE[el.tagName]) return;
+      if(!el.hasAttribute('tabindex')){ el.setAttribute('tabindex','0'); }
+      if(!el.hasAttribute('role')){ el.setAttribute('role','button'); }
+      if(el.getAttribute('aria-label')==null){ var t=(el.textContent||'').trim(); if(t) el.setAttribute('aria-label', t.replace(/\s+/g,' ').slice(0,60)); }
+    }); }catch(e){}
+  }
+  /* Enter/Space activates a span-button (native controls handle themselves) */
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter' && e.key!==' ' && e.key!=='Spacebar') return;
+    var t=e.target; if(!t||!t.closest || NATIVE[t.tagName]) return;
+    var b=t.closest(SEL);
+    if(b && !NATIVE[b.tagName]){ e.preventDefault(); b.click(); }
+  });
+  /* Escape closes the topmost open modal / overlay */
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape') return;
+    var ov=[].slice.call(document.querySelectorAll('.modal.on,[role="dialog"],#ytPrimer,#ytaPrimer')).filter(function(o){ try{ return o.offsetParent!==null && getComputedStyle(o).display!=='none'; }catch(_){ return false; } });
+    if(!ov.length) return;
+    var top=ov[ov.length-1];
+    var x=top.querySelector('#ytpNo,#ytaNo,[data-close],.mc-close,.modal-x,.mx');
+    if(x){ x.click(); }
+    else if(top.classList.contains('on')){ top.classList.remove('on'); }
+    else if(top.id==='ytPrimer'||top.id==='ytaPrimer'){ try{ top.remove(); }catch(_){ } }
+  });
+  /* catch dynamically-rendered clickables (coalesced to once per frame) */
+  var pending=false;
+  function schedule(){ if(pending) return; pending=true; requestAnimationFrame(function(){ pending=false; a11yize(document); }); }
+  function boot(){ a11yize(document); try{ new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true}); }catch(e){} }
+  if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded',boot);
+})();
 </script>
 </body>
 </html>
