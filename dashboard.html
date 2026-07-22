@@ -164,10 +164,14 @@ canvas#dial{width:110px;height:110px}
 /* ===== REPORT GRID ===== */
 .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
 .card{
-  background:linear-gradient(180deg,hsl(228 18% 8% / .8),hsl(228 18% 8% / .55));
-  border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;
+  background:linear-gradient(180deg,hsl(228 18% 9.5% / .88),hsl(228 18% 8% / .5));
+  border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;
   position:relative;overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03), 0 14px 36px -24px rgba(0,0,0,.72);
+  transition:border-color .28s,box-shadow .28s;
 }
+.card::before{content:'';position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,var(--accent,#8b5cf6),transparent);opacity:.16}
+.card:hover{border-color:var(--border2,hsl(228 14% 24%));box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 22px 48px -24px rgba(0,0,0,.85)}
 .c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}
 @media(max-width:860px){.c8,.c6,.c4{grid-column:span 12}}
 .clabel{
@@ -206,7 +210,7 @@ canvas.med{width:100%;height:160px;display:block}
 .pill.mid{color:var(--faint);border:1px solid var(--border2)}
 
 /* ===== FIXES ===== */
-.fix{border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;background:hsl(228 16% 10% / .5)}
+.fix{border:1px solid var(--border);border-radius:13px;padding:17px 19px;margin-bottom:11px;background:linear-gradient(180deg,hsl(228 16% 11% / .6),hsl(228 16% 9% / .4));box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
 .fix:last-child{margin-bottom:0}
 .fix .fh{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .sev{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;border-radius:6px;padding:3px 9px;text-transform:uppercase;flex:0 0 auto}
