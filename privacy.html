@@ -37,7 +37,9 @@ a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 :focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px}
 
-.bg-app{position:fixed;inset:0;z-index:-1;background:radial-gradient(900px 500px at 80% -10%, hsl(260 90% 66% / .08), transparent 60%), var(--bg)}
+.bg-app{position:fixed;inset:0;z-index:-2;background:radial-gradient(900px 520px at 80% -10%, hsl(260 90% 66% / .10), transparent 60%),radial-gradient(700px 420px at 0% 100%, hsl(190 92% 56% / .05), transparent 55%), var(--bg)}
+.bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(to right,hsl(228 14% 16% / .38) 1px,transparent 1px),linear-gradient(to bottom,hsl(228 14% 16% / .38) 1px,transparent 1px);background-size:58px 58px;-webkit-mask-image:radial-gradient(ellipse 75% 55% at 50% 0%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse 75% 55% at 50% 0%,#000 20%,transparent 75%)}
+
 
 nav.top{position:sticky;top:0;z-index:50;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:hsl(230 24% 5% / .84);border-bottom:1px solid var(--border)}
 nav.top .inner{max-width:720px;margin:0 auto;padding:0 22px;display:flex;align-items:center;height:60px;gap:20px}
@@ -66,6 +68,7 @@ footer a:hover{color:var(--fg);text-decoration:none}
 </head>
 <body>
 <div class="bg-app" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
 
 <nav class="top" role="navigation" aria-label="main navigation">
   <div class="inner">
