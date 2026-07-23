@@ -928,6 +928,21 @@ table.cmp .dim{color:var(--faint);font-size:.74rem}
 /* ============ ACCESSIBILITY: visible keyboard focus on every interactive element ============ */
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[role="button"]:focus-visible,[role="checkbox"]:focus-visible,[tabindex]:focus-visible,.mini-act:focus-visible,.copychip:focus-visible,.copy:focus-visible,.plat-chip:focus-visible,.vsw:focus-visible,.lens-btn:focus-visible,.tcm-x:focus-visible,.tc-rtog:focus-visible{outline:2px solid var(--accent,#22d3ee);outline-offset:2px;border-radius:6px}
 .a11y-btn{cursor:pointer}
+/* idea validator */
+.iv-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.iv-badge{font-family:var(--mono);font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;border-radius:99px;border:1px solid var(--border2);color:var(--muted)}
+.iv-badge.iv-proven{color:hsl(145 70% 55%);border-color:hsl(145 70% 55% / .5);background:hsl(145 70% 55% / .1)}
+.iv-badge.iv-promising{color:hsl(190 92% 56%);border-color:hsl(190 92% 56% / .5);background:hsl(190 92% 56% / .1)}
+.iv-badge.iv-sat{color:hsl(45 95% 62%);border-color:hsl(45 95% 62% / .5);background:hsl(45 95% 62% / .1)}
+.iv-badge.iv-risky{color:hsl(8 85% 62%);border-color:hsl(8 85% 62% / .5);background:hsl(8 85% 62% / .1)}
+.iv-score{font-family:var(--mono);font-size:.8rem;color:var(--fg);font-weight:600}
+.iv-line{font-size:.86rem;color:var(--fg);margin-bottom:10px;line-height:1.5}
+.iv-ev{font-size:.76rem;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);line-height:1.45}
+.iv-ev:first-child{border-top:none}
+.iv-sig{display:inline-block;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-right:8px;min-width:84px;vertical-align:top}
+.iv-meta{font-family:var(--mono);font-size:.68rem;color:var(--faint);margin-top:9px}
+.iv-angle{font-size:.82rem;color:var(--muted);margin-top:9px;line-height:1.5}
+.iv-title{font-size:.78rem;color:var(--faint);margin-top:9px}
 </style>
 </head>
 <body>
@@ -1350,6 +1365,23 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 <div class="tile s3" id="tRoad">
           <h3><span class="acc" aria-hidden="true">◈</span> 30-day roadmap</h3>
           <div id="roadBody"><div class="tsub">The program drops here after the coach's first review.</div></div>
+        </div>
+
+<div class="tile s3" id="tValidate">
+          <h3><span class="acc" aria-hidden="true">◎</span> idea validator <span class="end">before you film</span></h3>
+          <div class="tsub" style="margin-bottom:9px">Got a video idea? See if it will actually work, checked live against real YouTube demand and whether small channels already won with it.</div>
+          <div class="lab-form">
+            <input id="ideaIn" type="text" placeholder="type a video idea…" aria-label="video idea to validate">
+            <button class="btn btn-primary" style="flex:0 0 auto" onclick="validateIdea()">Check</button>
+          </div>
+          <div class="lab-out" id="ideaOut" aria-live="polite" style="display:none">
+            <div class="iv-head"><span class="iv-badge" id="ivVerdict">-</span><span class="iv-score" id="ivScore"></span></div>
+            <div class="iv-line" id="ivOne"></div>
+            <div id="ivEvidence"></div>
+            <div class="iv-meta" id="ivSat"></div>
+            <div class="iv-angle" id="ivAngle"></div>
+            <div class="iv-title" id="ivTitleWrap" style="display:none">suggested title: <span class="copychip" id="ivTitle"></span></div>
+          </div>
         </div>
 
 <div class="tile s3" id="tLab">
@@ -4890,6 +4922,32 @@ function titleTest(inId, outId){
     })
     .catch(function(){ $('labScore'+suf).textContent='!'; $('labVerdict'+suf).textContent='network hiccup, try again'; })
     .finally(function(){ window['_titling'+suf]=false; });
+}
+
+/* ---------- idea validator: "will this idea work before i film it" ---------- */
+function ivClass(v){ v=(v||'').toLowerCase(); return v==='proven'?'iv-proven':v==='promising'?'iv-promising':v==='saturated'?'iv-sat':'iv-risky'; }
+function validateIdea(){
+  var t=$('ideaIn').value.trim(); if(!t) return;
+  if(window._validating) return; window._validating=true;
+  var niche=(LASTAI&&LASTAI.niche)||'';
+  var out=$('ideaOut'); out.style.display='block';
+  var badge=$('ivVerdict'); badge.textContent='…'; badge.className='iv-badge';
+  $('ivScore').textContent=''; $('ivOne').textContent='checking real youtube demand…'; $('ivEvidence').innerHTML=''; $('ivSat').textContent=''; $('ivAngle').innerHTML=''; $('ivTitleWrap').style.display='none';
+  var _ac=(window.AbortController)?new AbortController():null; var _to=_ac?setTimeout(function(){try{_ac.abort();}catch(e){}},45000):0;
+  fetch('https://n8n.stromation.com/webhook/viralsidekick-idea',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idea:t,niche:niche}),signal:_ac?_ac.signal:undefined})
+    .then(function(r){ clearTimeout(_to); return r.json(); })
+    .then(function(d){
+      if(!d||!d.ok){ badge.textContent='!'; $('ivOne').textContent='could not check that one, try again'; return; }
+      badge.textContent=d.verdict||'-'; badge.className='iv-badge '+ivClass(d.verdict);
+      $('ivScore').textContent=(d.demand_score!=null?(d.demand_score+'/100'):'');
+      $('ivOne').textContent=d.one_liner||'';
+      $('ivEvidence').innerHTML=(d.evidence||[]).map(function(e){ return '<div class="iv-ev"><span class="iv-sig">'+esc(e.signal||'')+'</span>'+esc(e.finding||'')+'</div>'; }).join('');
+      $('ivSat').textContent=(d.saturation?('saturation: '+d.saturation):'')+(d.format_match&&d.format_match!=='none'?('   ·   format: '+d.format_match):'');
+      $('ivAngle').innerHTML=d.unique_angle?('<b style="color:var(--accent)">your angle:</b> '+esc(d.unique_angle)):'';
+      if(d.title_suggestion){ $('ivTitleWrap').style.display='block'; var c=$('ivTitle'); c.textContent=d.title_suggestion; c.setAttribute('data-copy',d.title_suggestion); try{ bindCopies($('ivTitleWrap')); }catch(e){} }
+    })
+    .catch(function(){ badge.textContent='!'; $('ivOne').textContent='network hiccup, try again'; })
+    .finally(function(){ window._validating=false; });
 }
 
 /* ---------- history: signal tile + milestones ---------- */
