@@ -943,6 +943,26 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .iv-meta{font-family:var(--mono);font-size:.68rem;color:var(--faint);margin-top:9px}
 .iv-angle{font-size:.82rem;color:var(--muted);margin-top:9px;line-height:1.5}
 .iv-title{font-size:.78rem;color:var(--faint);margin-top:9px}
+/* studio: hooks / formats / swipe / retention coach */
+.hk-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border)}
+.hk-row:first-child{border-top:none}
+.hk-cat{font-family:var(--mono);font-size:.55rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);min-width:86px;flex:0 0 auto}
+.hk-h{font-size:.8rem;flex:1;line-height:1.35}
+.hk-sc{font-family:var(--mono);font-size:.66rem;color:var(--faint);flex:0 0 auto}
+.fmt-row{padding:8px 0;border-top:1px solid var(--border)}
+.fmt-row:first-child{border-top:none}
+.fmt-h{font-weight:600;font-size:.84rem;color:var(--fg)}
+.fmt-in{font-family:var(--mono);font-size:.58rem;color:var(--faint);text-transform:lowercase;margin-left:6px}
+.fmt-a{font-size:.78rem;color:var(--muted);margin:4px 0;line-height:1.45}
+.sw-row{padding:7px 0;border-top:1px solid var(--border)}
+.sw-row:first-child{border-top:none}
+.sw-sk{font-family:var(--mono);font-size:.76rem;color:var(--fg)}
+.sw-x{color:var(--faint);cursor:pointer;margin-left:6px;font-size:.7rem}
+.sw-x:hover{color:hsl(8 85% 62%)}
+.sw-r{margin-top:4px}
+.rc-head{font-size:.86rem;color:var(--fg);margin-bottom:8px;line-height:1.45}
+.rc-drop{font-size:.78rem;color:var(--muted);background:hsl(8 85% 62% / .08);border:1px solid hsl(8 85% 62% / .28);border-radius:8px;padding:8px 10px;margin-bottom:8px;line-height:1.45}
+.rc-fix{font-size:.78rem;color:var(--muted);padding:3px 0;line-height:1.4}
 </style>
 </head>
 <body>
@@ -1396,6 +1416,40 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
             <div id="labRewrites"></div>
             <div class="tsub" style="margin-top:8px"><b style="color:var(--accent)">hook:</b> <span id="labHook"></span></div>
           </div>
+        </div>
+
+<div class="tile s3" id="tHooks">
+          <h3><span class="acc" aria-hidden="true">⚡</span> hook studio <span class="end">first 3 seconds</span></h3>
+          <div class="tsub" style="margin-bottom:9px">12 proven hook styles for any topic, strongest first.</div>
+          <div class="lab-form">
+            <input id="hookIn" type="text" placeholder="your video topic…" aria-label="topic for hooks">
+            <button class="btn btn-primary" style="flex:0 0 auto" onclick="genHooks()">Go</button>
+          </div>
+          <div id="hookOut" style="display:none;margin-top:10px"></div>
+        </div>
+
+<div class="tile s3" id="tFormats">
+          <h3><span class="acc" aria-hidden="true">◱</span> format finder <span class="end">steal what works</span></h3>
+          <div class="tsub" style="margin-bottom:9px">Proven formats winning in nearby niches, with your specific angle.</div>
+          <button class="btn btn-primary btn-sm" onclick="findFormats()">Find formats for my niche</button>
+          <div id="fmtOut" style="display:none;margin-top:10px"></div>
+        </div>
+
+<div class="tile s3" id="tSwipe">
+          <h3><span class="acc" aria-hidden="true">▤</span> swipe file <span class="end" id="swipeCount"></span></h3>
+          <div class="tsub" style="margin-bottom:9px">Turn any viral title into a reusable skeleton you refill for your niche.</div>
+          <div class="lab-form">
+            <input id="swipeIn" type="text" placeholder="paste a viral title…" aria-label="viral title to abstract">
+            <button class="btn btn-primary" style="flex:0 0 auto" onclick="makeSkeleton()">Save</button>
+          </div>
+          <div id="swipeOut" style="margin-top:10px"></div>
+        </div>
+
+<div class="tile s3" id="tRetCoach">
+          <h3><span class="acc" aria-hidden="true">◠</span> retention coach <span class="end">where they leave</span></h3>
+          <div class="tsub" style="margin-bottom:9px">Reads your real retention curve and tells you exactly where viewers drop and why.</div>
+          <button class="btn btn-primary btn-sm" onclick="coachRetention()">Coach my retention</button>
+          <div id="retCoachOut" style="display:none;margin-top:10px"></div>
         </div>
 
 <div class="tile s3" id="tSignal">
@@ -2668,7 +2722,7 @@ function spaceFallback(){ var e=$('tcMembers'); if(e) e.innerHTML='<div class="t
 /* single source of truth for entitlement. own paid plan (with a live status) OR a team-plan workspace.
    recomputed on every profile/space change so leaving a team actually drops Pro instead of staying stuck true. */
 function ownPro(){ return (PROFILE.plan==='pro'||PROFILE.plan==='team') && (PROFILE.plan_status==null || PROFILE.plan_status==='active' || PROFILE.plan_status==='trialing'); }
-function recomputePro(){ IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); try{ renderPro(); }catch(e){} try{ renderDeep(); }catch(e){} }
+function recomputePro(){ IS_PRO = ownPro() || !!(SPACE && SPACE.workspace && SPACE.workspace.plan==='team'); try{ renderPro(); }catch(e){} try{ renderDeep(); }catch(e){} try{ renderSwipe(); }catch(e){} }
 function syncTeamPro(){ recomputePro(); }
 function seatLabel(){ if(!(SPACE&&SPACE.workspace)) return ''; var n=(SPACE.members&&SPACE.members.length)||0; return (SPACE.workspace.plan==='team')?'<span style="color:hsl(45 95% 62%)">'+n+'/5 seats</span>':n+'/5 seats'; }
 /* transient status for space actions (invite sent, errors). its own line under the
@@ -4948,6 +5002,57 @@ function validateIdea(){
     })
     .catch(function(){ badge.textContent='!'; $('ivOne').textContent='network hiccup, try again'; })
     .finally(function(){ window._validating=false; });
+}
+
+/* ---------- studio: hook studio / format finder / swipe file / retention coach ---------- */
+var STUDIO='https://n8n.stromation.com/webhook/viralsidekick-studio';
+function studioCall(payload){ return fetch(STUDIO,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){return r.json();}); }
+function genHooks(){
+  var t=$('hookIn').value.trim(); if(!t||window._hooking) return; window._hooking=true;
+  var o=$('hookOut'); o.style.display='block'; o.innerHTML='<div class="tsub">writing hooks…</div>';
+  studioCall({tool:'hooks',topic:t,platform:(typeof PLATFORM!=='undefined'&&PLATFORM==='tiktok')?'tiktok':'youtube'}).then(function(d){
+    if(!d||!d.ok){ o.innerHTML='<div class="tsub">could not generate, try again</div>'; return; }
+    o.innerHTML=(d.hooks||[]).map(function(h){ return '<div class="hk-row"><span class="hk-cat">'+esc(h.category||'')+'</span><span class="copychip hk-h" data-copy="'+esc(h.hook||'')+'">'+esc(h.hook||'')+'</span><span class="hk-sc">'+(h.score!=null?h.score:'')+'</span></div>'; }).join('');
+    try{ bindCopies(o); }catch(e){}
+  }).catch(function(){ o.innerHTML='<div class="tsub">network hiccup, try again</div>'; }).finally(function(){ window._hooking=false; });
+}
+function findFormats(){
+  if(window._fmting) return; window._fmting=true;
+  var niche=(LASTAI&&LASTAI.niche)||'';
+  var o=$('fmtOut'); o.style.display='block'; o.innerHTML='<div class="tsub">finding proven formats…</div>';
+  studioCall({tool:'formats',niche:niche}).then(function(d){
+    if(!d||!d.ok){ o.innerHTML='<div class="tsub">try again</div>'; return; }
+    o.innerHTML=(d.formats||[]).map(function(f){ return '<div class="fmt-row"><div class="fmt-h">'+esc(f.format||'')+(f.proven_in?'<span class="fmt-in">'+esc(f.proven_in)+'</span>':'')+'</div><div class="fmt-a"><b style="color:var(--accent)">your angle:</b> '+esc(f.your_angle||'')+'</div>'+(f.example_title?'<span class="copychip fmt-t" data-copy="'+esc(f.example_title)+'">'+esc(f.example_title)+'</span>':'')+'</div>'; }).join('');
+    try{ bindCopies(o); }catch(e){}
+  }).catch(function(){ o.innerHTML='<div class="tsub">network hiccup</div>'; }).finally(function(){ window._fmting=false; });
+}
+function swipeKey(){ return 'vs_swipe_'+((typeof USER!=='undefined'&&USER&&USER.id)||'anon'); }
+function loadSwipe(){ try{ return JSON.parse(localStorage.getItem(swipeKey())||'[]'); }catch(e){ return []; } }
+function renderSwipe(){
+  var el=$('swipeOut'); if(!el) return; var arr=loadSwipe();
+  var c=$('swipeCount'); if(c) c.textContent=arr.length?arr.length+' saved':'';
+  el.innerHTML=arr.length? arr.map(function(s,i){ return '<div class="sw-row"><div class="sw-sk">'+esc(s.title_skeleton||'')+' <span class="sw-x" onclick="delSwipe('+i+')" title="remove">✕</span></div>'+(s.refill?'<div class="sw-r"><span class="copychip" data-copy="'+esc(s.refill)+'">'+esc(s.refill)+'</span></div>':'')+'</div>'; }).join('') : '<div class="tsub" style="opacity:.75">no skeletons yet — paste a viral title above</div>';
+  try{ bindCopies(el); }catch(e){}
+}
+function delSwipe(i){ var arr=loadSwipe(); arr.splice(i,1); localStorage.setItem(swipeKey(),JSON.stringify(arr)); renderSwipe(); }
+function makeSkeleton(){
+  var t=$('swipeIn').value.trim(); if(!t||window._skel) return; window._skel=true;
+  var niche=(LASTAI&&LASTAI.niche)||''; var btnIn=$('swipeIn'); btnIn.disabled=true;
+  studioCall({tool:'skeleton',source:t,niche:niche}).then(function(d){
+    if(d&&d.ok){ var arr=loadSwipe(); arr.unshift({title_skeleton:d.title_skeleton,format_label:d.format_label,refill:d.refill,thumbnail_pattern:d.thumbnail_pattern}); localStorage.setItem(swipeKey(),JSON.stringify(arr.slice(0,50))); $('swipeIn').value=''; renderSwipe(); }
+  }).finally(function(){ window._skel=false; btnIn.disabled=false; });
+}
+function coachRetention(){
+  var o=$('retCoachOut'); o.style.display='block';
+  var ret=(typeof DEEP!=='undefined'&&DEEP&&DEEP.retention)?DEEP.retention:null;
+  var pts=(ret&&ret.points)||[];
+  if(pts.length<4){ o.innerHTML='<div class="tsub">Connect your channel and let deep analytics load first — then this reads your real retention curve.</div>'; return; }
+  o.innerHTML='<div class="tsub">reading your curve…</div>';
+  var points=pts.map(function(p){ return { p:Math.round((Number(p.ratio)||0)*100), r:Number((Number(p.watch)||0).toFixed(3)) }; });
+  studioCall({tool:'retention',points:points,title:(ret.title||'your video')}).then(function(d){
+    if(!d||!d.ok){ o.innerHTML='<div class="tsub">try again</div>'; return; }
+    o.innerHTML='<div class="rc-head">'+esc(d.headline||'')+'</div>'+(d.biggest_drop?'<div class="rc-drop"><b>biggest drop</b> at '+esc(String(d.biggest_drop.at_pct))+'% — '+esc(d.biggest_drop.lost||'')+'. '+esc(d.biggest_drop.why||'')+'</div>':'')+'<div>'+(d.fixes||[]).map(function(f){ return '<div class="rc-fix">→ '+esc(f)+'</div>'; }).join('')+'</div>';
+  }).catch(function(){ o.innerHTML='<div class="tsub">network hiccup</div>'; });
 }
 
 /* ---------- history: signal tile + milestones ---------- */
